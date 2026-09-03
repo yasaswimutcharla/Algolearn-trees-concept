@@ -140,9 +140,11 @@ export default function App() {
   const handleResetProgress = () => {
     setCompletedTopics([]);
     setQuizScore(null);
+    setIsVideoCompleted(false);
     try {
       localStorage.removeItem('tree_dsa_completed_topics');
       localStorage.removeItem('tree_dsa_quiz_score');
+      localStorage.removeItem('tree_dsa_video_completed');
     } catch {}
   };
 
@@ -183,6 +185,7 @@ export default function App() {
         onToggleTheme={() => setIsDarkMode(!isDarkMode)}
         completedTopics={completedTopics}
         quizScore={quizScore}
+        isVideoCompleted={isVideoCompleted}
         isSoundOn={isSoundOn}
         onToggleSound={() => setIsSoundOn((prev) => !prev)}
         onResetProgress={handleResetProgress}

@@ -25,6 +25,7 @@ interface NavigationSidebarProps {
   completedTopics?: TopicId[];
   quizScore?: { score: number; total: number } | null;
   completedVisualizations?: string[];
+  isVideoCompleted?: boolean;
   isSoundOn?: boolean;
   onToggleSound?: () => void;
   onResetProgress?: () => void;
@@ -41,19 +42,19 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   completedTopics = [],
   quizScore = null,
   completedVisualizations: propCompletedVisualizations,
+  isVideoCompleted: propIsVideoCompleted,
   isSoundOn = true,
   onToggleSound,
   onResetProgress
 }) => {
   const [hoveredNav, setHoveredNav] = React.useState<NavItem | null>(null);
 
-  // Read saved visualizations if available, default to empty array (0/8)
-  const completedVisualizations = propCompletedVisualizations || (() => {
+  // Read video completion status for the single Visualize item
+  const isVideoDone = propIsVideoCompleted !== undefined ? propIsVideoCompleted : (() => {
     try {
-      const saved = localStorage.getItem('tree_dsa_completed_visualizations') || localStorage.getItem('tree_dsa_visualizations');
-      return saved ? JSON.parse(saved) : [];
+      return localStorage.getItem('tree_dsa_video_completed') === 'true';
     } catch {
-      return [];
+      return false;
     }
   })();
 
@@ -62,7 +63,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       case 'learn':
         return `${completedTopics.length}/7`;
       case 'visualize':
-        return `${completedVisualizations.length}/8`;
+        return isVideoDone ? '1/1' : '0/1';
       case 'quiz':
         return quizScore ? `${quizScore.score}/${quizScore.total}` : '0/10';
       case 'progress':
@@ -131,8 +132,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           </button>
         </div>
 
-        {/* Navigation Menu Header & Items List */}
-        <div className="flex-1 overflow-y-auto px-3 py-3">
+        {/* Navigation Menu Header & Items List (scrollbar visually hidden) */}
+        <div className="flex-1 overflow-y-auto px-3 py-3 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="px-3 py-2 text-[11px] font-mono font-semibold tracking-wider uppercase text-slate-400 dark:text-slate-500">
             Navigation Menu
           </div>

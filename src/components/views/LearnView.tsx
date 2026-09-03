@@ -6,13 +6,6 @@ import {
   TREE_TYPES_LIST,
   TRAVERSALS_LIST
 } from '../../data/treeData';
-import { BasicsVisualizer } from '../visualizer/BasicsVisualizer';
-import { TerminologyVisualizer } from '../visualizer/TerminologyVisualizer';
-import { TreeTypesVisualizer } from '../visualizer/TreeTypesVisualizer';
-import { BinaryTreeVisualizer } from '../visualizer/BinaryTreeVisualizer';
-import { TraversalVisualizer } from '../visualizer/TraversalVisualizer';
-import { BSTVisualizer } from '../visualizer/BSTVisualizer';
-import { ApplicationsVisualizer } from '../visualizer/ApplicationsVisualizer';
 import { ArchitectureDiagram } from './ArchitectureDiagram';
 import {
   Eye,
@@ -60,7 +53,6 @@ export const LearnView: React.FC<LearnViewProps> = ({
   completedTopics = [],
   onMarkTopicCompleted
 }) => {
-  const [showVisualRepresentation, setShowVisualRepresentation] = useState<boolean>(false);
   const [showTerminologyArchitecture, setShowTerminologyArchitecture] = useState<boolean>(false);
   const [showBinaryTreeArchitecture, setShowBinaryTreeArchitecture] = useState<boolean>(false);
   const [isMobileSyllabusOpen, setIsMobileSyllabusOpen] = useState<boolean>(false);
@@ -72,9 +64,8 @@ export const LearnView: React.FC<LearnViewProps> = ({
   const [showGuidedSolve, setShowGuidedSolve] = useState<boolean>(false);
   const [guidedStepIndex, setGuidedStepIndex] = useState<number>(0);
 
-  // When switching topic, reset visual representation and practice state
+  // When switching topic, reset architecture and practice state
   useEffect(() => {
-    setShowVisualRepresentation(false);
     setShowTerminologyArchitecture(false);
     setShowBinaryTreeArchitecture(false);
     setIsMobileSyllabusOpen(false);
@@ -98,27 +89,6 @@ export const LearnView: React.FC<LearnViewProps> = ({
   const handleToggleCompleted = () => {
     if (onMarkTopicCompleted) {
       onMarkTopicCompleted(currentTopicId);
-    }
-  };
-
-  const renderVisualizer = () => {
-    switch (currentTopicId) {
-      case 'basics':
-        return <BasicsVisualizer isDarkMode={isDarkMode} />;
-      case 'terminology':
-        return <TerminologyVisualizer isDarkMode={isDarkMode} />;
-      case 'types':
-        return <TreeTypesVisualizer isDarkMode={isDarkMode} />;
-      case 'binary-tree':
-        return <BinaryTreeVisualizer isDarkMode={isDarkMode} />;
-      case 'bst':
-        return <BSTVisualizer isDarkMode={isDarkMode} />;
-      case 'traversals':
-        return <TraversalVisualizer isDarkMode={isDarkMode} />;
-      case 'applications':
-        return <ApplicationsVisualizer isDarkMode={isDarkMode} />;
-      default:
-        return <BasicsVisualizer isDarkMode={isDarkMode} />;
     }
   };
 
@@ -373,29 +343,47 @@ export const LearnView: React.FC<LearnViewProps> = ({
           {currentTopic.coreIntuition && (
             <div
               id="section-core-intuition"
-              className={`p-6 sm:p-7 rounded-3xl border ${
+              className={`p-6 sm:p-7 rounded-3xl border transition-all duration-200 ${
                 isDarkMode
-                  ? 'bg-[#0e1424] border-violet-900/40 text-slate-100'
+                  ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-xl shadow-violet-950/20'
                   : 'bg-white border-slate-200 text-slate-900 shadow-sm'
               }`}
             >
               <div className="flex items-center gap-2 mb-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-xs shadow-cyan-400" />
-                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-cyan-400">
+                <span
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    isDarkMode
+                      ? 'bg-violet-400 shadow-xs shadow-violet-400/60'
+                      : 'bg-indigo-600 shadow-xs shadow-indigo-400/50'
+                  }`}
+                />
+                <h3
+                  className={`text-xs font-mono font-bold uppercase tracking-widest ${
+                    isDarkMode ? 'text-violet-400' : 'text-indigo-600'
+                  }`}
+                >
                   Core Intuition
                 </h3>
               </div>
 
               <div
-                className={`p-4 rounded-2xl border mb-3 flex items-start gap-3 ${
+                className={`p-4 rounded-2xl border mb-3 flex items-start gap-3 transition-colors duration-200 ${
                   isDarkMode
-                    ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-200'
-                    : 'bg-cyan-50 border-cyan-200 text-cyan-900'
+                    ? 'bg-violet-950/20 border-violet-500/30 text-violet-200'
+                    : 'bg-indigo-50/70 border-indigo-200 text-indigo-900'
                 }`}
               >
-                <Lightbulb className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
+                <Lightbulb
+                  className={`w-5 h-5 shrink-0 mt-0.5 ${
+                    isDarkMode ? 'text-violet-400' : 'text-indigo-600'
+                  }`}
+                />
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-cyan-400 mb-0.5">
+                  <div
+                    className={`text-xs font-bold uppercase tracking-wider mb-0.5 ${
+                      isDarkMode ? 'text-violet-400' : 'text-indigo-600'
+                    }`}
+                  >
                     Real-World Analogy
                   </div>
                   <p className="text-xs sm:text-sm leading-relaxed">
@@ -553,94 +541,6 @@ export const LearnView: React.FC<LearnViewProps> = ({
               <ArchitectureDiagram topicId={currentTopicId} isDarkMode={isDarkMode} />
             </div>
           )}
-
-          {/* ================================================================== */}
-          {/* Section: VISUAL REPRESENTATION (Interactive Simulation Section)    */}
-          {/* ================================================================== */}
-          <div
-            id="section-visual-representation"
-            className={`p-6 sm:p-7 rounded-3xl border transition-all duration-300 ${
-              isDarkMode
-                ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-xl shadow-violet-950/20'
-                : 'bg-white border-slate-200 text-slate-900 shadow-sm'
-            }`}
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-start sm:items-center gap-3.5">
-                {/* Purple icon on the left */}
-                <div
-                  className={`p-3 rounded-2xl shrink-0 ${
-                    isDarkMode
-                      ? 'bg-violet-950/70 border border-violet-800/50 text-violet-400'
-                      : 'bg-indigo-50 border border-indigo-200 text-indigo-600'
-                  }`}
-                >
-                  <Sparkles className="w-6 h-6" />
-                </div>
-
-                <div>
-                  {/* "INTERACTIVE SIMULATION" heading */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="w-2 h-2 rounded-full bg-violet-400 shadow-xs shadow-violet-400" />
-                    <span className="text-xs font-mono font-bold uppercase tracking-widest text-violet-400">
-                      Interactive Simulation
-                    </span>
-                  </div>
-
-                  {/* "Visual Representation: 1. What is a Tree?" title format */}
-                  <h3 className="text-base sm:text-lg font-bold tracking-tight">
-                    Visual Representation: {currentTopic.title.replace(/^0?/, '')}
-                  </h3>
-
-                  {/* Description text */}
-                  <p className="text-xs sm:text-sm opacity-70 mt-1 leading-relaxed">
-                    Interactive hands-on tree simulation to visualize data structure operations in real-time.
-                  </p>
-                </div>
-              </div>
-
-              {/* Purple "Visual Representation" dropdown/button on the right with Eye icon & Dropdown arrow */}
-              <button
-                id="visual-representation-toggle-btn"
-                onClick={() => setShowVisualRepresentation(!showVisualRepresentation)}
-                className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md cursor-pointer shrink-0 ${
-                  showVisualRepresentation
-                    ? isDarkMode
-                      ? 'bg-[#192238] text-violet-300 border border-violet-500/50 hover:bg-[#202c48]'
-                      : 'bg-indigo-50 text-indigo-700 border border-indigo-300 hover:bg-indigo-100 hover:text-indigo-950'
-                    : isDarkMode
-                    ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-900/40 ring-1 ring-violet-400/40'
-                    : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-200'
-                }`}
-              >
-                {showVisualRepresentation ? (
-                  <>
-                    <EyeOff className="w-4 h-4" />
-                    <span>Visual Representation</span>
-                    <ChevronUp className="w-4 h-4 ml-1" />
-                  </>
-                ) : (
-                  <>
-                    <Eye className="w-4 h-4" />
-                    <span>Visual Representation</span>
-                    <ChevronDown className="w-4 h-4 ml-1" />
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Expanded Visualizer inside the Visual Representation section */}
-            {showVisualRepresentation && (
-              <div
-                id="visual-representation-container"
-                className={`mt-6 pt-6 border-t ${
-                  isDarkMode ? 'border-violet-950/80' : 'border-slate-200'
-                }`}
-              >
-                {renderVisualizer()}
-              </div>
-            )}
-          </div>
 
           {/* ================================================================== */}
           {/* Section: TRY IT YOURSELF — MINI PRACTICE (Beginner Simple)        */}
