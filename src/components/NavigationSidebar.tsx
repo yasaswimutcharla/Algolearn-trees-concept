@@ -6,10 +6,6 @@ import {
   Eye,
   GraduationCap,
   Trophy,
-  Volume2,
-  VolumeX,
-  Settings,
-  RotateCcw,
   X
 } from 'lucide-react';
 import { AlgoLearnLogo } from './AlgoLearnLogo';
@@ -213,62 +209,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               );
             })}
           </nav>
-        </div>
-
-        {/* Bottom Footer matching Screenshot (47) */}
-        <div
-          className={`p-4 border-t space-y-3 ${
-            isDarkMode ? 'border-slate-800/80 bg-[#080c16]' : 'border-slate-100 bg-slate-50/50'
-          }`}
-        >
-          {/* Row 1: Audio Control + Settings */}
-          <div className="flex items-center justify-between px-1">
-            <button
-              onClick={onToggleSound}
-              title={isSoundOn ? 'Sound is Enabled' : 'Sound is Muted'}
-              className={`flex items-center gap-2 text-xs font-semibold transition-colors cursor-pointer ${
-                isDarkMode
-                  ? 'text-slate-300 hover:text-white'
-                  : 'text-slate-700 hover:text-slate-950'
-              }`}
-            >
-              {isSoundOn ? (
-                <Volume2 className={`w-4 h-4 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
-              ) : (
-                <VolumeX className="w-4 h-4 text-slate-400" />
-              )}
-              <span>{isSoundOn ? 'Audio On' : 'Audio Off'}</span>
-            </button>
-
-            <button
-              onClick={onToggleSound}
-              title="Sound Preferences"
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                isDarkMode
-                  ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                  : 'text-slate-600 hover:text-slate-950 hover:bg-slate-200/70'
-              }`}
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Row 2: Reset Demo Progress Button */}
-          <button
-            id="sidebar-reset-demo-btn"
-            onClick={onResetProgress}
-            title="Reset All Progress & Scores"
-            className={`group w-full py-2.5 px-4 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-all cursor-pointer ${
-              isDarkMode
-                ? 'border-slate-800 bg-[#0c1222] hover:bg-slate-800 text-slate-300 hover:text-white'
-                : 'border-slate-300 bg-white hover:bg-slate-100 text-slate-800 hover:text-slate-950 shadow-xs'
-            }`}
-          >
-            <RotateCcw className={`w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180 ${
-              isDarkMode ? 'text-slate-400 group-hover:text-white' : 'text-slate-700 group-hover:text-slate-950'
-            }`} />
-            <span>Reset Demo Progress</span>
-          </button>
         </div>
       </aside>
     </>

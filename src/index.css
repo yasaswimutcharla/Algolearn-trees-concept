@@ -1,12 +1,35 @@
 @import "tailwindcss";
 
 @layer base {
+  html,
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox and modern Chrome/Safari */
   }
   code, pre, kbd {
     font-family: 'JetBrains Mono', monospace;
   }
+}
+
+/* Hide scrollbar visually on the main page / document while keeping it fully scrollable */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+#root::-webkit-scrollbar,
+#app-root::-webkit-scrollbar,
+div#root > div::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html,
+body,
+#root,
+#app-root,
+div#root > div {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox, Chrome 121+, Safari */
 }
 
 /* Hide scrollbar for Chrome, Safari, Edge, Opera */
