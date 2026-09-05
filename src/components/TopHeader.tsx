@@ -54,7 +54,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       className={`h-16 px-4 sm:px-6 flex items-center justify-between border-b sticky top-0 z-30 transition-colors duration-200 backdrop-blur-md ${
         isDarkMode
           ? 'bg-[#090d16]/90 border-slate-800/80 text-slate-100'
-          : 'bg-white/90 border-slate-200 text-slate-900'
+          : 'bg-white/95 border-blue-100 text-black'
       }`}
     >
       {/* Left side: Hamburger menu button (hidden when sidebar is open, visible when closed) + Project Icon + Title/Subtitle */}
@@ -67,7 +67,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             className={`p-2 rounded-xl transition-all cursor-pointer ${
               isDarkMode
                 ? 'hover:bg-[#151c2e] text-slate-300 hover:text-white'
-                : 'hover:bg-slate-100 text-slate-700 hover:text-slate-950'
+                : 'hover:bg-blue-50 text-blue-900 hover:text-black'
             }`}
           >
             <Menu className="w-5 h-5" />
@@ -90,13 +90,13 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all cursor-pointer ${
             isDarkMode
               ? 'border-slate-800 bg-[#0e1424] hover:bg-slate-800 text-amber-300'
-              : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-indigo-600'
+              : 'border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-600'
           }`}
         >
           {isDarkMode ? (
             <Sun className="w-4 h-4 text-amber-400" />
           ) : (
-            <Moon className="w-4 h-4 text-indigo-600" />
+            <Moon className="w-4 h-4 text-blue-600" />
           )}
         </button>
 
@@ -108,13 +108,13 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all cursor-pointer ${
             isDarkMode
               ? 'border-slate-800 bg-[#0e1424] hover:bg-slate-800 text-slate-300 hover:text-white'
-              : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950'
+              : 'border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-black'
           }`}
         >
           {isSoundOn ? (
-            <Volume2 className={`w-4 h-4 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
+            <Volume2 className={`w-4 h-4 ${isDarkMode ? 'text-violet-400' : 'text-blue-600'}`} />
           ) : (
-            <VolumeX className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-700'}`} />
+            <VolumeX className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-blue-900'}`} />
           )}
         </button>
 
@@ -126,11 +126,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           className={`group w-9 h-9 rounded-full flex items-center justify-center border transition-all cursor-pointer ${
             isDarkMode
               ? 'border-slate-800 bg-[#0e1424] hover:bg-slate-800 text-slate-300 hover:text-white'
-              : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950'
+              : 'border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-black'
           }`}
         >
           <RotateCcw className={`w-4 h-4 group-hover:rotate-180 transition-transform duration-300 ${
-            isDarkMode ? 'text-slate-400 group-hover:text-white' : 'text-slate-700 group-hover:text-slate-950'
+            isDarkMode ? 'text-slate-400 group-hover:text-white' : 'text-blue-900 group-hover:text-black'
           }`} />
         </button>
       </div>

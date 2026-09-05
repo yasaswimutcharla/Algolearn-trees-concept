@@ -5,7 +5,7 @@ import { TopHeader } from './components/TopHeader';
 import { HomeView } from './components/views/HomeView';
 import { LearnView } from './components/views/LearnView';
 import { VisualizeView } from './components/views/VisualizeView';
-import { QuizView } from './components/views/QuizView';
+import { QuizView, clearSavedQuizState } from './components/views/QuizView';
 import { ProgressView } from './components/views/ProgressView';
 import {
   saveVideoToStorage,
@@ -114,6 +114,30 @@ export default function App() {
     }
   });
 
+  const [quizProgress, setQuizProgress] = useState<{ completed: number; total: number }>(() => {
+    try {
+      const saved = localStorage.getItem('tree_dsa_quiz_progress');
+      if (saved) return JSON.parse(saved);
+      const quizState = localStorage.getItem('tree_dsa_quiz_state');
+      if (quizState) {
+        const parsed = JSON.parse(quizState);
+        const count = Object.keys(parsed?.confirmedQuestions || {}).length;
+        return { completed: count, total: 10 };
+      }
+    } catch {}
+    return { completed: 0, total: 10 };
+  });
+
+  const [quizKey, setQuizKey] = useState<number>(0);
+  const [completedVisualizations, setCompletedVisualizations] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('tree_dsa_completed_visualizations');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const handleMarkTopicCompleted = (topicId: TopicId) => {
     setCompletedTopics((prev) => {
       let next: TopicId[];
@@ -137,24 +161,62 @@ export default function App() {
     } catch {}
   };
 
-  const handleResetProgress = () => {
-    setCompletedTopics([]);
-    setQuizScore(null);
-    setIsVideoCompleted(false);
+  const handleUpdateQuizProgress = (completed: number, total: number) => {
+    const data = { completed, total };
+    setQuizProgress(data);
     try {
-      localStorage.removeItem('tree_dsa_completed_topics');
-      localStorage.removeItem('tree_dsa_quiz_score');
-      localStorage.removeItem('tree_dsa_video_completed');
+      localStorage.setItem('tree_dsa_quiz_progress', JSON.stringify(data));
     } catch {}
   };
 
-  const handleNavigate = (nav: NavItem | 'game', topicId?: TopicId) => {
-    if ((nav as string) === 'game') {
-      setCurrentNav('visualize');
-      setShowVisualizeVideo(true);
-    } else {
-      setCurrentNav(nav as NavItem);
-    }
+  const handleResetProgress = () => {
+    // 1. Reset all React state to initial zero/empty state
+    setCompletedTopics([]);
+    setQuizScore(null);
+    setQuizProgress({ completed: 0, total: 10 });
+    setIsVideoCompleted(false);
+    setCompletedVisualizations([]);
+    setQuizKey((prev) => prev + 1);
+
+    // 2. Clear Quiz in-memory cache and storage
+    clearSavedQuizState();
+
+    // 3. Clear and persist the reset values to localStorage and sessionStorage
+    try {
+      localStorage.setItem('tree_dsa_completed_topics', JSON.stringify([]));
+      localStorage.removeItem('tree_dsa_quiz_score');
+      localStorage.setItem('tree_dsa_quiz_progress', JSON.stringify({ completed: 0, total: 10 }));
+      localStorage.setItem('tree_dsa_video_completed', 'false');
+      localStorage.setItem('tree_dsa_completed_visualizations', JSON.stringify([]));
+
+      localStorage.removeItem('tree_dsa_quiz_state');
+      sessionStorage.removeItem('tree_dsa_quiz_state');
+
+      // Purge any fallback, legacy, or topic/quiz/game/progress keys
+      const allStorageKeys = Object.keys(localStorage);
+      for (const key of allStorageKeys) {
+        if (key === 'tree_dsa_theme' || key === 'tree_dsa_sound') continue;
+        if (
+          key.includes('quiz') ||
+          key.includes('score') ||
+          key.includes('progress') ||
+          key.includes('topic') ||
+          key.includes('completed') ||
+          (key.includes('video') && key !== 'tree_dsa_video_completed') ||
+          key.includes('viz') ||
+          key.includes('game') ||
+          key.includes('xp') ||
+          key.includes('learn')
+        ) {
+          localStorage.removeItem(key);
+        }
+      }
+      sessionStorage.clear();
+    } catch {}
+  };
+
+  const handleNavigate = (nav: NavItem, topicId?: TopicId) => {
+    setCurrentNav(nav);
     if (topicId) {
       setCurrentTopicId(topicId);
     }
@@ -171,7 +233,7 @@ export default function App() {
       className={`min-h-screen transition-colors duration-300 ${
         isDarkMode
           ? 'bg-[#080c16] text-slate-100 selection:bg-violet-600 selection:text-white'
-          : 'bg-slate-50 text-slate-900 selection:bg-indigo-600 selection:text-white'
+          : 'bg-white text-black selection:bg-blue-600 selection:text-white'
       }`}
     >
       {/* Left-Side Navigation Sidebar */}
@@ -185,6 +247,7 @@ export default function App() {
         onToggleTheme={() => setIsDarkMode(!isDarkMode)}
         completedTopics={completedTopics}
         quizScore={quizScore}
+        quizProgress={quizProgress}
         isVideoCompleted={isVideoCompleted}
         isSoundOn={isSoundOn}
         onToggleSound={() => setIsSoundOn((prev) => !prev)}
@@ -246,8 +309,10 @@ export default function App() {
 
           {currentNav === 'quiz' && (
             <QuizView
+              key={quizKey}
               isDarkMode={isDarkMode}
               onUpdateQuizScore={handleUpdateQuizScore}
+              onUpdateQuizProgress={handleUpdateQuizProgress}
             />
           )}
 
@@ -255,6 +320,7 @@ export default function App() {
             <ProgressView
               completedTopics={completedTopics}
               quizScore={quizScore}
+              completedVisualizations={completedVisualizations}
               onNavigate={handleNavigate}
               onResetProgress={handleResetProgress}
               isDarkMode={isDarkMode}

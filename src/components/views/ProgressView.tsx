@@ -164,7 +164,7 @@ const CURRICULUM_MODULES: CurriculumModule[] = [
 export const ProgressView: React.FC<ProgressViewProps> = ({
   completedTopics,
   quizScore,
-  completedVisualizations = ['traversals', 'bst'],
+  completedVisualizations = [],
   onNavigate,
   onResetProgress,
   isDarkMode,
@@ -178,7 +178,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
   onWatchAgain
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<ModuleCategory>('all');
-  const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+  const [isResetDone, setIsResetDone] = useState<boolean>(false);
   const [localIsVideoCompleted, setLocalIsVideoCompleted] = useState<boolean>(false);
   const [localUploadedVideoUrl, setLocalUploadedVideoUrl] = useState<string | null>(null);
   const [localUploadedVideoName, setLocalUploadedVideoName] = useState<string>('');
@@ -186,6 +186,15 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
   const [isPlayerOpen, setIsPlayerOpen] = useState<boolean>(false);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const handleResetClick = () => {
+    setLocalIsVideoCompleted(false);
+    onResetProgress();
+    setIsResetDone(true);
+    setTimeout(() => {
+      setIsResetDone(false);
+    }, 1500);
+  };
 
   const uploadedVideoUrl = propVideoUrl !== undefined ? propVideoUrl : localUploadedVideoUrl;
   const uploadedVideoName = propVideoName !== undefined ? propVideoName : localUploadedVideoName;
@@ -326,7 +335,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-[#F8FAFC] shadow-xl shadow-violet-950/30'
-            : 'bg-white border-slate-200 text-[#111827] shadow-sm'
+            : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
@@ -342,12 +351,12 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
               <span>TREE DSA CURRICULUM</span>
             </div>
             <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight ${
-              isDarkMode ? 'text-[#F8FAFC]' : 'text-[#111827]'
+              isDarkMode ? 'text-[#F8FAFC]' : 'text-black'
             }`}>
               Tree DSA Curriculum & Progress
             </h1>
             <p className={`text-xs sm:text-sm mt-2 leading-relaxed max-w-2xl ${
-              isDarkMode ? 'text-[#E2E8F0]' : 'text-[#475569]'
+              isDarkMode ? 'text-[#E2E8F0]' : 'text-blue-900'
             }`}>
               Track your journey through tree concepts, algorithms, visualizations, and interactive challenges.
             </p>
@@ -355,42 +364,19 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
 
           {/* Reset Action */}
           <div className="shrink-0 flex items-center gap-3">
-            {showResetConfirm ? (
-              <div className="flex items-center gap-2 p-2 rounded-2xl border bg-rose-500/10 border-rose-500/30 text-rose-400">
-                <span className="text-xs font-semibold px-1">Confirm reset?</span>
-                <button
-                  onClick={() => {
-                    onResetProgress();
-                    setShowResetConfirm(false);
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer"
-                >
-                  Yes, Reset
-                </button>
-                <button
-                  onClick={() => setShowResetConfirm(false)}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                    isDarkMode ? 'bg-slate-700/60 hover:bg-slate-600 text-[#E2E8F0]' : 'bg-slate-200 hover:bg-slate-300 text-slate-800 hover:text-slate-950'
-                  }`}
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <button
-                id="reset-progress-btn"
-                onClick={() => setShowResetConfirm(true)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
-                  isDarkMode
-                    ? 'bg-violet-950/40 hover:bg-rose-950/40 border-violet-800/40 hover:border-rose-500/50 text-[#94A3B8] hover:text-rose-300 shadow-md'
-                    : 'bg-slate-100 hover:bg-rose-50 border-slate-200 hover:border-rose-300 text-slate-700 hover:text-rose-900'
-                }`}
-                title="Reset learning analytics to starting state"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Progress</span>
-              </button>
-            )}
+            <button
+              id="reset-progress-btn"
+              onClick={handleResetClick}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
+                isDarkMode
+                  ? 'bg-violet-950/40 hover:bg-rose-950/40 border-violet-800/40 hover:border-rose-500/50 text-[#94A3B8] hover:text-rose-300 shadow-md'
+                  : 'bg-blue-50 hover:bg-rose-50 border-blue-200 hover:border-rose-300 text-blue-900 hover:text-rose-900'
+              }`}
+              title="Reset learning analytics to starting state"
+            >
+              <RotateCcw className={`w-3.5 h-3.5 ${isResetDone ? 'rotate-180 transition-transform duration-500' : ''}`} />
+              <span>{isResetDone ? 'Reset Done' : 'Reset Progress'}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -402,7 +388,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           className={`p-6 rounded-3xl border flex flex-col justify-between transition-all duration-200 ${
             isDarkMode
               ? 'bg-[#0e1424] border-violet-900/40 text-[#F8FAFC] shadow-xl shadow-violet-950/20'
-              : 'bg-white border-slate-200 text-[#111827] shadow-sm'
+              : 'bg-white border-blue-100 text-black shadow-sm'
           }`}
         >
           <div>
@@ -426,7 +412,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                 {overallPercentage}%
               </span>
               <span className={`text-xs font-medium ${
-                isDarkMode ? 'text-[#94A3B8]' : 'text-[#64748B]'
+                isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'
               }`}>Completed</span>
             </div>
 
@@ -434,17 +420,17 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
             <div className={`w-full h-3 rounded-full overflow-hidden mt-5 p-0.5 border ${
               isDarkMode
                 ? 'bg-violet-950/50 border-violet-800/30'
-                : 'bg-slate-100 border-slate-200'
+                : 'bg-blue-50 border-blue-200'
             }`}>
               <div
                 className="h-full rounded-full bg-gradient-to-r from-violet-700 via-[#6D3DF5] to-violet-400 transition-all duration-700 shadow-sm shadow-violet-500/50"
-                style={{ width: `${Math.max(5, overallPercentage)}%` }}
+                style={{ width: `${overallPercentage}%` }}
               />
             </div>
           </div>
 
           <div className={`mt-6 pt-4 border-t flex items-center justify-between text-[11px] font-mono ${
-            isDarkMode ? 'border-violet-950/50 text-[#94A3B8]' : 'border-slate-100 text-[#64748B]'
+            isDarkMode ? 'border-violet-950/50 text-[#94A3B8]' : 'border-blue-100 text-blue-700'
           }`}>
             <span className="flex items-center gap-1.5 font-semibold">
               <span className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-[#A78BFA]' : 'bg-[#6D3DF5]'}`} />
@@ -462,7 +448,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           className={`p-6 rounded-3xl border flex flex-col justify-between transition-all duration-200 ${
             isDarkMode
               ? 'bg-[#0e1424] border-violet-900/40 text-[#F8FAFC] shadow-xl shadow-violet-950/20'
-              : 'bg-white border-slate-200 text-[#111827] shadow-sm'
+              : 'bg-white border-blue-100 text-black shadow-sm'
           }`}
         >
           <div>
@@ -474,42 +460,42 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
 
             <div className="grid grid-cols-3 gap-2 text-center py-2">
               {/* Stat 1: Topics Mastered */}
-              <div className={`p-3 rounded-2xl border ${isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-slate-50 border-slate-200'}`}>
+              <div className={`p-3 rounded-2xl border ${isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-blue-50/50 border-blue-100'}`}>
                 <div className={`text-xl sm:text-2xl font-black font-mono ${
                   isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
                 }`}>
                   {String(topicsCompletedCount).padStart(2, '0')}
                 </div>
                 <div className={`text-[10px] font-bold font-mono tracking-wider uppercase mt-1 ${
-                  isDarkMode ? 'text-[#94A3B8]' : 'text-[#64748B]'
+                  isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'
                 }`}>
                   MASTERED
                 </div>
               </div>
 
               {/* Stat 2: Modules Completed */}
-              <div className={`p-3 rounded-2xl border ${isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-slate-50 border-slate-200'}`}>
+              <div className={`p-3 rounded-2xl border ${isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-blue-50/50 border-blue-100'}`}>
                 <div className={`text-xl sm:text-2xl font-black font-mono ${
                   isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
                 }`}>
                   {String(completedModulesCount).padStart(2, '0')} / {CURRICULUM_MODULES.length}
                 </div>
                 <div className={`text-[10px] font-bold font-mono tracking-wider uppercase mt-1 ${
-                  isDarkMode ? 'text-[#94A3B8]' : 'text-[#64748B]'
+                  isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'
                 }`}>
                   MODULES
                 </div>
               </div>
 
               {/* Stat 3: Quiz Score */}
-              <div className={`p-3 rounded-2xl border ${isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-slate-50 border-slate-200'}`}>
+              <div className={`p-3 rounded-2xl border ${isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-blue-50/50 border-blue-100'}`}>
                 <div className={`text-xl sm:text-2xl font-black font-mono ${
                   isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
                 }`}>
                   {quizScore ? `${String(quizScore.score).padStart(2, '0')}/${String(quizScore.total).padStart(2, '0')}` : '00/10'}
                 </div>
                 <div className={`text-[10px] font-bold font-mono tracking-wider uppercase mt-1 ${
-                  isDarkMode ? 'text-[#94A3B8]' : 'text-[#64748B]'
+                  isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'
                 }`}>
                   QUIZ SCORE
                 </div>
@@ -518,15 +504,15 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           </div>
 
           {/* Master Challenges Highlight */}
-          <div className={`mt-4 pt-3 border-t ${isDarkMode ? 'border-violet-950/50' : 'border-slate-100'}`}>
+          <div className={`mt-4 pt-3 border-t ${isDarkMode ? 'border-violet-950/50' : 'border-blue-100'}`}>
             <div className={`p-3 rounded-2xl border flex items-center justify-between text-xs font-semibold ${
               isDarkMode
                 ? 'bg-violet-950/40 border-violet-800/40 text-[#E2E8F0]'
-                : 'bg-violet-50/70 border-violet-200/80 text-[#111827]'
+                : 'bg-blue-50 border-blue-200 text-black'
             }`}>
               <div className="flex items-center gap-2">
                 <span className="text-base">🏆</span>
-                <span className={isDarkMode ? 'text-[#E2E8F0]' : 'text-[#111827]'}>Master Challenges:</span>
+                <span className={isDarkMode ? 'text-[#E2E8F0]' : 'text-black'}>Master Challenges:</span>
               </div>
               <span className={`font-mono font-bold ${
                 isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
@@ -542,7 +528,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           className={`p-6 rounded-3xl border flex flex-col justify-between transition-all duration-200 relative overflow-hidden ${
             isDarkMode
               ? 'bg-[#0e1424] border-violet-900/40 text-[#F8FAFC] shadow-xl shadow-violet-950/20'
-              : 'bg-white border-slate-200 text-[#111827] shadow-sm'
+              : 'bg-white border-blue-100 text-black shadow-sm'
           }`}
         >
           <div>
@@ -554,13 +540,13 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
             </div>
 
             <h3 className={`text-lg font-extrabold tracking-tight mt-1 ${
-              isDarkMode ? 'text-[#F8FAFC]' : 'text-[#111827]'
+              isDarkMode ? 'text-[#F8FAFC]' : 'text-black'
             }`}>
               {firstIncompleteModule.id}: {firstIncompleteModule.title}
             </h3>
 
             <p className={`text-xs leading-relaxed mt-2.5 line-clamp-3 ${
-              isDarkMode ? 'text-[#E2E8F0]' : 'text-[#475569]'
+              isDarkMode ? 'text-[#E2E8F0]' : 'text-blue-900'
             }`}>
               {firstIncompleteModule.description}
             </p>
@@ -587,7 +573,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
         className={`p-6 sm:p-7 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-[#F8FAFC] shadow-xl shadow-violet-950/20'
-            : 'bg-white border-slate-200 text-[#111827] shadow-sm'
+            : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
         {/* Top Header Row matching screenshot */}
@@ -607,7 +593,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                 VISUAL LESSONS
               </div>
               <h2 className={`text-base sm:text-lg font-black tracking-tight mt-0.5 ${
-                isDarkMode ? 'text-[#F8FAFC]' : 'text-[#111827]'
+                isDarkMode ? 'text-[#F8FAFC]' : 'text-black'
               }`}>
                 1 VISUAL LESSON ({isVideoCompleted ? '1' : '0'} / 1 Completed)
               </h2>
@@ -620,7 +606,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
             isDarkMode
               ? 'bg-[#090d18] border-violet-950/70 hover:border-violet-800/60'
-              : 'bg-slate-50/80 border-slate-200/80 hover:border-slate-300'
+              : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
           }`}
         >
           <div className="flex items-center gap-3 min-w-0">
@@ -631,7 +617,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className={`font-bold text-sm sm:text-base truncate ${
-                  isDarkMode ? 'text-slate-100' : 'text-slate-800'
+                  isDarkMode ? 'text-slate-100' : 'text-black'
                 }`}>
                   {uploadedVideoName ? uploadedVideoName : 'Introduction to Binary Search Trees & Tree Data Structures'}
                 </span>
@@ -645,7 +631,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                   </span>
                 )}
               </div>
-              <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-blue-900'}`}>
                 {uploadedVideoUrl 
                   ? 'Custom video ready to play on the Visualize page.' 
                   : 'Masterclass video lesson covering fundamental tree and BST concepts.'}
@@ -662,7 +648,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border shadow-sm ${
                 isDarkMode
                   ? 'bg-violet-950/70 hover:bg-violet-900/70 text-[#C4B5FD] border-violet-800/60 hover:border-violet-600 hover:text-white'
-                  : 'bg-violet-50 hover:bg-violet-100 text-slate-900 hover:text-slate-950 border-violet-200 hover:border-violet-300'
+                  : 'bg-blue-50 hover:bg-blue-100 text-blue-950 hover:text-black border-blue-200 hover:border-blue-300'
               }`}
               title="Watch this video lesson on the Visualize page"
             >
@@ -677,10 +663,10 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                 isVideoCompleted
                   ? isDarkMode
                     ? 'text-[#A78BFA] bg-violet-950/60 border-violet-700/60 hover:bg-violet-900/60 font-semibold'
-                    : 'text-slate-900 hover:text-slate-950 bg-violet-50 border-violet-300 hover:bg-violet-100 font-semibold'
+                    : 'text-black hover:text-black bg-blue-50 border-blue-300 hover:bg-blue-100 font-semibold'
                   : isDarkMode
                     ? 'text-slate-400 bg-slate-900/40 border-slate-800 hover:bg-slate-800/60'
-                    : 'text-slate-600 hover:text-slate-950 bg-white border-slate-200 hover:bg-slate-100'
+                    : 'text-blue-800 hover:text-black bg-white border-blue-200 hover:bg-blue-50'
               }`}
               title="Click to toggle completed status"
             >
@@ -705,25 +691,25 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-[#F8FAFC] shadow-xl shadow-violet-950/20'
-            : 'bg-white border-slate-200 text-[#111827] shadow-sm'
+            : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
           <div>
             <h2 className={`text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2.5 ${
-              isDarkMode ? 'text-[#F8FAFC]' : 'text-[#111827]'
+              isDarkMode ? 'text-[#F8FAFC]' : 'text-black'
             }`}>
               <GraduationCap className={`w-6 h-6 ${isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'}`} />
               <span>Tree DSA Curriculum Modules</span>
             </h2>
-            <p className={`text-xs mt-1 ${isDarkMode ? 'text-[#E2E8F0]' : 'text-[#475569]'}`}>
+            <p className={`text-xs mt-1 ${isDarkMode ? 'text-[#E2E8F0]' : 'text-blue-900'}`}>
               Filter by syllabus category to review specific theoretical and hands-on modules.
             </p>
           </div>
 
           {/* Module Counter */}
           <div className={`text-xs font-mono font-semibold ${
-            isDarkMode ? 'text-[#94A3B8]' : 'text-[#64748B]'
+            isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'
           }`}>
             Showing {filteredModules.length} of {CURRICULUM_MODULES.length} modules
           </div>
@@ -754,7 +740,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                       : 'bg-[#6D3DF5] text-white shadow-md shadow-[#6D3DF5]/30'
                     : isDarkMode
                     ? 'bg-[#090d18] hover:bg-violet-950/40 text-[#94A3B8] border border-violet-950/80 hover:border-violet-700/40 hover:text-[#F8FAFC]'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 hover:text-slate-950'
+                    : 'bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 hover:text-black'
                 }`}
               >
                 <span>{tab.label}</span>
@@ -778,8 +764,8 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                       ? 'bg-[#090d18] border-violet-800/40 hover:border-violet-500/60 shadow-md'
                       : 'bg-[#090d18] border-violet-950/70 hover:border-violet-600/50 hover:shadow-lg hover:shadow-violet-950/40'
                     : isCompleted
-                    ? 'bg-slate-50 border-violet-200 hover:border-violet-300'
-                    : 'bg-slate-50 border-slate-200 hover:border-violet-300 hover:shadow-md'
+                    ? 'bg-blue-50/40 border-blue-200 hover:border-blue-300'
+                    : 'bg-blue-50/30 border-blue-100 hover:border-blue-300 hover:shadow-md'
                 }`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -801,7 +787,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                         className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase ${
                           isDarkMode
                             ? 'bg-violet-950/60 text-[#A78BFA] border border-violet-800/40'
-                            : 'bg-slate-100 text-[#64748B] border border-slate-200'
+                            : 'bg-blue-50 text-blue-800 border border-blue-200'
                         }`}
                       >
                         {module.categoryLabel}
@@ -820,7 +806,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                               : 'bg-violet-50/60 text-violet-700 border-violet-200'
                             : isDarkMode
                             ? 'bg-slate-800/40 text-[#94A3B8] border-slate-700/40'
-                            : 'bg-slate-100 text-[#64748B] border-slate-300'
+                            : 'bg-blue-50 text-blue-800 border border-blue-200'
                         }`}
                       >
                         {status === 'Completed' ? (
@@ -838,14 +824,14 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                     <h3 className={`text-base sm:text-lg font-extrabold uppercase tracking-tight transition-colors ${
                       isDarkMode
                         ? 'text-[#F8FAFC] group-hover:text-[#A78BFA]'
-                        : 'text-[#111827] group-hover:text-slate-950'
+                        : 'text-black group-hover:text-black'
                     }`}>
                       {module.title}
                     </h3>
 
                     {/* Short beginner-friendly description */}
                     <p className={`text-xs sm:text-sm leading-relaxed mt-1.5 max-w-3xl ${
-                      isDarkMode ? 'text-[#E2E8F0]' : 'text-[#475569]'
+                      isDarkMode ? 'text-[#E2E8F0]' : 'text-blue-900'
                     }`}>
                       {module.description}
                     </p>
@@ -855,7 +841,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                       className={`mt-3 p-2.5 sm:px-3 sm:py-2 rounded-2xl border text-xs leading-relaxed inline-block max-w-3xl ${
                         isDarkMode
                           ? 'bg-[#060913] border-violet-950/80 text-[#E2E8F0]'
-                          : 'bg-white border-slate-200 text-[#475569]'
+                          : 'bg-white border-blue-100 text-blue-900'
                       }`}
                     >
                       <span className={`font-bold font-mono uppercase mr-1.5 ${
@@ -869,13 +855,13 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
 
                   {/* RIGHT AREA: Progress Info & Start Module Button */}
                   <div className={`lg:w-64 shrink-0 flex flex-col sm:flex-row lg:flex-col lg:items-end justify-between gap-4 pt-4 lg:pt-0 border-t lg:border-t-0 ${
-                    isDarkMode ? 'border-violet-950/40' : 'border-slate-200'
+                    isDarkMode ? 'border-violet-950/40' : 'border-blue-100'
                   }`}>
                     {/* Progress label, % and bar */}
                     <div className="w-full sm:w-auto lg:w-full lg:text-right">
                       <div className="flex items-center justify-between lg:justify-end gap-3 mb-1.5">
                         <span className={`text-xs font-mono font-bold uppercase tracking-wider ${
-                          isDarkMode ? 'text-[#94A3B8]' : 'text-[#64748B]'
+                          isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'
                         }`}>
                           Progress
                         </span>
@@ -888,7 +874,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                       <div className={`w-full h-2 rounded-full overflow-hidden border ${
                         isDarkMode
                           ? 'bg-violet-950/60 border-violet-800/40'
-                          : 'bg-slate-200 border-slate-300/60'
+                          : 'bg-blue-100 border-blue-200'
                       }`}>
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${
@@ -910,7 +896,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                         isCompleted
                           ? isDarkMode
                             ? 'bg-violet-950/60 hover:bg-violet-900/60 text-[#A78BFA] border border-violet-700/50 hover:border-violet-500'
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 hover:text-slate-950'
+                            : 'bg-blue-50 hover:bg-blue-100 text-blue-950 border border-blue-200 hover:text-black'
                           : isDarkMode
                           ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-900/50 hover:scale-[1.02] ring-1 ring-violet-400/30'
                           : 'bg-[#6D3DF5] hover:bg-[#5b2fe0] text-white shadow-md shadow-[#6D3DF5]/30 hover:scale-[1.02]'

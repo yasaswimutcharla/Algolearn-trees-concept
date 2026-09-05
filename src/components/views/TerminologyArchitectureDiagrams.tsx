@@ -54,13 +54,13 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
             className={`w-8 h-8 rounded-xl flex items-center justify-center ${
               isDarkMode
                 ? 'bg-violet-950/80 border border-violet-800/60 text-violet-300'
-                : 'bg-indigo-50 border border-indigo-200 text-indigo-700'
+                : 'bg-violet-50 border border-violet-200 text-violet-700'
             }`}
           >
             <Network className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold tracking-tight text-violet-300">
+            <h3 className={`text-sm font-bold tracking-tight ${isDarkMode ? 'text-violet-300' : 'text-violet-900 font-extrabold'}`}>
               Complete Tree Architecture Blueprint
             </h3>
             <p className="text-xs opacity-75">
@@ -73,7 +73,7 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
           className={`text-[11px] font-mono font-semibold px-3 py-1 rounded-full border self-start sm:self-auto ${
             isDarkMode
               ? 'bg-violet-950/50 text-violet-300 border-violet-800/40'
-              : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+              : 'bg-violet-50 text-violet-800 border-violet-200 font-bold'
           }`}
         >
           Visual Diagram
@@ -82,7 +82,9 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
 
       {/* Filter Chips Bar */}
       <div className="mb-5">
-        <div className="text-[11px] font-mono uppercase tracking-wider text-violet-400 font-bold mb-2 flex items-center gap-1.5">
+        <div className={`text-[11px] font-mono uppercase tracking-wider font-bold mb-2 flex items-center gap-1.5 ${
+          isDarkMode ? 'text-violet-400' : 'text-violet-700'
+        }`}>
           <Compass className="w-3.5 h-3.5" />
           <span>Filter Visual Focus:</span>
         </div>
@@ -481,7 +483,7 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
         >
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <span className="w-3 h-3 rounded-full bg-violet-600" />
-            <span className="text-xs font-bold text-violet-400">Root (10)</span>
+            <span className={`text-xs font-bold ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>Root (10)</span>
           </div>
           <div className="text-[11px] opacity-75">Topmost node, Level 0</div>
         </div>
@@ -493,7 +495,7 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
         >
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <span className="w-3 h-3 rounded-full bg-blue-600" />
-            <span className="text-xs font-bold text-blue-400">Internal (10, 20)</span>
+            <span className={`text-xs font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-800'}`}>Internal (10, 20)</span>
           </div>
           <div className="text-[11px] opacity-75">Has 1+ children</div>
         </div>
@@ -505,7 +507,7 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
         >
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <span className="w-3 h-3 rounded-full bg-emerald-500" />
-            <span className="text-xs font-bold text-emerald-400">Leaves (30, 40, 50)</span>
+            <span className={`text-xs font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>Leaves (30, 40, 50)</span>
           </div>
           <div className="text-[11px] opacity-75">0 children, Degree 0</div>
         </div>
@@ -517,7 +519,7 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
         >
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <span className="w-3 h-3 rounded-full bg-pink-500" />
-            <span className="text-xs font-bold text-pink-400">Subtree / Siblings</span>
+            <span className={`text-xs font-bold ${isDarkMode ? 'text-pink-400' : 'text-pink-800'}`}>Subtree / Siblings</span>
           </div>
           <div className="text-[11px] opacity-75">Subtree rooted at 20</div>
         </div>

@@ -249,7 +249,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-xl shadow-violet-950/30'
-            : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+            : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -281,7 +281,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
                       : 'text-[#6D3DF5] bg-violet-50 border-violet-300 font-semibold'
                     : isDarkMode
                     ? 'text-slate-400 bg-slate-900/40 border-slate-800 hover:bg-slate-800'
-                    : 'text-slate-500 bg-white border-slate-200 hover:bg-slate-100'
+                    : 'text-blue-900 bg-white border-blue-200 hover:bg-blue-50'
                 }`}
                 title="Click to toggle lesson completion status"
               >
@@ -321,7 +321,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
                 className={`p-2 rounded-xl text-xs font-medium flex items-center justify-center transition-all cursor-pointer border ${
                   isDarkMode
                     ? 'bg-slate-900/60 hover:bg-rose-950/50 text-slate-400 hover:text-rose-300 border-slate-800 hover:border-rose-900/50'
-                    : 'bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 border-slate-200 hover:border-rose-200'
+                    : 'bg-white hover:bg-rose-50 text-blue-900 hover:text-rose-600 border-blue-200 hover:border-rose-200'
                 }`}
                 title="Remove video file"
               >
@@ -363,7 +363,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
           onMouseMove={handleMouseMove}
           onMouseLeave={() => isPlaying && setShowControls(false)}
           className={`relative rounded-3xl overflow-hidden border shadow-2xl transition-all duration-300 bg-black select-none ${
-            isDarkMode ? 'border-violet-900/50 shadow-violet-950/40' : 'border-slate-800 shadow-slate-300/40'
+            isDarkMode ? 'border-violet-900/50 shadow-violet-950/40' : 'border-blue-200 shadow-blue-200/40'
           }`}
         >
           {/* Native Video Element */}
@@ -530,7 +530,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               ? 'border-violet-500 bg-violet-950/30 scale-[1.01]'
               : isDarkMode
               ? 'border-violet-900/50 hover:border-violet-600 bg-[#0b101e] hover:bg-[#0e1426]'
-              : 'border-slate-300 hover:border-violet-400 bg-slate-50 hover:bg-violet-50/50'
+              : 'border-blue-200 hover:border-blue-400 bg-blue-50/40 hover:bg-blue-50/80'
           }`}
         >
           <div
@@ -570,7 +570,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
         className={`p-6 sm:p-7 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-lg shadow-violet-950/20'
-            : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+            : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
         <div className="flex items-center gap-2 mb-4">
@@ -583,7 +583,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           <div
             className={`p-4 rounded-2xl border transition-all ${
-              isDarkMode ? 'bg-[#121829] border-violet-950/60' : 'bg-slate-50 border-slate-200'
+              isDarkMode ? 'bg-[#121829] border-violet-950/60' : 'bg-blue-50/40 border-blue-100 text-black'
             }`}
           >
             <div className="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center mb-2 font-bold text-xs">
@@ -597,7 +597,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
 
           <div
             className={`p-4 rounded-2xl border transition-all ${
-              isDarkMode ? 'bg-[#121829] border-violet-950/60' : 'bg-slate-50 border-slate-200'
+              isDarkMode ? 'bg-[#121829] border-violet-950/60' : 'bg-blue-50/40 border-blue-100 text-black'
             }`}
           >
             <div className="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center mb-2 font-bold text-xs">
@@ -611,7 +611,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
 
           <div
             className={`p-4 rounded-2xl border transition-all ${
-              isDarkMode ? 'bg-[#121829] border-violet-950/60' : 'bg-slate-50 border-slate-200'
+              isDarkMode ? 'bg-[#121829] border-violet-950/60' : 'bg-blue-50/40 border-blue-100 text-black'
             }`}
           >
             <div className="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center mb-2 font-bold text-xs">
@@ -625,7 +625,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
 
           <div
             className={`p-4 rounded-2xl border transition-all ${
-              isDarkMode ? 'bg-[#121829] border-violet-950/60' : 'bg-slate-50 border-slate-200'
+              isDarkMode ? 'bg-[#121829] border-violet-950/60' : 'bg-blue-50/40 border-blue-100 text-black'
             }`}
           >
             <div className="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center mb-2 font-bold text-xs">

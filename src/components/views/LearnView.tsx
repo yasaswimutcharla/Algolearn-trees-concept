@@ -10,7 +10,6 @@ import { ArchitectureDiagram } from './ArchitectureDiagram';
 import {
   Eye,
   EyeOff,
-  ChevronLeft,
   ChevronRight,
   ChevronDown,
   ChevronUp,
@@ -28,9 +27,8 @@ import {
   GitBranch,
   ArrowRight,
   RotateCcw,
-  Compass,
-  X,
-  ExternalLink
+  ExternalLink,
+  X
 } from 'lucide-react';
 
 // Destination URL for existing separate BST learning application
@@ -60,9 +58,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
   // Mini-practice interactive state per topic
   const [selectedPracticeOption, setSelectedPracticeOption] = useState<number | null>(null);
   const [hasSubmittedPractice, setHasSubmittedPractice] = useState<boolean>(false);
-  const [showHint, setShowHint] = useState<boolean>(false);
-  const [showGuidedSolve, setShowGuidedSolve] = useState<boolean>(false);
-  const [guidedStepIndex, setGuidedStepIndex] = useState<number>(0);
+  const [showPracticeHint, setShowPracticeHint] = useState<boolean>(false);
 
   // When switching topic, reset architecture and practice state
   useEffect(() => {
@@ -71,16 +67,13 @@ export const LearnView: React.FC<LearnViewProps> = ({
     setIsMobileSyllabusOpen(false);
     setSelectedPracticeOption(null);
     setHasSubmittedPractice(false);
-    setShowHint(false);
-    setShowGuidedSolve(false);
-    setGuidedStepIndex(0);
+    setShowPracticeHint(false);
   }, [currentTopicId]);
 
   const currentTopic =
     TREE_TOPICS.find((t) => t.id === currentTopicId) || TREE_TOPICS[0];
   const currentIndex = TREE_TOPICS.findIndex((t) => t.id === currentTopicId);
 
-  const prevTopic = currentIndex > 0 ? TREE_TOPICS[currentIndex - 1] : null;
   const nextTopic =
     currentIndex < TREE_TOPICS.length - 1 ? TREE_TOPICS[currentIndex + 1] : null;
 
@@ -114,7 +107,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
           className={`w-full p-4 rounded-2xl border flex items-center justify-between transition-all cursor-pointer ${
             isDarkMode
               ? 'bg-[#0e1424] border-violet-900/50 text-slate-100'
-              : 'bg-white border-slate-200 text-slate-900 shadow-xs'
+              : 'bg-white border-blue-100 text-black shadow-xs'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -126,7 +119,9 @@ export const LearnView: React.FC<LearnViewProps> = ({
               <ListFilter className="w-4 h-4" />
             </div>
             <div className="text-left">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-violet-400 font-bold">
+              <div className={`text-[10px] font-mono uppercase tracking-wider font-bold ${
+                isDarkMode ? 'text-violet-400' : 'text-violet-700'
+              }`}>
                 Table of Contents · 0{currentTopic.index}/0{TREE_TOPICS.length}
               </div>
               <div className="text-xs font-bold truncate max-w-[200px] sm:max-w-xs">
@@ -136,10 +131,12 @@ export const LearnView: React.FC<LearnViewProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-600/20 text-violet-400">
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+              isDarkMode ? 'bg-violet-600/20 text-violet-400' : 'bg-violet-100 text-violet-800'
+            }`}>
               {completedCount}/{TREE_TOPICS.length} Done
             </span>
-            <span className="text-xs text-violet-400 font-bold">
+            <span className={`text-xs font-bold ${isDarkMode ? 'text-violet-400' : 'text-violet-700'}`}>
               {isMobileSyllabusOpen ? 'Hide ▲' : 'Browse ▼'}
             </span>
           </div>
@@ -161,7 +158,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
             className={`p-5 rounded-3xl border transition-all duration-200 ${
               isDarkMode
                 ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-xl shadow-violet-950/20'
-                : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+                : 'bg-white border-blue-100 text-black shadow-sm'
             }`}
           >
             {/* TOC Header */}
@@ -175,13 +172,19 @@ export const LearnView: React.FC<LearnViewProps> = ({
                   >
                     <ListFilter className="w-4 h-4" />
                   </div>
-                  <h2 className="text-xs font-bold font-mono uppercase tracking-widest text-violet-400">
+                  <h2 className={`text-xs font-bold font-mono uppercase tracking-widest ${
+                    isDarkMode ? 'text-violet-400' : 'text-violet-800'
+                  }`}>
                     Table of Contents
                   </h2>
                 </div>
                 <span
                   id="toc-completion-counter"
-                  className="text-[11px] font-mono font-bold text-violet-400 px-2 py-0.5 rounded-md bg-violet-600/10 border border-violet-500/20"
+                  className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-md ${
+                    isDarkMode
+                      ? 'text-violet-400 bg-violet-600/10 border border-violet-500/20'
+                      : 'text-violet-800 bg-violet-100 border border-violet-200'
+                  }`}
                 >
                   {completedCount}/{TREE_TOPICS.length}
                 </span>
@@ -189,7 +192,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
             </div>
 
             {/* 7 Topics List */}
-            <nav className="space-y-2 max-h-[calc(100vh-240px)] overflow-y-auto pr-1">
+            <nav className="space-y-2 max-h-[calc(100vh-240px)] overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               {TREE_TOPICS.map((topic) => {
                 const isSelected = topic.id === currentTopicId;
                 const isCompleted = completedTopics.includes(topic.id);
@@ -208,10 +211,10 @@ export const LearnView: React.FC<LearnViewProps> = ({
                       isSelected
                         ? isDarkMode
                           ? 'bg-violet-950/60 border-violet-500/70 text-white shadow-md shadow-violet-950/50 ring-1 ring-violet-500/40'
-                          : 'bg-indigo-50/90 border-indigo-400 text-indigo-950 shadow-xs ring-1 ring-indigo-300'
+                          : 'bg-violet-50 border-violet-400 text-violet-950 shadow-xs ring-1 ring-violet-300'
                         : isDarkMode
                         ? 'bg-[#090d18]/80 border-violet-950/70 hover:bg-[#121929] hover:border-violet-700/50 text-slate-300'
-                        : 'bg-slate-50/70 border-slate-200 hover:bg-white hover:border-indigo-300 text-slate-700 hover:text-slate-950'
+                        : 'bg-blue-50/50 border-blue-100 hover:bg-white hover:border-blue-300 text-blue-900 hover:text-black'
                     }`}
                   >
                     <div className="min-w-0 flex-1 pr-2">
@@ -221,8 +224,8 @@ export const LearnView: React.FC<LearnViewProps> = ({
                             isSelected
                               ? isDarkMode
                                 ? 'text-violet-300 font-extrabold'
-                                : 'text-indigo-600 font-extrabold'
-                              : 'text-slate-400'
+                                : 'text-violet-700 font-extrabold'
+                              : 'text-blue-700'
                           }`}
                         >
                           {formattedNum}.
@@ -232,7 +235,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
                             isSelected
                               ? isDarkMode
                                 ? 'text-white'
-                                : 'text-indigo-950'
+                                : 'text-violet-950 font-extrabold'
                               : ''
                           }`}
                         >
@@ -244,7 +247,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
                           isSelected
                             ? isDarkMode
                               ? 'text-violet-200/80'
-                              : 'text-indigo-700/80'
+                              : 'text-violet-900 font-medium'
                             : 'opacity-60'
                         }`}
                       >
@@ -278,12 +281,16 @@ export const LearnView: React.FC<LearnViewProps> = ({
             className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
               isDarkMode
                 ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-xl shadow-violet-950/20'
-                : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+                : 'bg-white border-blue-100 text-black shadow-sm'
             }`}
           >
             {/* Eyebrow & Badges */}
             <div className="flex flex-wrap items-center gap-2 mb-3">
-              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-violet-600/20 text-violet-400 border border-violet-500/30">
+              <span className={`text-xs font-mono font-bold px-3 py-1 rounded-full border ${
+                isDarkMode
+                  ? 'bg-violet-600/20 text-violet-400 border-violet-500/30'
+                  : 'bg-violet-100 text-violet-800 border-violet-300'
+              }`}>
                 TOPIC 0{currentTopic.index} OF 0{TREE_TOPICS.length}
               </span>
               <span
@@ -317,12 +324,12 @@ export const LearnView: React.FC<LearnViewProps> = ({
               className={`p-6 sm:p-7 rounded-3xl border ${
                 isDarkMode
                   ? 'bg-[#0e1424] border-violet-900/40 text-slate-100'
-                  : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+                  : 'bg-white border-blue-100 text-black shadow-sm'
               }`}
             >
               <div className="flex items-center gap-2 mb-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-violet-400 shadow-xs shadow-violet-400" />
-                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-violet-400">
+                <span className={`w-2.5 h-2.5 rounded-full ${isDarkMode ? 'bg-violet-400 shadow-xs shadow-violet-400' : 'bg-violet-600 shadow-xs shadow-violet-400/50'}`} />
+                <h3 className={`text-xs font-mono font-bold uppercase tracking-widest ${isDarkMode ? 'text-violet-400' : 'text-violet-700 font-extrabold'}`}>
                   Definition
                 </h3>
               </div>
@@ -330,7 +337,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
               <blockquote className={`p-4 rounded-2xl border text-sm sm:text-base font-medium leading-relaxed ${
                 isDarkMode
                   ? 'bg-[#090d18] border-violet-950/80 text-violet-100'
-                  : 'bg-violet-50/60 border-violet-200 text-violet-950'
+                  : 'bg-violet-50/80 border-violet-200 text-violet-950'
               }`}>
                 &ldquo;{currentTopic.definition.text}&rdquo;
               </blockquote>
@@ -346,7 +353,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
               className={`p-6 sm:p-7 rounded-3xl border transition-all duration-200 ${
                 isDarkMode
                   ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-xl shadow-violet-950/20'
-                  : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+                  : 'bg-white border-blue-100 text-black shadow-sm'
               }`}
             >
               <div className="flex items-center gap-2 mb-3">
@@ -354,12 +361,12 @@ export const LearnView: React.FC<LearnViewProps> = ({
                   className={`w-2.5 h-2.5 rounded-full ${
                     isDarkMode
                       ? 'bg-violet-400 shadow-xs shadow-violet-400/60'
-                      : 'bg-indigo-600 shadow-xs shadow-indigo-400/50'
+                      : 'bg-violet-600 shadow-xs shadow-violet-400/50'
                   }`}
                 />
                 <h3
                   className={`text-xs font-mono font-bold uppercase tracking-widest ${
-                    isDarkMode ? 'text-violet-400' : 'text-indigo-600'
+                    isDarkMode ? 'text-violet-400' : 'text-violet-700 font-extrabold'
                   }`}
                 >
                   Core Intuition
@@ -370,23 +377,23 @@ export const LearnView: React.FC<LearnViewProps> = ({
                 className={`p-4 rounded-2xl border mb-3 flex items-start gap-3 transition-colors duration-200 ${
                   isDarkMode
                     ? 'bg-violet-950/20 border-violet-500/30 text-violet-200'
-                    : 'bg-indigo-50/70 border-indigo-200 text-indigo-900'
+                    : 'bg-violet-50/80 border-violet-200 text-violet-950'
                 }`}
               >
                 <Lightbulb
                   className={`w-5 h-5 shrink-0 mt-0.5 ${
-                    isDarkMode ? 'text-violet-400' : 'text-indigo-600'
+                    isDarkMode ? 'text-violet-400' : 'text-violet-700'
                   }`}
                 />
                 <div>
                   <div
                     className={`text-xs font-bold uppercase tracking-wider mb-0.5 ${
-                      isDarkMode ? 'text-violet-400' : 'text-indigo-600'
+                      isDarkMode ? 'text-violet-400' : 'text-violet-700 font-extrabold'
                     }`}
                   >
                     Real-World Analogy
                   </div>
-                  <p className="text-xs sm:text-sm leading-relaxed">
+                  <p className={`text-xs sm:text-sm leading-relaxed ${isDarkMode ? 'text-violet-200' : 'text-violet-950 font-medium'}`}>
                     {currentTopic.coreIntuition.analogy}
                   </p>
                 </div>
@@ -407,12 +414,14 @@ export const LearnView: React.FC<LearnViewProps> = ({
               className={`p-6 sm:p-7 rounded-3xl border ${
                 isDarkMode
                   ? 'bg-[#0e1424] border-violet-900/40 text-slate-100'
-                  : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+                  : 'bg-white border-blue-100 text-black shadow-sm'
               }`}
             >
               <div className="flex items-center gap-2 mb-4">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-xs shadow-amber-400" />
-                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
+                <h3 className={`text-xs font-mono font-bold uppercase tracking-widest ${
+                  isDarkMode ? 'text-amber-400' : 'text-amber-800 font-extrabold'
+                }`}>
                   Key Points
                 </h3>
               </div>
@@ -430,7 +439,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
                       className={`p-3.5 rounded-2xl border text-xs sm:text-sm flex items-start gap-3 ${
                         isDarkMode
                           ? 'bg-[#090d18] border-violet-950/70 text-slate-200'
-                          : 'bg-slate-50 border-slate-200 text-slate-800'
+                          : 'bg-blue-50/40 border-blue-100 text-blue-950'
                       }`}
                     >
                       <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0 mt-1.5" />
@@ -473,20 +482,20 @@ export const LearnView: React.FC<LearnViewProps> = ({
                         : 'bg-indigo-50 text-indigo-700 border-indigo-300 hover:bg-indigo-100'
                       : isDarkMode
                       ? 'bg-[#0e1424] hover:bg-[#151c2e] text-slate-300 border-violet-900/40 hover:text-violet-300'
-                      : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:text-slate-900 shadow-xs'
+                      : 'bg-white hover:bg-blue-50 text-blue-900 border-blue-200 hover:text-black shadow-xs'
                   }`}
                 >
                   {showTerminologyArchitecture ? (
                     <>
-                      <EyeOff className="w-3.5 h-3.5 text-violet-400" />
+                      <EyeOff className={`w-3.5 h-3.5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
                       <span>Hide Architecture Diagram</span>
-                      <ChevronUp className="w-3.5 h-3.5 text-violet-400 ml-0.5" />
+                      <ChevronUp className={`w-3.5 h-3.5 ml-0.5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
                     </>
                   ) : (
                     <>
-                      <Eye className="w-3.5 h-3.5 text-violet-400" />
+                      <Eye className={`w-3.5 h-3.5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
                       <span>View Architecture Diagram</span>
-                      <ChevronDown className="w-3.5 h-3.5 text-violet-400 ml-0.5" />
+                      <ChevronDown className={`w-3.5 h-3.5 ml-0.5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
                     </>
                   )}
                 </button>
@@ -511,20 +520,20 @@ export const LearnView: React.FC<LearnViewProps> = ({
                         : 'bg-indigo-50 text-indigo-700 border-indigo-300 hover:bg-indigo-100'
                       : isDarkMode
                       ? 'bg-[#0e1424] hover:bg-[#151c2e] text-slate-300 border-violet-900/40 hover:text-violet-300'
-                      : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:text-slate-900 shadow-xs'
+                      : 'bg-white hover:bg-blue-50 text-blue-900 border-blue-200 hover:text-black shadow-xs'
                   }`}
                 >
                   {showBinaryTreeArchitecture ? (
                     <>
-                      <EyeOff className="w-3.5 h-3.5 text-violet-400" />
+                      <EyeOff className={`w-3.5 h-3.5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
                       <span>Hide Architecture Diagram</span>
-                      <ChevronUp className="w-3.5 h-3.5 text-violet-400 ml-0.5" />
+                      <ChevronUp className={`w-3.5 h-3.5 ml-0.5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
                     </>
                   ) : (
                     <>
-                      <Eye className="w-3.5 h-3.5 text-violet-400" />
+                      <Eye className={`w-3.5 h-3.5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
                       <span>View Architecture Diagram</span>
-                      <ChevronDown className="w-3.5 h-3.5 text-violet-400 ml-0.5" />
+                      <ChevronDown className={`w-3.5 h-3.5 ml-0.5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
                     </>
                   )}
                 </button>
@@ -551,18 +560,34 @@ export const LearnView: React.FC<LearnViewProps> = ({
               className={`p-6 sm:p-7 rounded-3xl border transition-all ${
                 isDarkMode
                   ? 'bg-[#0e1424] border-violet-800/40 text-slate-100 shadow-lg'
-                  : 'bg-white border-indigo-200 text-slate-900 shadow-sm'
+                  : 'bg-white border-blue-100 text-black shadow-sm'
               }`}
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-xs shadow-emerald-400" />
-                  <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full ${
+                      isDarkMode
+                        ? 'bg-violet-400 shadow-xs shadow-violet-400'
+                        : 'bg-violet-600 shadow-xs shadow-violet-400/50'
+                    }`}
+                  />
+                  <h4
+                    className={`text-xs font-mono font-bold uppercase tracking-widest flex items-center gap-1.5 ${
+                      isDarkMode ? 'text-violet-400' : 'text-violet-700 font-extrabold'
+                    }`}
+                  >
                     <HelpCircle className="w-4 h-4" />
                     Try It Yourself · Mini Practice
                   </h4>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold">
+                <span
+                  className={`text-[10px] font-mono px-2 py-0.5 rounded font-semibold ${
+                    isDarkMode
+                      ? 'bg-violet-500/20 text-violet-300'
+                      : 'bg-violet-100 text-violet-800 border border-violet-200 font-bold'
+                  }`}
+                >
                   1-Question Check
                 </span>
               </div>
@@ -583,7 +608,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
 
                   let optionStyle = isDarkMode
                     ? 'bg-[#090d18] border-violet-950/70 hover:border-violet-600/50 text-slate-200'
-                    : 'bg-slate-50 border-slate-200 hover:border-indigo-300 text-slate-800 hover:text-slate-950';
+                    : 'bg-blue-50/40 border-blue-100 hover:border-blue-300 text-blue-900 hover:text-black';
 
                   if (hasSubmittedPractice) {
                     if (isCorrect) {
@@ -598,7 +623,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
                   } else if (isSelected) {
                     optionStyle = isDarkMode
                       ? 'bg-violet-950/60 border-violet-400 text-white ring-1 ring-violet-400'
-                      : 'bg-indigo-50 border-indigo-500 text-indigo-950 ring-1 ring-indigo-400';
+                      : 'bg-violet-50 border-violet-500 text-violet-950 ring-1 ring-violet-400 font-semibold';
                   }
 
                   return (
@@ -633,10 +658,10 @@ export const LearnView: React.FC<LearnViewProps> = ({
                       ? isDarkMode
                         ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/40'
                         : 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                      : 'opacity-40 cursor-not-allowed bg-slate-700 text-slate-300'
+                      : 'opacity-40 cursor-not-allowed bg-blue-200 text-blue-900'
                   }`}
                 >
-                  Check Answer
+                  Submit Answer
                 </button>
               ) : (
                 <div className="space-y-3">
@@ -670,11 +695,12 @@ export const LearnView: React.FC<LearnViewProps> = ({
                     onClick={() => {
                       setSelectedPracticeOption(null);
                       setHasSubmittedPractice(false);
+                      setShowPracticeHint(false);
                     }}
                     className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all cursor-pointer ${
                       isDarkMode
                         ? 'bg-[#151c2e] hover:bg-[#1e2840] border-violet-950/80 text-slate-200'
-                        : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
+                        : 'bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-950'
                     }`}
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
@@ -683,214 +709,60 @@ export const LearnView: React.FC<LearnViewProps> = ({
                 </div>
               )}
 
-              {/* Assistance Options: 💡 Give me a Hint & 🧭 Guided Solve */}
-              <div className="mt-5 pt-4 border-t border-violet-950/40 flex flex-wrap items-center gap-2.5">
+              {/* Assistance Options: 💡 Simple 1-2 line conceptual hint */}
+              <div className="mt-5 pt-4 border-t border-violet-950/40 space-y-3">
                 <button
                   id="practice-hint-btn"
-                  onClick={() => setShowHint(!showHint)}
+                  onClick={() => setShowPracticeHint((prev) => !prev)}
                   className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                    showHint
+                    showPracticeHint
                       ? isDarkMode
-                        ? 'bg-amber-950/50 border-amber-500/60 text-amber-300 ring-1 ring-amber-500/30'
-                        : 'bg-amber-50 border-amber-300 text-amber-900 ring-1 ring-amber-300'
+                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-xs shadow-amber-950/30'
+                        : 'bg-amber-100 border-amber-300 text-amber-900 shadow-xs shadow-amber-200/50'
                       : isDarkMode
                       ? 'bg-[#121829] hover:bg-[#1a233a] border-violet-950/80 text-amber-300/90'
-                      : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-amber-700'
+                      : 'bg-amber-50/60 hover:bg-amber-100 border-amber-200 text-amber-900 font-semibold'
                   }`}
+                  title={showPracticeHint ? 'Hide hint' : 'Show conceptual hint'}
                 >
-                  <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{showHint ? 'Hide Hint' : 'Give me a Hint'}</span>
+                  <Lightbulb className={`w-3.5 h-3.5 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`} />
+                  <span>Hint</span>
                 </button>
 
-                <button
-                  id="practice-guided-solve-btn"
-                  onClick={() => {
-                    setShowGuidedSolve(!showGuidedSolve);
-                    setGuidedStepIndex(0);
-                  }}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                    showGuidedSolve
-                      ? isDarkMode
-                        ? 'bg-sky-950/50 border-sky-500/60 text-sky-300 ring-1 ring-sky-500/30'
-                        : 'bg-sky-50 border-sky-300 text-sky-900 ring-1 ring-sky-300'
-                      : isDarkMode
-                      ? 'bg-[#121829] hover:bg-[#1a233a] border-violet-950/80 text-sky-300/90'
-                      : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-sky-700'
-                  }`}
-                >
-                  <Compass className="w-3.5 h-3.5 text-sky-400" />
-                  <span>{showGuidedSolve ? 'Close Guided Solve' : 'Guided Solve'}</span>
-                </button>
+                {showPracticeHint && currentTopic.miniPractice.hint && (
+                  <div
+                    id="practice-hint-box"
+                    className={`p-3.5 rounded-2xl border text-xs leading-relaxed flex items-start justify-between gap-3 transition-all ${
+                      isDarkMode
+                        ? 'bg-amber-950/20 border-amber-500/30 text-amber-200'
+                        : 'bg-amber-50 border-amber-300 text-amber-950 font-medium'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <Lightbulb className={`w-4 h-4 shrink-0 mt-0.5 ${isDarkMode ? 'text-amber-400' : 'text-amber-700'}`} />
+                      <div>
+                        <span className={`font-bold block mb-0.5 text-[11px] uppercase tracking-wider ${
+                          isDarkMode ? 'text-amber-400' : 'text-amber-900 font-extrabold'
+                        }`}>
+                          Hint
+                        </span>
+                        <p className={isDarkMode ? 'text-amber-200' : 'text-amber-950'}>{currentTopic.miniPractice.hint}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowPracticeHint(false)}
+                      className={`p-1 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                        isDarkMode
+                          ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                          : 'text-amber-700 hover:text-amber-900 hover:bg-amber-100/80'
+                      }`}
+                      aria-label="Close hint"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {/* 💡 Hint Box */}
-              {showHint && currentTopic.miniPractice.hint && (
-                <div
-                  id="practice-hint-box"
-                  className={`mt-3 p-4 rounded-2xl border text-xs leading-relaxed transition-all ${
-                    isDarkMode
-                      ? 'bg-amber-950/25 border-amber-500/30 text-amber-200'
-                      : 'bg-amber-50 border-amber-200 text-amber-900'
-                  }`}
-                >
-                  <div className="flex items-center justify-between font-bold mb-1.5 text-amber-400">
-                    <div className="flex items-center gap-1.5">
-                      <Lightbulb className="w-4 h-4 text-amber-400" />
-                      <span>Helpful Hint</span>
-                    </div>
-                    <button
-                      onClick={() => setShowHint(false)}
-                      className="p-1 hover:opacity-75 rounded cursor-pointer text-amber-400"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <p className="opacity-95">{currentTopic.miniPractice.hint}</p>
-                </div>
-              )}
-
-              {/* 🧭 Guided Solve Progressive Box */}
-              {showGuidedSolve && currentTopic.miniPractice.guidedSolve && (
-                <div
-                  id="practice-guided-solve-box"
-                  className={`mt-3 p-4 sm:p-5 rounded-2xl border text-xs leading-relaxed transition-all ${
-                    isDarkMode
-                      ? 'bg-[#0a1020] border-sky-800/40 text-slate-200'
-                      : 'bg-sky-50/70 border-sky-200 text-slate-800'
-                  }`}
-                >
-                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-sky-900/30">
-                    <div className="flex items-center gap-2">
-                      <Compass className="w-4 h-4 text-sky-400" />
-                      <span className="font-bold font-mono uppercase tracking-wider text-sky-400">
-                        Guided Step-by-Step Solve
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => setShowGuidedSolve(false)}
-                      className="p-1 hover:opacity-75 rounded cursor-pointer text-sky-400"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  {/* Step Progress Indicators */}
-                  <div className="flex items-center gap-2 mb-3">
-                    {currentTopic.miniPractice.guidedSolve.steps.map((_, sIdx) => {
-                      const isPast = sIdx < guidedStepIndex;
-                      const isCurrent = sIdx === guidedStepIndex;
-                      return (
-                        <div
-                          key={sIdx}
-                          onClick={() => setGuidedStepIndex(sIdx)}
-                          className={`flex-1 h-1.5 rounded-full transition-all cursor-pointer ${
-                            isPast || isCurrent
-                              ? 'bg-sky-400'
-                              : isDarkMode
-                              ? 'bg-slate-800'
-                              : 'bg-slate-200'
-                          }`}
-                        />
-                      );
-                    })}
-                  </div>
-
-                  {/* Current Active Step */}
-                  {guidedStepIndex < currentTopic.miniPractice.guidedSolve.steps.length ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                          Step {currentTopic.miniPractice.guidedSolve.steps[guidedStepIndex].stepNumber} of {currentTopic.miniPractice.guidedSolve.steps.length}
-                        </span>
-                        <span className="font-bold text-sky-300">
-                          {currentTopic.miniPractice.guidedSolve.steps[guidedStepIndex].title}
-                        </span>
-                      </div>
-
-                      <div
-                        className={`p-3.5 rounded-xl border ${
-                          isDarkMode
-                            ? 'bg-[#10172c] border-sky-900/40 text-slate-200'
-                            : 'bg-white border-sky-200 text-slate-800'
-                        }`}
-                      >
-                        {currentTopic.miniPractice.guidedSolve.steps[guidedStepIndex].explanation}
-                      </div>
-
-                      {currentTopic.miniPractice.guidedSolve.steps[guidedStepIndex].nextPrompt && (
-                        <div className="text-[11px] font-semibold text-sky-400/90 flex items-center gap-1.5">
-                          <span>👉</span>
-                          <span>{currentTopic.miniPractice.guidedSolve.steps[guidedStepIndex].nextPrompt}</span>
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between pt-2">
-                        <button
-                          disabled={guidedStepIndex === 0}
-                          onClick={() => setGuidedStepIndex(guidedStepIndex - 1)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                            guidedStepIndex === 0
-                              ? 'opacity-40 cursor-not-allowed border-transparent'
-                              : isDarkMode
-                              ? 'bg-[#151c2e] hover:bg-[#1e2840] border-violet-950/80 text-slate-200 cursor-pointer'
-                              : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800 cursor-pointer'
-                          }`}
-                        >
-                          Previous Step
-                        </button>
-
-                        <button
-                          onClick={() => setGuidedStepIndex(guidedStepIndex + 1)}
-                          className="px-4 py-1.5 rounded-lg text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white transition-all shadow-sm cursor-pointer flex items-center gap-1"
-                        >
-                          <span>Next Step</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    /* Final Answer & Explanation after all steps */
-                    <div className="space-y-3">
-                      <div
-                        className={`p-4 rounded-xl border ${
-                          isDarkMode
-                            ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
-                            : 'bg-emerald-50 border-emerald-300 text-emerald-900'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5 font-bold mb-1 text-emerald-400">
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span>Correct Answer: {currentTopic.miniPractice.guidedSolve.finalAnswer}</span>
-                        </div>
-                        <p className="text-xs opacity-95">
-                          {currentTopic.miniPractice.guidedSolve.finalExplanation}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-1">
-                        <button
-                          onClick={() => setGuidedStepIndex(0)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
-                            isDarkMode
-                              ? 'bg-[#151c2e] hover:bg-[#1e2840] border-violet-950/80 text-slate-200'
-                              : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
-                          }`}
-                        >
-                          <RotateCcw className="w-3 h-3" />
-                          <span>Restart Steps</span>
-                        </button>
-
-                        <button
-                          onClick={() => setShowGuidedSolve(false)}
-                          className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-white transition-all cursor-pointer"
-                        >
-                          Got It!
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
 
@@ -903,7 +775,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
               className={`p-6 sm:p-7 rounded-3xl border transition-all duration-300 relative overflow-hidden ${
                 isDarkMode
                   ? 'bg-gradient-to-br from-[#0e1424] via-[#12182b] to-[#181133] border-violet-800/60 text-slate-100 shadow-xl shadow-violet-950/30'
-                  : 'bg-gradient-to-br from-white via-indigo-50/50 to-violet-50/70 border-violet-200 text-slate-900 shadow-sm'
+                  : 'bg-gradient-to-br from-white via-indigo-50/50 to-violet-50/70 border-violet-200 text-black shadow-sm'
               }`}
             >
               {/* Background ambient decorative glow */}
@@ -924,7 +796,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
 
                   <h3 className="text-lg sm:text-xl font-extrabold tracking-tight flex items-center gap-2.5">
                     <span className="text-xl sm:text-2xl" role="img" aria-label="tree">🌳</span>
-                    <span className={isDarkMode ? 'text-violet-200' : 'text-slate-900'}>
+                    <span className={isDarkMode ? 'text-violet-200' : 'text-black'}>
                       Learn Binary Search Tree
                     </span>
                   </h3>
@@ -951,37 +823,16 @@ export const LearnView: React.FC<LearnViewProps> = ({
           )}
 
           {/* ================================================================== */}
-          {/* Bottom Topic Navigation Bar: Prev / Mark Completed / Next         */}
+          {/* Bottom Topic Navigation Bar: Mark Completed & Next Topic           */}
           {/* ================================================================== */}
           <div
             className={`p-4 sm:p-5 rounded-3xl border flex flex-col sm:flex-row items-center justify-between gap-3 ${
               isDarkMode
                 ? 'bg-[#0e1424] border-violet-900/40'
-                : 'bg-white border-slate-200 shadow-sm'
+                : 'bg-white border-blue-100 shadow-sm'
             }`}
           >
-            {/* Previous Topic Button */}
-            {prevTopic ? (
-              <button
-                id="prev-topic-btn"
-                onClick={() => onSelectTopic(prevTopic.id)}
-                className={`w-full sm:w-auto flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-xs border transition-all cursor-pointer ${
-                  isDarkMode
-                    ? 'bg-[#141c2e] hover:bg-[#1c263e] text-slate-200 border-violet-950/70'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-800 hover:text-slate-950 border-slate-200'
-                }`}
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <div className="text-left">
-                  <div className="text-[10px] opacity-60">Previous Topic</div>
-                  <div className="truncate font-semibold">{prevTopic.title}</div>
-                </div>
-              </button>
-            ) : (
-              <div className="hidden sm:block" />
-            )}
-
-            {/* Middle Mark Completed Status Indicator */}
+            {/* Mark Completed Status Indicator */}
             <div className="flex items-center gap-2 text-xs font-semibold">
               <button
                 onClick={handleToggleCompleted}
@@ -990,7 +841,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
                     ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
                     : isDarkMode
                     ? 'bg-[#151c2e] text-slate-300 border-violet-950/70 hover:border-violet-600/50'
-                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:border-indigo-300 hover:text-slate-950'
+                    : 'bg-blue-50 text-blue-900 border-blue-200 hover:border-blue-300 hover:text-black'
                 }`}
               >
                 {isCurrentCompleted ? (
@@ -1018,10 +869,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
                     : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-200'
                 }`}
               >
-                <div className="text-right">
-                  <div className="text-[10px] opacity-80">Next Topic</div>
-                  <div className="truncate font-semibold">{nextTopic.title}</div>
-                </div>
+                <span>Next Topic</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             ) : (

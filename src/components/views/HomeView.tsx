@@ -139,7 +139,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
         className={`relative overflow-hidden p-6 sm:p-8 md:p-10 rounded-3xl border transition-all duration-300 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-2xl shadow-violet-950/40'
-            : 'bg-white border-slate-200 text-slate-900 shadow-xl shadow-slate-200/50'
+            : 'bg-white border-blue-100 text-black shadow-xl shadow-blue-100/50'
         }`}
       >
         {isDarkMode && (
@@ -161,7 +161,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-balance">
-              <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>
+              <span className={isDarkMode ? 'text-white' : 'text-black'}>
                 Non-Linear Hierarchical{' '}
               </span>
               <span className={isDarkMode ? 'text-violet-400' : 'text-indigo-600'}>
@@ -182,7 +182,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
               className={`w-full max-w-sm p-4 rounded-2xl border flex flex-col items-center justify-center ${
                 isDarkMode
                   ? 'bg-[#090d18] border-violet-950/80'
-                  : 'bg-slate-50 border-slate-200'
+                  : 'bg-blue-50/40 border-blue-100'
               }`}
             >
               {/* Responsive SVG Tree Illustration */}
@@ -259,7 +259,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           className={`p-6 rounded-2xl border transition-all duration-200 cursor-pointer ${
             isDarkMode
               ? 'bg-[#0e1424] border-violet-900/40 hover:border-violet-500/50'
-              : 'bg-white border-slate-200 hover:border-indigo-400 shadow-sm'
+              : 'bg-white border-blue-100 hover:border-blue-300 shadow-sm'
           }`}
         >
           <div className="flex items-center gap-3 mb-3">
@@ -285,7 +285,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           className={`p-6 rounded-2xl border transition-all duration-200 ${
             isDarkMode
               ? 'bg-[#0e1424] border-violet-900/40 hover:border-violet-500/50'
-              : 'bg-white border-slate-200 hover:border-indigo-400 shadow-sm'
+              : 'bg-white border-blue-100 hover:border-blue-300 shadow-sm'
           }`}
         >
           <div className="flex items-center gap-3 mb-3">
@@ -311,7 +311,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           className={`p-6 rounded-2xl border transition-all duration-200 ${
             isDarkMode
               ? 'bg-[#0e1424] border-violet-900/40 hover:border-violet-500/50'
-              : 'bg-white border-slate-200 hover:border-indigo-400 shadow-sm'
+              : 'bg-white border-blue-100 hover:border-blue-300 shadow-sm'
           }`}
         >
           <div className="flex items-center gap-3 mb-3">
@@ -340,7 +340,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-slate-100'
-            : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+            : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
         <div className="flex items-center gap-3 mb-6">
@@ -370,10 +370,12 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           <div className="lg:col-span-5 flex justify-center">
             <div
               className={`w-full p-4 rounded-2xl border flex flex-col items-center justify-center ${
-                isDarkMode ? 'bg-[#090d18] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+                isDarkMode ? 'bg-[#090d18] border-violet-950/80' : 'bg-blue-50/40 border-blue-100'
               }`}
             >
-              <div className="text-[11px] font-bold tracking-wider uppercase text-violet-400 mb-2">
+              <div className={`text-[11px] font-bold tracking-wider uppercase mb-2 ${
+                isDarkMode ? 'text-violet-400' : 'text-violet-700'
+              }`}>
                 Linear vs Hierarchical Concept
               </div>
 
@@ -381,30 +383,30 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
               <div className="w-full space-y-3 text-xs">
                 {/* Linear */}
                 <div className={`p-2.5 rounded-xl border flex items-center justify-between ${
-                  isDarkMode ? 'bg-[#121929] border-violet-950/60' : 'bg-white border-slate-200'
+                  isDarkMode ? 'bg-[#121929] border-violet-950/60' : 'bg-white border-blue-100'
                 }`}>
                   <span className="text-[10px] font-bold uppercase opacity-60">Linear List</span>
                   <div className="flex items-center gap-1 font-mono text-[11px] font-bold">
-                    <span className="px-1.5 py-0.5 rounded bg-slate-700/50">A</span> →
-                    <span className="px-1.5 py-0.5 rounded bg-slate-700/50">B</span> →
-                    <span className="px-1.5 py-0.5 rounded bg-slate-700/50">C</span> →
-                    <span className="px-1.5 py-0.5 rounded bg-slate-700/50">D</span>
+                    <span className={isDarkMode ? 'px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-200' : 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-900'}>A</span> →
+                    <span className={isDarkMode ? 'px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-200' : 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-900'}>B</span> →
+                    <span className={isDarkMode ? 'px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-200' : 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-900'}>C</span> →
+                    <span className={isDarkMode ? 'px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-200' : 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-900'}>D</span>
                   </div>
                 </div>
 
                 {/* Tree */}
                 <div className={`p-2.5 rounded-xl border ${
-                  isDarkMode ? 'bg-[#121929] border-violet-950/60' : 'bg-white border-slate-200'
+                  isDarkMode ? 'bg-[#121929] border-violet-950/60' : 'bg-white border-blue-100'
                 }`}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-bold uppercase text-violet-400">Tree Hierarchy</span>
-                    <span className="text-[10px] font-mono text-emerald-400 font-bold">O(log N) Search</span>
+                    <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-violet-400' : 'text-violet-700'}`}>Tree Hierarchy</span>
+                    <span className={`text-[10px] font-mono font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>O(log N) Search</span>
                   </div>
                   <div className="flex flex-col items-center gap-1 font-mono text-[11px]">
                     <div className="px-2 py-0.5 rounded bg-violet-600 text-white font-bold">Root (A)</div>
                     <div className="flex items-center gap-6">
-                      <div className="px-2 py-0.5 rounded bg-indigo-900/60 border border-indigo-500/40">Subtree B</div>
-                      <div className="px-2 py-0.5 rounded bg-indigo-900/60 border border-indigo-500/40">Subtree C</div>
+                      <div className={`px-2 py-0.5 rounded border ${isDarkMode ? 'bg-indigo-900/60 border-indigo-500/40 text-indigo-200' : 'bg-indigo-100 border-indigo-300 text-indigo-900 font-semibold'}`}>Subtree B</div>
+                      <div className={`px-2 py-0.5 rounded border ${isDarkMode ? 'bg-indigo-900/60 border-indigo-500/40 text-indigo-200' : 'bg-indigo-100 border-indigo-300 text-indigo-900 font-semibold'}`}>Subtree C</div>
                     </div>
                   </div>
                 </div>
@@ -422,7 +424,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-slate-100'
-            : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+            : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
         <div className="flex items-center justify-between gap-4 mb-8">
@@ -455,7 +457,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           {/* Horizontal Connecting Line (visible on desktop) */}
           <div 
             className={`hidden lg:block absolute top-[44px] left-[50px] right-[50px] h-[2px] z-0 ${
-              isDarkMode ? 'bg-slate-800' : 'bg-slate-200'
+              isDarkMode ? 'bg-slate-800' : 'bg-blue-100'
             }`} 
           />
 
@@ -547,7 +549,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                   className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer group hover:scale-[1.03] flex flex-col items-center text-center ${
                     isDarkMode
                       ? `bg-[#090d18] border-violet-950/80 ${step.cardBorderDark}`
-                      : `bg-slate-50/80 border-slate-200 ${step.cardBorderLight}`
+                      : `bg-blue-50/40 border-blue-100 ${step.cardBorderLight}`
                   }`}
                 >
                   {/* Circular Icon with Reference Colors */}
@@ -562,13 +564,13 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                   </div>
 
                   <h3 className={`text-xs sm:text-sm font-bold leading-snug mb-1 transition-colors ${
-                    isDarkMode ? 'text-slate-100 group-hover:text-white' : 'text-slate-900 group-hover:text-slate-950'
+                    isDarkMode ? 'text-slate-100 group-hover:text-white' : 'text-black group-hover:text-blue-950'
                   }`}>
                     {step.title}
                   </h3>
 
                   <p className={`text-[11px] transition-colors ${
-                    isDarkMode ? 'text-slate-400 group-hover:text-slate-300' : 'text-slate-600 group-hover:text-slate-950'
+                    isDarkMode ? 'text-slate-400 group-hover:text-slate-300' : 'text-blue-900/80 group-hover:text-black'
                   }`}>
                     {step.sub}
                   </p>
@@ -587,7 +589,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-slate-100'
-            : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+            : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
         <div className="flex items-center gap-3 mb-6">
@@ -612,15 +614,17 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
             className={`p-6 rounded-2xl border transition-all duration-200 ${
               isDarkMode
                 ? 'bg-[#090d18] border-violet-950/70 hover:border-violet-800/60'
-                : 'bg-slate-50/70 border-slate-200/80 hover:border-slate-300'
+                : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
             }`}
           >
             <h3 className={`text-base font-bold mb-2 ${
-              isDarkMode ? 'text-slate-100' : 'text-slate-900'
+              isDarkMode ? 'text-slate-100' : 'text-black'
             }`}>
               Fast O(log n) Search
             </h3>
-            <p className="text-xs sm:text-sm text-slate-400 dark:text-slate-400 leading-relaxed">
+            <p className={`text-xs sm:text-sm leading-relaxed ${
+              isDarkMode ? 'text-slate-400' : 'text-blue-950/80'
+            }`}>
               Eliminate half of the remaining search space with every single node comparison, guaranteeing high speed even across millions of items.
             </p>
           </div>
@@ -630,15 +634,17 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
             className={`p-6 rounded-2xl border transition-all duration-200 ${
               isDarkMode
                 ? 'bg-[#090d18] border-violet-950/70 hover:border-violet-800/60'
-                : 'bg-slate-50/70 border-slate-200/80 hover:border-slate-300'
+                : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
             }`}
           >
             <h3 className={`text-base font-bold mb-2 ${
-              isDarkMode ? 'text-slate-100' : 'text-slate-900'
+              isDarkMode ? 'text-slate-100' : 'text-black'
             }`}>
               Dynamic Organization
             </h3>
-            <p className="text-xs sm:text-sm text-slate-400 dark:text-slate-400 leading-relaxed">
+            <p className={`text-xs sm:text-sm leading-relaxed ${
+              isDarkMode ? 'text-slate-400' : 'text-blue-950/80'
+            }`}>
               Insert and delete nodes dynamically without needing continuous memory block reallocations or costly linear shifts.
             </p>
           </div>
@@ -648,15 +654,17 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
             className={`p-6 rounded-2xl border transition-all duration-200 ${
               isDarkMode
                 ? 'bg-[#090d18] border-violet-950/70 hover:border-violet-800/60'
-                : 'bg-slate-50/70 border-slate-200/80 hover:border-slate-300'
+                : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
             }`}
           >
             <h3 className={`text-base font-bold mb-2 ${
-              isDarkMode ? 'text-slate-100' : 'text-slate-900'
+              isDarkMode ? 'text-slate-100' : 'text-black'
             }`}>
               Real-World Applications
             </h3>
-            <p className="text-xs sm:text-sm text-slate-400 dark:text-slate-400 leading-relaxed">
+            <p className={`text-xs sm:text-sm leading-relaxed ${
+              isDarkMode ? 'text-slate-400' : 'text-blue-950/80'
+            }`}>
               Underpins database indexing (B-Trees, AVL, Red-Black), syntax parsers, file system hierarchies, and auto-complete search engines.
             </p>
           </div>
@@ -671,7 +679,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-slate-100'
-            : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+            : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
         <div className="flex items-center gap-3 mb-6">
@@ -697,19 +705,19 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
             className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer group hover:scale-[1.02] ${
               isDarkMode
                 ? 'bg-[#090d18] border-violet-950/70 hover:border-violet-700/60'
-                : 'bg-slate-50/70 border-slate-200/80 hover:border-indigo-300'
+                : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
             }`}
           >
             <span className="inline-block text-[11px] font-mono font-bold tracking-wider uppercase text-violet-500 dark:text-violet-400 mb-1.5">
               MODULE A
             </span>
             <h3 className={`text-sm sm:text-base font-bold mb-2 transition-colors ${
-              isDarkMode ? 'text-slate-100 group-hover:text-violet-400' : 'text-slate-900 group-hover:text-slate-950'
+              isDarkMode ? 'text-slate-100 group-hover:text-violet-400' : 'text-black group-hover:text-blue-600'
             }`}>
               Foundations & Rules
             </h3>
             <p className={`text-xs leading-relaxed transition-colors ${
-              isDarkMode ? 'text-slate-400 dark:text-slate-400' : 'text-slate-600 group-hover:text-slate-900'
+              isDarkMode ? 'text-slate-400 dark:text-slate-400' : 'text-blue-900/80 group-hover:text-black'
             }`}>
               Tree terminology, root, edges, leaves, subtree definitions, and the binary search invariant.
             </p>
@@ -721,19 +729,19 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
             className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer group hover:scale-[1.02] ${
               isDarkMode
                 ? 'bg-[#090d18] border-violet-950/70 hover:border-blue-700/60'
-                : 'bg-slate-50/70 border-slate-200/80 hover:border-blue-300'
+                : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
             }`}
           >
             <span className="inline-block text-[11px] font-mono font-bold tracking-wider uppercase text-blue-500 dark:text-blue-400 mb-1.5">
               MODULE B
             </span>
             <h3 className={`text-sm sm:text-base font-bold mb-2 transition-colors ${
-              isDarkMode ? 'text-slate-100 group-hover:text-blue-400' : 'text-slate-900 group-hover:text-slate-950'
+              isDarkMode ? 'text-slate-100 group-hover:text-blue-400' : 'text-black group-hover:text-blue-600'
             }`}>
               Search & Insertion
             </h3>
             <p className={`text-xs leading-relaxed transition-colors ${
-              isDarkMode ? 'text-slate-400 dark:text-slate-400' : 'text-slate-600 group-hover:text-slate-900'
+              isDarkMode ? 'text-slate-400 dark:text-slate-400' : 'text-blue-900/80 group-hover:text-black'
             }`}>
               Navigating step-by-step from root to leaf, comparing keys, and attaching new nodes accurately.
             </p>
@@ -745,19 +753,19 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
             className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer group hover:scale-[1.02] ${
               isDarkMode
                 ? 'bg-[#090d18] border-violet-950/70 hover:border-amber-700/60'
-                : 'bg-slate-50/70 border-slate-200/80 hover:border-amber-300'
+                : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
             }`}
           >
             <span className="inline-block text-[11px] font-mono font-bold tracking-wider uppercase text-amber-500 dark:text-amber-400 mb-1.5">
               MODULE C
             </span>
             <h3 className={`text-sm sm:text-base font-bold mb-2 transition-colors ${
-              isDarkMode ? 'text-slate-100 group-hover:text-amber-400' : 'text-slate-900 group-hover:text-slate-950'
+              isDarkMode ? 'text-slate-100 group-hover:text-amber-400' : 'text-black group-hover:text-blue-600'
             }`}>
               3-Case Deletion
             </h3>
             <p className={`text-xs leading-relaxed transition-colors ${
-              isDarkMode ? 'text-slate-400 dark:text-slate-400' : 'text-slate-600 group-hover:text-slate-900'
+              isDarkMode ? 'text-slate-400 dark:text-slate-400' : 'text-blue-900/80 group-hover:text-black'
             }`}>
               Leaf pruning, single-child bypass, and 2-child replacement using in-order successor and predecessor.
             </p>
@@ -769,19 +777,19 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
             className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer group hover:scale-[1.02] ${
               isDarkMode
                 ? 'bg-[#090d18] border-violet-950/70 hover:border-emerald-700/60'
-                : 'bg-slate-50/70 border-slate-200/80 hover:border-emerald-300'
+                : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
             }`}
           >
             <span className="inline-block text-[11px] font-mono font-bold tracking-wider uppercase text-emerald-500 dark:text-emerald-400 mb-1.5">
               MODULE D
             </span>
             <h3 className={`text-sm sm:text-base font-bold mb-2 transition-colors ${
-              isDarkMode ? 'text-slate-100 group-hover:text-emerald-400' : 'text-slate-900 group-hover:text-slate-950'
+              isDarkMode ? 'text-slate-100 group-hover:text-emerald-400' : 'text-black group-hover:text-blue-600'
             }`}>
               Traversals & Analysis
             </h3>
             <p className={`text-xs leading-relaxed transition-colors ${
-              isDarkMode ? 'text-slate-400 dark:text-slate-400' : 'text-slate-600 group-hover:text-slate-900'
+              isDarkMode ? 'text-slate-400 dark:text-slate-400' : 'text-blue-900/80 group-hover:text-black'
             }`}>
               In-Order sorted printing, Pre-Order serialization, Post-Order memory cleanup, and tree height.
             </p>
@@ -797,7 +805,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
         className={`p-6 sm:p-8 md:p-9 rounded-3xl border transition-all duration-300 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-xl shadow-violet-950/30'
-            : 'bg-[#F8F9FE] border-slate-200/80 text-slate-900 shadow-sm'
+            : 'bg-[#F8F9FE] border-blue-100 text-black shadow-sm'
         }`}
       >
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 text-center sm:text-left">
@@ -810,7 +818,9 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
               <h2 className="text-xl sm:text-2xl font-black tracking-tight">
                 Ready to Master Binary Search Trees?
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed">
+              <p className={`text-xs sm:text-sm max-w-xl leading-relaxed ${
+                isDarkMode ? 'text-slate-400' : 'text-blue-950/80'
+              }`}>
                 Begin with the fundamental tree properties and learn through interactive visualizations, 
                 step-by-step guided walkthroughs, and hands-on tree construction exercises.
               </p>
@@ -831,7 +841,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
 
       {/* Footer Tagline matching reference */}
       <div className="text-center pt-2 pb-4">
-        <p className="text-xs font-medium text-slate-400 dark:text-slate-500">
+        <p className={`text-xs font-medium ${isDarkMode ? 'text-slate-500' : 'text-blue-900/70'}`}>
           AlgoLearn • Your DSA Journey • Learn • Think • Build
         </p>
       </div>

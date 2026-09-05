@@ -28,7 +28,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
 
             {/* SVG Visual Diagram */}
             <div className={`p-4 sm:p-6 rounded-2xl border flex flex-col items-center justify-center overflow-x-auto ${
-              isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+              isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/40 border-blue-100'
             }`}>
               <svg viewBox="0 0 460 220" className="w-full max-w-lg h-auto">
                 <defs>
@@ -90,25 +90,25 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
               <div className={`p-2.5 rounded-xl border text-center ${
                 isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-white border-slate-200'
               }`}>
-                <div className="text-[10px] font-mono uppercase font-bold text-violet-400">Root Node</div>
+                <div className={`text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-violet-400' : 'text-violet-700'}`}>Root Node</div>
                 <div className="text-[11px] font-semibold opacity-80 mt-0.5">Top starting point</div>
               </div>
               <div className={`p-2.5 rounded-xl border text-center ${
                 isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-white border-slate-200'
               }`}>
-                <div className="text-[10px] font-mono uppercase font-bold text-indigo-400">Edges</div>
+                <div className={`text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>Edges</div>
                 <div className="text-[11px] font-semibold opacity-80 mt-0.5">Connection links</div>
               </div>
               <div className={`p-2.5 rounded-xl border text-center ${
                 isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-white border-slate-200'
               }`}>
-                <div className="text-[10px] font-mono uppercase font-bold text-blue-400">Parent / Child</div>
+                <div className={`text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}>Parent / Child</div>
                 <div className="text-[11px] font-semibold opacity-80 mt-0.5">Branch hierarchy</div>
               </div>
               <div className={`p-2.5 rounded-xl border text-center ${
                 isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-white border-slate-200'
               }`}>
-                <div className="text-[10px] font-mono uppercase font-bold text-emerald-400">Leaf Nodes</div>
+                <div className={`text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>Leaf Nodes</div>
                 <div className="text-[11px] font-semibold opacity-80 mt-0.5">0 children (ends)</div>
               </div>
             </div>
@@ -140,7 +140,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
               <div className={`p-4 rounded-2xl border flex flex-col items-center text-center ${
                 isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
               }`}>
-                <div className="text-xs font-bold text-cyan-400 mb-1">1. GENERAL TREE</div>
+                <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-cyan-400' : 'text-cyan-800'}`}>1. GENERAL TREE</div>
                 <div className="text-[10px] opacity-70 mb-3">Any number of children</div>
                 
                 <svg viewBox="0 0 140 100" className="w-full max-w-[140px] h-24 mb-2">
@@ -156,7 +156,9 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
                   <circle cx="115" cy="70" r="11" fill={isDarkMode ? '#164e63' : '#bae6fd'} />
                   <text x="115" y="74" fill={isDarkMode ? '#cffafe' : '#0369a1'} fontSize="9" fontWeight="bold" textAnchor="middle">D</text>
                 </svg>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 font-semibold">
+                <span className={`text-[11px] font-mono px-2 py-0.5 rounded font-semibold ${
+                  isDarkMode ? 'bg-cyan-500/10 text-cyan-300' : 'bg-cyan-100 text-cyan-900 border border-cyan-200'
+                }`}>
                   Branch Factor: Unlimited
                 </span>
               </div>
@@ -165,7 +167,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
               <div className={`p-4 rounded-2xl border flex flex-col items-center text-center ${
                 isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
               }`}>
-                <div className="text-xs font-bold text-violet-400 mb-1">2. BINARY TREE</div>
+                <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>2. BINARY TREE</div>
                 <div className="text-[10px] opacity-70 mb-3">At most 2 children (Left / Right)</div>
                 
                 <svg viewBox="0 0 140 100" className="w-full max-w-[140px] h-24 mb-2">
@@ -178,7 +180,9 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
                   <circle cx="105" cy="70" r="12" fill={isDarkMode ? '#2e1065' : '#e0e7ff'} stroke={isDarkMode ? '#a78bfa' : '#6366f1'} strokeWidth="1.5" />
                   <text x="105" y="74" fill={isDarkMode ? '#e9d5ff' : '#312e81'} fontSize="9" fontWeight="bold" textAnchor="middle">R</text>
                 </svg>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-violet-500/10 text-violet-300 font-semibold">
+                <span className={`text-[11px] font-mono px-2 py-0.5 rounded font-semibold ${
+                  isDarkMode ? 'bg-violet-500/10 text-violet-300' : 'bg-violet-100 text-violet-900 border border-violet-200'
+                }`}>
                   Branch Factor: ≤ 2
                 </span>
               </div>
@@ -187,7 +191,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
               <div className={`p-4 rounded-2xl border flex flex-col items-center text-center ${
                 isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
               }`}>
-                <div className="text-xs font-bold text-emerald-400 mb-1">3. BINARY SEARCH TREE</div>
+                <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>3. BINARY SEARCH TREE</div>
                 <div className="text-[10px] opacity-70 mb-3">Left &lt; Node &lt; Right</div>
                 
                 <svg viewBox="0 0 140 100" className="w-full max-w-[140px] h-24 mb-2">
@@ -200,7 +204,9 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
                   <circle cx="105" cy="70" r="12" fill={isDarkMode ? '#064e3b' : '#d1fae5'} stroke={isDarkMode ? '#34d399' : '#059669'} strokeWidth="1.5" />
                   <text x="105" y="74" fill={isDarkMode ? '#a7f3d0' : '#065f46'} fontSize="9" fontWeight="bold" textAnchor="middle">15</text>
                 </svg>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-semibold">
+                <span className={`text-[11px] font-mono px-2 py-0.5 rounded font-semibold ${
+                  isDarkMode ? 'bg-emerald-500/10 text-emerald-300' : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                }`}>
                   Sorted Ordering
                 </span>
               </div>
@@ -287,11 +293,11 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
             </div>
 
             <div className="p-3.5 rounded-2xl border text-xs flex items-center justify-around font-mono text-center">
-              <span className="text-emerald-400 font-bold">20, 30, 40 &lt; 50</span>
+              <span className={`font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>20, 30, 40 &lt; 50</span>
               <span className="opacity-40">|</span>
-              <span className="text-violet-400 font-bold">ROOT = 50</span>
+              <span className={`font-bold ${isDarkMode ? 'text-violet-400' : 'text-violet-700'}`}>ROOT = 50</span>
               <span className="opacity-40">|</span>
-              <span className="text-blue-400 font-bold">50 &lt; 60, 70, 80</span>
+              <span className={`font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}>50 &lt; 60, 70, 80</span>
             </div>
           </div>
         );
@@ -315,7 +321,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
               <div className={`p-4 rounded-2xl border text-center ${
                 isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
               }`}>
-                <div className="text-xs font-bold text-amber-400 mb-1">PREORDER</div>
+                <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-800'}`}>PREORDER</div>
                 <div className="text-[10px] font-mono opacity-80 mb-2">Root → Left → Right</div>
                 <div className="flex items-center justify-center gap-1 my-2">
                   <span className="w-6 h-6 rounded-full bg-amber-500 text-slate-900 font-mono font-bold text-xs flex items-center justify-center">1</span>
@@ -331,7 +337,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
               <div className={`p-4 rounded-2xl border text-center ${
                 isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
               }`}>
-                <div className="text-xs font-bold text-emerald-400 mb-1">INORDER</div>
+                <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>INORDER</div>
                 <div className="text-[10px] font-mono opacity-80 mb-2">Left → Root → Right</div>
                 <div className="flex items-center justify-center gap-1 my-2">
                   <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs flex items-center justify-center border border-emerald-500/40">2</span>
@@ -347,7 +353,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
               <div className={`p-4 rounded-2xl border text-center ${
                 isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
               }`}>
-                <div className="text-xs font-bold text-violet-400 mb-1">POSTORDER</div>
+                <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>POSTORDER</div>
                 <div className="text-[10px] font-mono opacity-80 mb-2">Left → Right → Root</div>
                 <div className="flex items-center justify-center gap-1 my-2">
                   <span className="w-6 h-6 rounded-full bg-violet-500/20 text-violet-300 font-mono font-bold text-xs flex items-center justify-center border border-violet-500/40">2</span>
@@ -382,19 +388,19 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
                 isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
               }`}>
                 <div className="flex items-center gap-2 mb-3">
-                  <Folder className="w-4 h-4 text-amber-400" />
-                  <div className="text-xs font-bold text-amber-400 uppercase">OS File System Hierarchy</div>
+                  <Folder className={`w-4 h-4 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`} />
+                  <div className={`text-xs font-bold uppercase ${isDarkMode ? 'text-amber-400' : 'text-amber-800'}`}>OS File System Hierarchy</div>
                 </div>
 
                 <div className={`p-3 rounded-xl font-mono text-xs space-y-1.5 ${
                   isDarkMode ? 'bg-[#0e1424] text-slate-300' : 'bg-white text-slate-700 border border-slate-200'
                 }`}>
-                  <div className="text-violet-400 font-bold">📁 Root (/)</div>
-                  <div className="pl-4 text-slate-400">├── 📁 Documents/</div>
-                  <div className="pl-8 text-emerald-400">├── 📄 resume.pdf</div>
-                  <div className="pl-8 text-emerald-400">└── 📄 notes.txt</div>
-                  <div className="pl-4 text-slate-400">└── 📁 Photos/</div>
-                  <div className="pl-8 text-cyan-400">└── 🖼️ sunset.png</div>
+                  <div className={`font-bold ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>📁 Root (/)</div>
+                  <div className={`pl-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500 font-medium'}`}>├── 📁 Documents/</div>
+                  <div className={`pl-8 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700 font-semibold'}`}>├── 📄 resume.pdf</div>
+                  <div className={`pl-8 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700 font-semibold'}`}>└── 📄 notes.txt</div>
+                  <div className={`pl-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500 font-medium'}`}>└── 📁 Photos/</div>
+                  <div className={`pl-8 ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700 font-semibold'}`}>└── 🖼️ sunset.png</div>
                 </div>
               </div>
 
@@ -403,19 +409,19 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
                 isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
               }`}>
                 <div className="flex items-center gap-2 mb-3">
-                  <Globe className="w-4 h-4 text-cyan-400" />
-                  <div className="text-xs font-bold text-cyan-400 uppercase">Web Browser DOM Tree</div>
+                  <Globe className={`w-4 h-4 ${isDarkMode ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <div className={`text-xs font-bold uppercase ${isDarkMode ? 'text-cyan-400' : 'text-cyan-800'}`}>Web Browser DOM Tree</div>
                 </div>
 
                 <div className={`p-3 rounded-xl font-mono text-xs space-y-1.5 ${
                   isDarkMode ? 'bg-[#0e1424] text-slate-300' : 'bg-white text-slate-700 border border-slate-200'
                 }`}>
-                  <div className="text-cyan-400 font-bold">&lt;html&gt; (Root)</div>
-                  <div className="pl-4 text-slate-400">├── &lt;head&gt;</div>
-                  <div className="pl-8 text-violet-400">└── &lt;title&gt;My App&lt;/title&gt;</div>
-                  <div className="pl-4 text-slate-400">└── &lt;body&gt;</div>
-                  <div className="pl-8 text-emerald-400">├── &lt;h1&gt;Header&lt;/h1&gt;</div>
-                  <div className="pl-8 text-emerald-400">└── &lt;button&gt;Click&lt;/button&gt;</div>
+                  <div className={`font-bold ${isDarkMode ? 'text-cyan-400' : 'text-cyan-800'}`}>&lt;html&gt; (Root)</div>
+                  <div className={`pl-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500 font-medium'}`}>├── &lt;head&gt;</div>
+                  <div className={`pl-8 ${isDarkMode ? 'text-violet-400' : 'text-violet-800 font-semibold'}`}>└── &lt;title&gt;My App&lt;/title&gt;</div>
+                  <div className={`pl-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500 font-medium'}`}>└── &lt;body&gt;</div>
+                  <div className={`pl-8 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700 font-semibold'}`}>├── &lt;h1&gt;Header&lt;/h1&gt;</div>
+                  <div className={`pl-8 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700 font-semibold'}`}>└── &lt;button&gt;Click&lt;/button&gt;</div>
                 </div>
               </div>
             </div>
@@ -438,8 +444,10 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-violet-400 shadow-xs shadow-violet-400" />
-          <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-violet-400 flex items-center gap-1.5">
+          <span className={`w-2.5 h-2.5 rounded-full ${isDarkMode ? 'bg-violet-400 shadow-xs shadow-violet-400' : 'bg-violet-600 shadow-xs shadow-violet-400/50'}`} />
+          <h3 className={`text-xs font-mono font-bold uppercase tracking-widest flex items-center gap-1.5 ${
+            isDarkMode ? 'text-violet-400' : 'text-violet-700 font-extrabold'
+          }`}>
             <Network className="w-4 h-4" />
             Architecture Diagram
           </h3>

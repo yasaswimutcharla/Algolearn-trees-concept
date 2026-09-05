@@ -20,6 +20,7 @@ interface NavigationSidebarProps {
   onToggleTheme: () => void;
   completedTopics?: TopicId[];
   quizScore?: { score: number; total: number } | null;
+  quizProgress?: { completed: number; total: number } | null;
   completedVisualizations?: string[];
   isVideoCompleted?: boolean;
   isSoundOn?: boolean;
@@ -37,6 +38,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   onToggleTheme,
   completedTopics = [],
   quizScore = null,
+  quizProgress = null,
   completedVisualizations: propCompletedVisualizations,
   isVideoCompleted: propIsVideoCompleted,
   isSoundOn = true,
@@ -60,8 +62,19 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         return `${completedTopics.length}/7`;
       case 'visualize':
         return isVideoDone ? '1/1' : '0/1';
-      case 'quiz':
-        return quizScore ? `${quizScore.score}/${quizScore.total}` : '0/10';
+      case 'quiz': {
+        const completed = quizProgress ? quizProgress.completed : (() => {
+          try {
+            const raw = localStorage.getItem('tree_dsa_quiz_progress');
+            if (raw) return JSON.parse(raw).completed;
+            const state = localStorage.getItem('tree_dsa_quiz_state');
+            if (state) return Object.keys(JSON.parse(state).confirmedQuestions || {}).length;
+          } catch {}
+          return 0;
+        })();
+        const total = quizProgress ? quizProgress.total : 10;
+        return `${completed}/${total}`;
+      }
       case 'progress':
         return `${completedTopics.length * 10} XP`;
       default:
@@ -100,7 +113,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         className={`fixed top-0 bottom-0 left-0 z-50 w-72 flex flex-col transition-transform duration-300 ease-in-out border-r ${
           isDarkMode
             ? 'bg-[#080c16] border-slate-800/80 text-slate-200 shadow-2xl shadow-violet-950/40'
-            : 'bg-white border-slate-200 text-slate-800 shadow-xl'
+            : 'bg-white border-blue-100 text-black shadow-xl'
         } ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
@@ -108,7 +121,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         {/* Sidebar branding area matching exact AlgoLearn reference */}
         <div
           className={`p-4 flex items-center justify-between border-b ${
-            isDarkMode ? 'border-slate-800/80' : 'border-slate-100'
+            isDarkMode ? 'border-slate-800/80' : 'border-blue-100'
           }`}
         >
           <AlgoLearnLogo isDark={isDarkMode} size="sm" />
@@ -121,7 +134,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-all cursor-pointer ${
               isDarkMode
                 ? 'border-slate-800 bg-[#0e1424] hover:bg-slate-800 text-slate-400 hover:text-white'
-                : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900'
+                : 'border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-black'
             }`}
           >
             <X className="w-4 h-4" />
@@ -130,7 +143,9 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
         {/* Navigation Menu Header & Items List (scrollbar visually hidden) */}
         <div className="flex-1 overflow-y-auto px-3 py-3 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="px-3 py-2 text-[11px] font-mono font-semibold tracking-wider uppercase text-slate-400 dark:text-slate-500">
+          <div className={`px-3 py-2 text-[11px] font-mono font-semibold tracking-wider uppercase ${
+            isDarkMode ? 'text-slate-400' : 'text-blue-700'
+          }`}>
             Navigation Menu
           </div>
 
@@ -152,10 +167,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                     isActive
                       ? isDarkMode
                         ? 'bg-[#121829] border border-violet-900/60 text-white shadow-sm'
-                        : 'bg-violet-50 border border-violet-200 text-slate-950 shadow-sm'
+                        : 'bg-blue-50 border border-blue-200 text-black shadow-sm'
                       : isDarkMode
                       ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 border border-transparent'
-                      : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100 border border-transparent'
+                      : 'text-blue-900 hover:text-black hover:bg-blue-50/70 border border-transparent'
                   }`}
                 >
                   {/* Icon Container: Vibrant purple rounded square when active, clean icon when inactive */}
@@ -165,7 +180,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                         ? 'bg-[#6D3DF5] text-white shadow-md shadow-violet-900/40'
                         : isDarkMode
                         ? 'text-slate-400 group-hover:text-slate-200'
-                        : 'text-slate-600 group-hover:text-slate-950'
+                        : 'text-blue-700 group-hover:text-black'
                     }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -176,10 +191,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                       isActive
                         ? isDarkMode
                           ? 'font-bold text-white'
-                          : 'font-bold text-slate-950'
+                          : 'font-bold text-black'
                         : isDarkMode
                         ? 'font-medium text-slate-400 group-hover:text-slate-100'
-                        : 'font-medium text-slate-700 group-hover:text-slate-950'
+                        : 'font-medium text-blue-950 group-hover:text-black'
                     }`}
                   >
                     {item.label}
@@ -198,8 +213,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                             ? 'bg-violet-900/60 text-violet-200 border border-violet-700/60'
                             : 'bg-violet-950/80 text-violet-300 border border-violet-800/50'
                           : isActive
-                          ? 'bg-violet-100 text-slate-950 border border-violet-300'
-                          : 'bg-slate-200/80 text-slate-900 border border-slate-300'
+                          ? 'bg-blue-100 text-black border border-blue-300'
+                          : 'bg-blue-50 text-blue-900 border border-blue-200'
                       }`}
                     >
                       {progressBadge}

@@ -31,7 +31,7 @@ export const SyllabusView: React.FC<SyllabusViewProps> = ({ onSelectTopic, isDar
       case 'terminology':
         return (
           <div className="mt-3 space-y-2">
-            <div className="text-xs font-semibold text-violet-400">
+            <div className={`text-xs font-semibold ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>
               13 Fundamental Terms (Definition + Example + Visual Highlight):
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
@@ -52,7 +52,7 @@ export const SyllabusView: React.FC<SyllabusViewProps> = ({ onSelectTopic, isDar
       case 'types':
         return (
           <div className="mt-3 space-y-2">
-            <div className="text-xs font-semibold text-violet-400">
+            <div className={`text-xs font-semibold ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>
               7 Tree Classifications & Structural Rules:
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -63,7 +63,7 @@ export const SyllabusView: React.FC<SyllabusViewProps> = ({ onSelectTopic, isDar
                     isDarkMode ? 'bg-[#22173d] text-purple-200 border border-purple-900/30' : 'bg-slate-100 text-slate-700'
                   }`}
                 >
-                  <strong className="text-violet-400">{t.name}:</strong> {t.rule}
+                  <strong className={isDarkMode ? 'text-violet-400' : 'text-violet-800'}>{t.name}:</strong> {t.rule}
                 </div>
               ))}
             </div>
@@ -89,7 +89,7 @@ export const SyllabusView: React.FC<SyllabusViewProps> = ({ onSelectTopic, isDar
       case 'traversals':
         return (
           <div className="mt-3 space-y-2">
-            <div className="text-xs font-semibold text-violet-400">
+            <div className={`text-xs font-semibold ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>
               Step-by-Step Traversal Algorithms:
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -100,7 +100,7 @@ export const SyllabusView: React.FC<SyllabusViewProps> = ({ onSelectTopic, isDar
                     isDarkMode ? 'bg-[#22173d] text-purple-200 border border-purple-900/30' : 'bg-slate-100 text-slate-700'
                   }`}
                 >
-                  <strong className="text-violet-400">{trav.name}</strong> ({trav.orderFormula})
+                  <strong className={isDarkMode ? 'text-violet-400' : 'text-violet-800'}>{trav.name}</strong> ({trav.orderFormula})
                 </div>
               ))}
             </div>
@@ -110,7 +110,7 @@ export const SyllabusView: React.FC<SyllabusViewProps> = ({ onSelectTopic, isDar
       case 'bst':
         return (
           <div className="mt-3 space-y-2">
-            <div className="text-xs font-semibold text-violet-400">
+            <div className={`text-xs font-semibold ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>
               BST Operations & Properties:
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -121,7 +121,7 @@ export const SyllabusView: React.FC<SyllabusViewProps> = ({ onSelectTopic, isDar
                     isDarkMode ? 'bg-[#22173d] text-purple-200 border border-purple-900/30' : 'bg-slate-100 text-slate-700'
                   }`}
                 >
-                  <strong className="text-violet-400">{op.name}</strong>
+                  <strong className={isDarkMode ? 'text-violet-400' : 'text-violet-800'}>{op.name}</strong>
                 </div>
               ))}
             </div>
@@ -157,11 +157,15 @@ export const SyllabusView: React.FC<SyllabusViewProps> = ({ onSelectTopic, isDar
           ? 'bg-[#160f29] border-purple-900/50 text-purple-100'
           : 'bg-white border-slate-200 text-slate-900'
       }`}>
-        <div className="flex items-center gap-2.5 text-violet-400 font-bold text-xs uppercase tracking-wider mb-2">
+        <div className={`flex items-center gap-2.5 font-bold text-xs uppercase tracking-wider mb-2 ${
+          isDarkMode ? 'text-violet-400' : 'text-violet-700'
+        }`}>
           <ListTree className="w-4 h-4" />
           <span>Official Syllabus</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-violet-400">
+        <h1 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
+          isDarkMode ? 'text-violet-400' : 'text-violet-950'
+        }`}>
           Tree DSA Topics & Curriculum
         </h1>
         <p className="text-sm mt-1.5 opacity-80 leading-relaxed">
@@ -184,10 +188,16 @@ export const SyllabusView: React.FC<SyllabusViewProps> = ({ onSelectTopic, isDar
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-violet-600/20 text-violet-400 border border-violet-500/30">
+                  <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full ${
+                    isDarkMode
+                      ? 'bg-violet-600/20 text-violet-400 border border-violet-500/30'
+                      : 'bg-violet-100 text-violet-900 border border-violet-200'
+                  }`}>
                     Topic {topic.index}
                   </span>
-                  <h2 className="text-lg font-bold text-violet-300">
+                  <h2 className={`text-lg font-bold ${
+                    isDarkMode ? 'text-violet-300' : 'text-violet-900'
+                  }`}>
                     {topic.title}
                   </h2>
                 </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QUIZ_QUESTIONS } from '../../data/treeData';
 import {
   HelpCircle,
@@ -9,25 +9,111 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
-  X
+  X,
+  Lightbulb
 } from 'lucide-react';
+import { ProgressiveHintModal, QUIZ_HINT_STAGES } from '../ProgressiveHintModal';
+
+const QUIZ_STORAGE_KEY = 'tree_dsa_quiz_state';
+
+export interface QuizSavedState {
+  currentQuestionIndex: number;
+  userAnswers: Record<string, number>;
+  confirmedQuestions: Record<string, boolean>;
+  submitted: boolean;
+}
+
+// In-memory cache ensures zero-loss persistence across component unmounts in the session
+let inMemoryQuizState: QuizSavedState | null = null;
+
+export const loadSavedQuizState = (): QuizSavedState | null => {
+  if (inMemoryQuizState) {
+    return inMemoryQuizState;
+  }
+  try {
+    const raw = sessionStorage.getItem(QUIZ_STORAGE_KEY) || localStorage.getItem(QUIZ_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      inMemoryQuizState = parsed;
+      return parsed;
+    }
+  } catch {}
+  return null;
+};
+
+export const saveQuizState = (state: QuizSavedState) => {
+  inMemoryQuizState = state;
+  try {
+    const serialized = JSON.stringify(state);
+    sessionStorage.setItem(QUIZ_STORAGE_KEY, serialized);
+    localStorage.setItem(QUIZ_STORAGE_KEY, serialized);
+  } catch {}
+};
+
+export const clearSavedQuizState = () => {
+  inMemoryQuizState = null;
+  try {
+    sessionStorage.removeItem(QUIZ_STORAGE_KEY);
+    localStorage.removeItem(QUIZ_STORAGE_KEY);
+  } catch {}
+};
 
 interface QuizViewProps {
   isDarkMode: boolean;
   onUpdateQuizScore?: (score: number, total: number) => void;
+  onUpdateQuizProgress?: (completed: number, total: number) => void;
 }
 
-export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScore }) => {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-  const [userAnswers, setUserAnswers] = useState<Record<string, number>>({});
-  const [confirmedQuestions, setConfirmedQuestions] = useState<Record<string, boolean>>({});
-  const [submitted, setSubmitted] = useState<boolean>(false);
+export const QuizView: React.FC<QuizViewProps> = ({
+  isDarkMode,
+  onUpdateQuizScore,
+  onUpdateQuizProgress
+}) => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(() => {
+    const saved = loadSavedQuizState();
+    if (typeof saved?.currentQuestionIndex === 'number') {
+      return Math.max(0, Math.min(QUIZ_QUESTIONS.length - 1, saved.currentQuestionIndex));
+    }
+    return 0;
+  });
+  const [userAnswers, setUserAnswers] = useState<Record<string, number>>(() => {
+    const saved = loadSavedQuizState();
+    return saved?.userAnswers ?? {};
+  });
+  const [confirmedQuestions, setConfirmedQuestions] = useState<Record<string, boolean>>(() => {
+    const saved = loadSavedQuizState();
+    return saved?.confirmedQuestions ?? {};
+  });
+  const [submitted, setSubmitted] = useState<boolean>(() => {
+    const saved = loadSavedQuizState();
+    return Boolean(saved?.submitted);
+  });
+  const [isHintModalOpen, setIsHintModalOpen] = useState<boolean>(false);
+  const [revealedHintStages, setRevealedHintStages] = useState<Record<string, number>>({});
 
   const totalQuestions = QUIZ_QUESTIONS.length;
+
+  useEffect(() => {
+    saveQuizState({
+      currentQuestionIndex,
+      userAnswers,
+      confirmedQuestions,
+      submitted
+    });
+  }, [currentQuestionIndex, userAnswers, confirmedQuestions, submitted]);
+
   const currentQ = QUIZ_QUESTIONS[currentQuestionIndex];
   const selectedAnswer = userAnswers[currentQ?.id];
   const isCurrentConfirmed = Boolean(confirmedQuestions[currentQ?.id]);
   const answeredCount = Object.keys(confirmedQuestions).length;
+  const currentHintStage = (currentQ?.id && revealedHintStages[currentQ.id]) || 1;
+
+  // Sync progress on mount or when answeredCount updates
+  useEffect(() => {
+    if (onUpdateQuizProgress) {
+      onUpdateQuizProgress(answeredCount, totalQuestions);
+    }
+  }, [answeredCount, totalQuestions, onUpdateQuizProgress]);
 
   const handleSelectOption = (optionIndex: number) => {
     if (submitted || isCurrentConfirmed) return;
@@ -55,7 +141,12 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
     };
     setConfirmedQuestions(newConfirmed);
 
-    // Update global score progress
+    const completedCount = Object.keys(newConfirmed).length;
+    if (onUpdateQuizProgress) {
+      onUpdateQuizProgress(completedCount, totalQuestions);
+    }
+
+    // Update global score progress (separate correct-answer score)
     let score = 0;
     QUIZ_QUESTIONS.forEach((q) => {
       if (userAnswers[q.id] === q.correctAnswerIndex) {
@@ -90,10 +181,14 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
   };
 
   const handleRetake = () => {
+    clearSavedQuizState();
     setUserAnswers({});
     setConfirmedQuestions({});
     setSubmitted(false);
     setCurrentQuestionIndex(0);
+    if (onUpdateQuizProgress) {
+      onUpdateQuizProgress(0, totalQuestions);
+    }
     if (onUpdateQuizScore) {
       onUpdateQuizScore(0, totalQuestions);
     }
@@ -110,19 +205,21 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-xl shadow-violet-950/30'
-            : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+            : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
         {/* Top Meta Row */}
         <div className="flex items-center justify-between gap-3 mb-3">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-violet-600/20 text-violet-400 border border-violet-500/30">
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+            isDarkMode ? 'bg-violet-600/20 text-violet-400 border border-violet-500/30' : 'bg-blue-50 text-blue-900 border border-blue-200'
+          }`}>
             <HelpCircle className="w-3.5 h-3.5" />
             <span>Knowledge Assessment</span>
           </div>
 
           <span
             className={`text-xs font-mono font-medium tracking-tight ${
-              isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              isDarkMode ? 'text-slate-400' : 'text-blue-900/80'
             }`}
           >
             Tree Quiz (10 Questions)
@@ -138,12 +235,15 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
 
         {/* Question Progress and Status Boxes */}
         <div className="mt-6 space-y-3">
-          <div className="text-xs sm:text-sm font-medium">
-            Progress:{' '}
-            <span className="font-bold font-mono text-violet-400">
-              {answeredCount}
-            </span>{' '}
-            / {totalQuestions} Answered
+          <div className="text-xs sm:text-sm font-medium flex items-center gap-1.5">
+            <span>Progress:</span>
+            <span
+              id="quiz-progress-counter"
+              className={`font-bold font-mono ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}
+            >
+              {answeredCount}/{totalQuestions}
+            </span>
+            <span className="opacity-75">Answered</span>
           </div>
 
           {/* Q1..Q10 Status Boxes Row */}
@@ -198,7 +298,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
                 // Unanswered Questions - Neutral dark
                 boxStyle = isDarkMode
                   ? 'bg-[#12192c] text-slate-400 border border-violet-950/70 hover:border-violet-700/60 hover:text-slate-200'
-                  : 'bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 hover:text-slate-950';
+                  : 'bg-blue-50 text-blue-900 border border-blue-200 hover:border-blue-300 hover:text-black';
                 content = <span>Q{idx + 1}</span>;
               }
 
@@ -246,7 +346,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 isDarkMode
                   ? 'bg-[#18233c] hover:bg-[#202e4f] text-white border border-violet-900/60'
-                  : 'bg-white hover:bg-slate-50 text-slate-800 hover:text-slate-950 border border-slate-300 shadow-sm'
+                  : 'bg-white hover:bg-blue-50 text-black hover:text-blue-900 border border-blue-200 shadow-sm'
               }`}
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -262,12 +362,14 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
           className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
             isDarkMode
               ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-xl shadow-violet-950/20'
-              : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+              : 'bg-white border-blue-100 text-black shadow-sm'
           }`}
         >
           {/* Card Top Meta */}
           <div className="flex items-center justify-between gap-2 mb-4">
-            <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-violet-600/20 text-violet-400 border border-violet-500/30">
+            <span className={`text-xs font-mono font-bold px-3 py-1 rounded-full ${
+              isDarkMode ? 'bg-violet-600/20 text-violet-400 border border-violet-500/30' : 'bg-violet-100 text-violet-800 border border-violet-200'
+            }`}>
               Question {String(currentQuestionIndex + 1).padStart(2, '0')} of {totalQuestions}
             </span>
 
@@ -307,12 +409,12 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
               const isSelected = selectedAnswer === optIdx;
               let optionStyle = isDarkMode
                 ? 'bg-[#090d18] border-violet-950/70 text-slate-200 hover:border-violet-600/50'
-                : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-indigo-400 hover:text-slate-950';
+                : 'bg-blue-50/40 border-blue-100 text-black hover:border-blue-400 hover:bg-blue-50';
 
               if (isSelected && !isCurrentConfirmed) {
                 optionStyle = isDarkMode
                   ? 'bg-violet-600/30 border-violet-500 text-white font-bold ring-1 ring-violet-500/40'
-                  : 'bg-indigo-50 border-indigo-500 text-indigo-950 font-bold ring-1 ring-indigo-500/40';
+                  : 'bg-blue-50 border-blue-500 text-blue-950 font-bold ring-1 ring-blue-500/40';
               }
 
               if (isCurrentConfirmed) {
@@ -343,7 +445,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
                             : 'bg-indigo-600 text-white'
                           : isDarkMode
                           ? 'bg-[#141b2d] text-slate-400'
-                          : 'bg-slate-200 text-slate-600'
+                          : 'bg-blue-100 text-blue-900'
                       }`}
                     >
                       {String.fromCharCode(65 + optIdx)}
@@ -371,7 +473,9 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
                   : 'bg-indigo-50/70 border-indigo-200 text-indigo-900'
               }`}
             >
-              <span className="font-bold text-violet-400 uppercase tracking-wider block mb-1">
+              <span className={`font-bold uppercase tracking-wider block mb-1 ${
+                isDarkMode ? 'text-violet-400' : 'text-indigo-800'
+              }`}>
                 Explanation
               </span>
               <p>{currentQ.explanation}</p>
@@ -379,23 +483,39 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
           )}
 
           {/* Navigation & Action Controls Row */}
-          <div className="mt-8 pt-5 border-t border-slate-200/20 flex items-center justify-between gap-3">
-            {/* Left: Previous Button */}
-            <button
-              id="quiz-prev-btn"
-              onClick={handlePrevious}
-              disabled={currentQuestionIndex === 0}
-              className={`flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
-                currentQuestionIndex > 0
-                  ? isDarkMode
-                    ? 'bg-[#141b2d] hover:bg-[#1c2740] text-slate-200 border border-violet-900/40 cursor-pointer'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 border border-slate-300 cursor-pointer'
-                  : 'opacity-0 pointer-events-none'
-              }`}
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span>Previous</span>
-            </button>
+          <div className={`mt-8 pt-5 border-t ${isDarkMode ? 'border-violet-950/60' : 'border-blue-100'} flex items-center justify-between gap-3`}>
+            {/* Left: Previous Button & Hint */}
+            <div className="flex items-center gap-2">
+              <button
+                id="quiz-prev-btn"
+                onClick={handlePrevious}
+                disabled={currentQuestionIndex === 0}
+                className={`flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+                  currentQuestionIndex > 0
+                    ? isDarkMode
+                      ? 'bg-[#141b2d] hover:bg-[#1c2740] text-slate-200 border border-violet-900/40 cursor-pointer'
+                      : 'bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-black border border-blue-200 cursor-pointer'
+                    : 'opacity-0 pointer-events-none'
+                }`}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Previous</span>
+              </button>
+
+              <button
+                id="quiz-hint-btn"
+                onClick={() => setIsHintModalOpen(true)}
+                className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 rounded-2xl text-xs font-semibold border transition-all cursor-pointer ${
+                  isDarkMode
+                    ? 'bg-[#121829] hover:bg-[#1a233a] border-violet-950/80 text-amber-300/90'
+                    : 'bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-800'
+                }`}
+                title="Open 3-Stage Progressive Hint"
+              >
+                <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
+                <span>Hint</span>
+              </button>
+            </div>
 
             {/* Right: Confirm Answer / Next Button */}
             <div className="flex items-center gap-2.5">
@@ -411,10 +531,10 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
                         : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-300/60 cursor-pointer hover:scale-[1.02]'
                       : isDarkMode
                       ? 'bg-[#141b2d]/60 text-slate-500 border border-violet-950/40 cursor-not-allowed opacity-60'
-                      : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
+                      : 'bg-blue-50/60 text-blue-900/40 border border-blue-100 cursor-not-allowed opacity-60'
                   }`}
                 >
-                  <span>Confirm Answer</span>
+                  <span>Submit Answer</span>
                 </button>
               ) : (
                 <button
@@ -435,6 +555,28 @@ export const QuizView: React.FC<QuizViewProps> = ({ isDarkMode, onUpdateQuizScor
             </div>
           </div>
         </div>
+      )}
+
+      {/* 3-Stage Progressive Hint Modal */}
+      {currentQ && (
+        <ProgressiveHintModal
+          isOpen={isHintModalOpen}
+          onClose={() => setIsHintModalOpen(false)}
+          isDarkMode={isDarkMode}
+          topicId={currentQ.topicId}
+          topicTitle="Quiz Challenge"
+          question={currentQ.question}
+          questionId={currentQ.id}
+          customHints={QUIZ_HINT_STAGES[currentQ.id]}
+          revealedStage={currentHintStage}
+          onRevealNextStage={() =>
+            setRevealedHintStages((prev) => ({
+              ...prev,
+              [currentQ.id]: Math.min(3, (prev[currentQ.id] || 1) + 1)
+            }))
+          }
+          returnButtonText="Got It, Return to Game"
+        />
       )}
     </div>
   );
