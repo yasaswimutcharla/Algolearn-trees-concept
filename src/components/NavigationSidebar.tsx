@@ -8,7 +8,6 @@ import {
   Trophy,
   X
 } from 'lucide-react';
-import { AlgoLearnLogo } from './AlgoLearnLogo';
 
 interface NavigationSidebarProps {
   currentNav: NavItem;
@@ -116,13 +115,17 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Sidebar branding area matching exact AlgoLearn reference */}
+        {/* Sidebar Header with single Navigation Menu heading */}
         <div
           className={`p-4 flex items-center justify-between border-b ${
             isDarkMode ? 'border-slate-800/80' : 'border-blue-100'
           }`}
         >
-          <AlgoLearnLogo isDark={isDarkMode} size="sm" />
+          <span className={`text-xs sm:text-sm font-bold tracking-wider uppercase font-mono ${
+            isDarkMode ? 'text-slate-200' : 'text-slate-900'
+          }`}>
+            Navigation Menu
+          </span>
 
           {/* Close Button */}
           <button
@@ -139,14 +142,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           </button>
         </div>
 
-        {/* Navigation Menu Header & Items List (scrollbar visually hidden) */}
+        {/* Navigation Items List (scrollbar visually hidden) */}
         <div className="flex-1 overflow-y-auto px-3 py-3 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className={`px-3 py-2 text-[11px] font-mono font-semibold tracking-wider uppercase ${
-            isDarkMode ? 'text-slate-400' : 'text-blue-700'
-          }`}>
-            Navigation Menu
-          </div>
-
           <nav className="space-y-1.5 mt-1">
             {navItems.map((item) => {
               const Icon = item.icon;

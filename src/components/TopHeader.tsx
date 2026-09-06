@@ -8,7 +8,6 @@ import {
   VolumeX,
   RotateCcw
 } from 'lucide-react';
-import { AlgoLearnLogo } from './AlgoLearnLogo';
 
 interface TopHeaderProps {
   currentNav: NavItem;
@@ -86,9 +85,13 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </button>
         )}
 
-        {/* AlgoLearn Exact Logo with 3D cap, gradient Learn, and YOUR DSA JOURNEY subtitle */}
+        {/* Section Title */}
         <div className="flex items-center">
-          <AlgoLearnLogo isDark={isDarkMode} size="sm" />
+          <h1 className={`text-base sm:text-lg font-bold tracking-tight ${
+            isDarkMode ? 'text-white' : 'text-slate-950'
+          }`}>
+            {getPageTitle(currentNav)}
+          </h1>
         </div>
       </div>
 
