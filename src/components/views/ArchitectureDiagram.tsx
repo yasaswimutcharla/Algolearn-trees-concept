@@ -88,25 +88,25 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
             {/* Architecture Legend */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div className={`p-2.5 rounded-xl border text-center ${
-                isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-white border-slate-200'
+                isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-white border-blue-100 text-black'
               }`}>
                 <div className={`text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-violet-400' : 'text-violet-700'}`}>Root Node</div>
                 <div className="text-[11px] font-semibold opacity-80 mt-0.5">Top starting point</div>
               </div>
               <div className={`p-2.5 rounded-xl border text-center ${
-                isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-white border-slate-200'
+                isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-white border-blue-100 text-black'
               }`}>
                 <div className={`text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>Edges</div>
                 <div className="text-[11px] font-semibold opacity-80 mt-0.5">Connection links</div>
               </div>
               <div className={`p-2.5 rounded-xl border text-center ${
-                isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-white border-slate-200'
+                isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-white border-blue-100 text-black'
               }`}>
                 <div className={`text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}>Parent / Child</div>
                 <div className="text-[11px] font-semibold opacity-80 mt-0.5">Branch hierarchy</div>
               </div>
               <div className={`p-2.5 rounded-xl border text-center ${
-                isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-white border-slate-200'
+                isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-white border-blue-100 text-black'
               }`}>
                 <div className={`text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>Leaf Nodes</div>
                 <div className="text-[11px] font-semibold opacity-80 mt-0.5">0 children (ends)</div>
@@ -138,7 +138,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Type 1: General Tree */}
               <div className={`p-4 rounded-2xl border flex flex-col items-center text-center ${
-                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/50 border-blue-100'
               }`}>
                 <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-cyan-400' : 'text-cyan-800'}`}>1. GENERAL TREE</div>
                 <div className="text-[10px] opacity-70 mb-3">Any number of children</div>
@@ -165,7 +165,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
 
               {/* Type 2: Binary Tree */}
               <div className={`p-4 rounded-2xl border flex flex-col items-center text-center ${
-                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/50 border-blue-100'
               }`}>
                 <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>2. BINARY TREE</div>
                 <div className="text-[10px] opacity-70 mb-3">At most 2 children (Left / Right)</div>
@@ -189,7 +189,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
 
               {/* Type 3: Binary Search Tree */}
               <div className={`p-4 rounded-2xl border flex flex-col items-center text-center ${
-                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/50 border-blue-100'
               }`}>
                 <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>3. BINARY SEARCH TREE</div>
                 <div className="text-[10px] opacity-70 mb-3">Left &lt; Node &lt; Right</div>
@@ -235,7 +235,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
             </div>
 
             <div className={`p-4 sm:p-6 rounded-2xl border flex flex-col items-center justify-center overflow-x-auto ${
-              isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+              isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/50 border-blue-100'
             }`}>
               <svg viewBox="0 0 460 210" className="w-full max-w-md h-auto">
                 {/* Comparison Arrows */}
@@ -319,12 +319,12 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Preorder */}
               <div className={`p-4 rounded-2xl border text-center ${
-                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/50 border-blue-100'
               }`}>
                 <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-800'}`}>PREORDER</div>
                 <div className="text-[10px] font-mono opacity-80 mb-2">Root → Left → Right</div>
                 <div className="flex items-center justify-center gap-1 my-2">
-                  <span className="w-6 h-6 rounded-full bg-amber-500 text-slate-900 font-mono font-bold text-xs flex items-center justify-center">1</span>
+                  <span className="w-6 h-6 rounded-full bg-amber-500 text-black font-mono font-bold text-xs flex items-center justify-center">1</span>
                   <ArrowRight className="w-3 h-3 opacity-60" />
                   <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold text-xs flex items-center justify-center border border-amber-500/40">2</span>
                   <ArrowRight className="w-3 h-3 opacity-60" />
@@ -335,14 +335,14 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
 
               {/* Inorder */}
               <div className={`p-4 rounded-2xl border text-center ${
-                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/50 border-blue-100'
               }`}>
                 <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>INORDER</div>
                 <div className="text-[10px] font-mono opacity-80 mb-2">Left → Root → Right</div>
                 <div className="flex items-center justify-center gap-1 my-2">
                   <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs flex items-center justify-center border border-emerald-500/40">2</span>
                   <ArrowRight className="w-3 h-3 opacity-60" />
-                  <span className="w-6 h-6 rounded-full bg-emerald-500 text-slate-900 font-mono font-bold text-xs flex items-center justify-center">1</span>
+                  <span className="w-6 h-6 rounded-full bg-emerald-500 text-black font-mono font-bold text-xs flex items-center justify-center">1</span>
                   <ArrowRight className="w-3 h-3 opacity-60" />
                   <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs flex items-center justify-center border border-emerald-500/40">3</span>
                 </div>
@@ -351,7 +351,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
 
               {/* Postorder */}
               <div className={`p-4 rounded-2xl border text-center ${
-                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/50 border-blue-100'
               }`}>
                 <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>POSTORDER</div>
                 <div className="text-[10px] font-mono opacity-80 mb-2">Left → Right → Root</div>
@@ -360,7 +360,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
                   <ArrowRight className="w-3 h-3 opacity-60" />
                   <span className="w-6 h-6 rounded-full bg-violet-500/20 text-violet-300 font-mono font-bold text-xs flex items-center justify-center border border-violet-500/40">3</span>
                   <ArrowRight className="w-3 h-3 opacity-60" />
-                  <span className="w-6 h-6 rounded-full bg-violet-500 text-slate-900 font-mono font-bold text-xs flex items-center justify-center">1</span>
+                  <span className="w-6 h-6 rounded-full bg-violet-500 text-black font-mono font-bold text-xs flex items-center justify-center">1</span>
                 </div>
                 <p className="text-[11px] opacity-75 mt-2">Visits children before the parent.</p>
               </div>
@@ -385,7 +385,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Application 1: File System Directory Tree */}
               <div className={`p-4 rounded-2xl border ${
-                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/50 border-blue-100'
               }`}>
                 <div className="flex items-center gap-2 mb-3">
                   <Folder className={`w-4 h-4 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`} />
@@ -393,20 +393,20 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
                 </div>
 
                 <div className={`p-3 rounded-xl font-mono text-xs space-y-1.5 ${
-                  isDarkMode ? 'bg-[#0e1424] text-slate-300' : 'bg-white text-slate-700 border border-slate-200'
+                  isDarkMode ? 'bg-[#0e1424] text-slate-300' : 'bg-white text-blue-950 border border-blue-100'
                 }`}>
                   <div className={`font-bold ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>📁 Root (/)</div>
-                  <div className={`pl-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500 font-medium'}`}>├── 📁 Documents/</div>
+                  <div className={`pl-4 ${isDarkMode ? 'text-slate-400' : 'text-blue-800 font-medium'}`}>├── 📁 Documents/</div>
                   <div className={`pl-8 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700 font-semibold'}`}>├── 📄 resume.pdf</div>
                   <div className={`pl-8 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700 font-semibold'}`}>└── 📄 notes.txt</div>
-                  <div className={`pl-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500 font-medium'}`}>└── 📁 Photos/</div>
+                  <div className={`pl-4 ${isDarkMode ? 'text-slate-400' : 'text-blue-800 font-medium'}`}>└── 📁 Photos/</div>
                   <div className={`pl-8 ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700 font-semibold'}`}>└── 🖼️ sunset.png</div>
                 </div>
               </div>
 
               {/* Application 2: Browser DOM Tree */}
               <div className={`p-4 rounded-2xl border ${
-                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+                isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/50 border-blue-100'
               }`}>
                 <div className="flex items-center gap-2 mb-3">
                   <Globe className={`w-4 h-4 ${isDarkMode ? 'text-cyan-400' : 'text-cyan-600'}`} />
@@ -414,12 +414,12 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
                 </div>
 
                 <div className={`p-3 rounded-xl font-mono text-xs space-y-1.5 ${
-                  isDarkMode ? 'bg-[#0e1424] text-slate-300' : 'bg-white text-slate-700 border border-slate-200'
+                  isDarkMode ? 'bg-[#0e1424] text-slate-300' : 'bg-white text-blue-950 border border-blue-100'
                 }`}>
                   <div className={`font-bold ${isDarkMode ? 'text-cyan-400' : 'text-cyan-800'}`}>&lt;html&gt; (Root)</div>
-                  <div className={`pl-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500 font-medium'}`}>├── &lt;head&gt;</div>
+                  <div className={`pl-4 ${isDarkMode ? 'text-slate-400' : 'text-blue-800 font-medium'}`}>├── &lt;head&gt;</div>
                   <div className={`pl-8 ${isDarkMode ? 'text-violet-400' : 'text-violet-800 font-semibold'}`}>└── &lt;title&gt;My App&lt;/title&gt;</div>
-                  <div className={`pl-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500 font-medium'}`}>└── &lt;body&gt;</div>
+                  <div className={`pl-4 ${isDarkMode ? 'text-slate-400' : 'text-blue-800 font-medium'}`}>└── &lt;body&gt;</div>
                   <div className={`pl-8 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700 font-semibold'}`}>├── &lt;h1&gt;Header&lt;/h1&gt;</div>
                   <div className={`pl-8 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700 font-semibold'}`}>└── &lt;button&gt;Click&lt;/button&gt;</div>
                 </div>
@@ -439,7 +439,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
       className={`p-6 sm:p-7 rounded-3xl border transition-all ${
         isDarkMode
           ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-sm'
-          : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+          : 'bg-white border-blue-100 text-black shadow-sm'
       }`}
     >
       <div className="flex items-center justify-between mb-4">

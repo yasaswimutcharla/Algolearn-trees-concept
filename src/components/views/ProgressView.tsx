@@ -1,36 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavItem, TopicId } from '../../types';
 import {
   TrendingUp,
-  Award,
   CheckCircle2,
   Circle,
-  ArrowRight,
-  Play,
   RotateCcw,
   BookOpen,
   Layers,
-  Activity,
   Terminal,
   Trophy,
-  Sparkles,
   Zap,
-  Check,
   Video,
-  Clock,
-  ExternalLink,
-  Flame,
   BrainCircuit,
   GraduationCap,
   Globe,
   GitBranch,
-  Search,
-  Trash2,
-  Share2,
-  Network,
-  Upload,
-  FileVideo,
-  X
+  Target,
+  Award,
+  Activity,
+  Clock,
+  Lock,
+  Check,
+  Flame
 } from 'lucide-react';
 
 interface ProgressViewProps {
@@ -54,7 +45,7 @@ interface ProgressViewProps {
 type ModuleCategory = 'all' | 'fundamentals' | 'types' | 'bst' | 'traversals' | 'applications';
 
 interface CurriculumModule {
-  id: string; // e.g. "TOPIC-01"
+  id: string;
   title: string;
   category: 'fundamentals' | 'types' | 'bst' | 'traversals' | 'applications';
   categoryLabel: string;
@@ -161,6 +152,29 @@ const CURRICULUM_MODULES: CurriculumModule[] = [
   }
 ];
 
+interface TreeAchievement {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  requirement: string;
+  xpReward: number;
+  isUnlocked: boolean;
+  icon: React.FC<{ className?: string }>;
+}
+
+interface TimelineItem {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  type: 'learn' | 'visualize' | 'quiz';
+  icon: React.FC<{ className?: string }>;
+  statusText: string;
+  navTarget: NavItem;
+  topicId?: TopicId;
+}
+
 export const ProgressView: React.FC<ProgressViewProps> = ({
   completedTopics,
   quizScore,
@@ -178,99 +192,44 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
   onWatchAgain
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<ModuleCategory>('all');
-  const [isResetDone, setIsResetDone] = useState<boolean>(false);
   const [localIsVideoCompleted, setLocalIsVideoCompleted] = useState<boolean>(false);
-  const [localUploadedVideoUrl, setLocalUploadedVideoUrl] = useState<string | null>(null);
-  const [localUploadedVideoName, setLocalUploadedVideoName] = useState<string>('');
-  const [localUploadedVideoSize, setLocalUploadedVideoSize] = useState<string>('');
-  const [isPlayerOpen, setIsPlayerOpen] = useState<boolean>(false);
-  const [isDragOver, setIsDragOver] = useState<boolean>(false);
-  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const [showResetConfirmModal, setShowResetConfirmModal] = useState<boolean>(false);
+  const [localResetTick, setLocalResetTick] = useState<number>(0);
 
-  const handleResetClick = () => {
-    setLocalIsVideoCompleted(false);
-    onResetProgress();
-    setIsResetDone(true);
-    setTimeout(() => {
-      setIsResetDone(false);
-    }, 1500);
-  };
+  // Sync quiz answered progress from real app storage
+  const [quizAnsweredCount, setQuizAnsweredCount] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('tree_dsa_quiz_progress');
+      if (saved) return JSON.parse(saved).completed || 0;
+      const quizState = localStorage.getItem('tree_dsa_quiz_state');
+      if (quizState) {
+        const parsed = JSON.parse(quizState);
+        return Object.keys(parsed?.confirmedQuestions || {}).length || 0;
+      }
+    } catch {}
+    return 0;
+  });
 
-  const uploadedVideoUrl = propVideoUrl !== undefined ? propVideoUrl : localUploadedVideoUrl;
-  const uploadedVideoName = propVideoName !== undefined ? propVideoName : localUploadedVideoName;
-  const uploadedVideoSize = propVideoSize !== undefined ? propVideoSize : localUploadedVideoSize;
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('tree_dsa_quiz_progress');
+      if (saved) {
+        setQuizAnsweredCount(JSON.parse(saved).completed || 0);
+        return;
+      }
+      const quizState = localStorage.getItem('tree_dsa_quiz_state');
+      if (quizState) {
+        const parsed = JSON.parse(quizState);
+        setQuizAnsweredCount(Object.keys(parsed?.confirmedQuestions || {}).length || 0);
+        return;
+      }
+      setQuizAnsweredCount(0);
+    } catch {
+      setQuizAnsweredCount(0);
+    }
+  }, [quizScore, completedTopics, localResetTick]);
+
   const isVideoCompleted = propVideoCompleted !== undefined ? propVideoCompleted : localIsVideoCompleted;
-
-  // Clean up local blob URL on unmount or video change only if locally managed
-  React.useEffect(() => {
-    return () => {
-      if (propVideoUrl === undefined && localUploadedVideoUrl) {
-        URL.revokeObjectURL(localUploadedVideoUrl);
-      }
-    };
-  }, [propVideoUrl, localUploadedVideoUrl]);
-
-  const handleVideoFile = (file: File) => {
-    if (!file) return;
-    if (!file.type.startsWith('video/') && !file.name.match(/\.(mp4|webm|mov|ogg|mkv)$/i)) {
-      alert('Please select a valid video file (MP4, WebM, MOV, etc.).');
-      return;
-    }
-    if (onUploadVideo) {
-      onUploadVideo(file);
-    } else {
-      if (localUploadedVideoUrl) {
-        URL.revokeObjectURL(localUploadedVideoUrl);
-      }
-      const url = URL.createObjectURL(file);
-      setLocalUploadedVideoUrl(url);
-      setLocalUploadedVideoName(file.name);
-      setLocalUploadedVideoSize((file.size / (1024 * 1024)).toFixed(1) + ' MB');
-    }
-    setIsPlayerOpen(true);
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleVideoFile(files[0]);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleVideoFile(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragOver(false);
-  };
-
-  const handleRemoveVideo = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onRemoveVideo) {
-      onRemoveVideo();
-    } else {
-      if (localUploadedVideoUrl) {
-        URL.revokeObjectURL(localUploadedVideoUrl);
-      }
-      setLocalUploadedVideoUrl(null);
-      setLocalUploadedVideoName('');
-      setLocalUploadedVideoSize('');
-    }
-    setIsPlayerOpen(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
 
   const handleToggleCompleted = () => {
     if (onToggleVideoCompleted) {
@@ -288,14 +247,210 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
     }
   };
 
-  // Dynamic calculations
-  const totalTopicsCount = CURRICULUM_MODULES.length;
-  const topicsCompletedCount = completedTopics.length;
-  const vizCompletedCount = Math.min(6, completedVisualizations.length);
-  const quizAttempted = quizScore !== null;
-  const quizPassed = quizScore !== null && quizScore.score >= 7;
+  const handleConfirmReset = () => {
+    setShowResetConfirmModal(false);
+    setLocalIsVideoCompleted(false);
+    setQuizAnsweredCount(0);
+    setLocalResetTick((t) => t + 1);
+    try {
+      localStorage.removeItem('tree_dsa_learning_streak');
+    } catch {}
+    onResetProgress();
+  };
 
-  // Helper to determine module completion and progress percentage
+  // Real App Calculations
+  const totalTopicsCount = CURRICULUM_MODULES.length; // 7
+  const topicsCompletedCount = completedTopics.length;
+  const isVisualDone = Boolean(isVideoCompleted || completedVisualizations.length > 0);
+  const quizHasScore = quizScore !== null;
+  const currentQuizScore = quizScore ? quizScore.score : 0;
+  const quizPassed = quizHasScore && currentQuizScore >= 7;
+
+  // Real XP calculation:
+  // 10 XP per Learn topic (up to 70 XP)
+  // 20 XP for Visual Lesson (up to 20 XP)
+  // 10 XP per correct Quiz answer or 5 XP per question answered (up to 100 XP)
+  const totalXP =
+    topicsCompletedCount * 10 +
+    (isVisualDone ? 20 : 0) +
+    (quizScore ? quizScore.score * 10 : quizAnsweredCount * 5);
+
+  // Overall TreeDSA progress calculation (weighted across Learn 60%, Visualize 20%, Quiz 20%):
+  const learnWeight = (topicsCompletedCount / totalTopicsCount) * 60;
+  const vizWeight = isVisualDone ? 20 : 0;
+  const quizWeight = quizScore
+    ? (quizScore.score / quizScore.total) * 20
+    : (quizAnsweredCount / 10) * 10;
+  const overallPercentage = Math.min(100, Math.round(learnWeight + vizWeight + quizWeight));
+
+  // Real Learning Streak from actual app activity
+  const streakDays = (() => {
+    if (topicsCompletedCount === 0 && !isVisualDone && !quizScore && quizAnsweredCount === 0) {
+      return 0;
+    }
+    try {
+      const saved = localStorage.getItem('tree_dsa_learning_streak');
+      if (saved) {
+        const num = parseInt(saved, 10);
+        if (!isNaN(num) && num > 0) return num;
+      }
+    } catch {}
+    return 1;
+  })();
+
+  // Real Mastery Level from progress state
+  const getMasteryLevel = () => {
+    if (overallPercentage >= 85) return { label: 'Master', level: 4, rank: 'Advanced' };
+    if (overallPercentage >= 50) return { label: 'Proficient', level: 3, rank: 'Senior' };
+    if (overallPercentage >= 20) return { label: 'Intermediate', level: 2, rank: 'Developing' };
+    return { label: 'Beginner', level: 1, rank: 'Novice' };
+  };
+  const mastery = getMasteryLevel();
+
+  // TreeDSA Achievements from real progress state
+  const achievements: TreeAchievement[] = [
+    {
+      id: 'ach-tree-fundamentals',
+      title: 'Tree Fundamentals',
+      category: 'Fundamentals',
+      description: 'Complete the fundamental Tree concepts.',
+      requirement: 'Complete Topic 01: What is a Tree?',
+      xpReward: 25,
+      isUnlocked: completedTopics.includes('basics'),
+      icon: Layers
+    },
+    {
+      id: 'ach-tree-terminology-master',
+      title: 'Tree Terminology Master',
+      category: 'Fundamentals',
+      description: 'Master important Tree terminology and relationships.',
+      requirement: 'Complete Topic 02: Tree Terminology',
+      xpReward: 25,
+      isUnlocked: completedTopics.includes('terminology'),
+      icon: BookOpen
+    },
+    {
+      id: 'ach-tree-types-explorer',
+      title: 'Tree Types Explorer',
+      category: 'Tree Types',
+      description: 'Learn the different types and classifications of Trees.',
+      requirement: 'Complete Topic 03: Types of Trees',
+      xpReward: 25,
+      isUnlocked: completedTopics.includes('types'),
+      icon: BrainCircuit
+    },
+    {
+      id: 'ach-binary-tree-learner',
+      title: 'Binary Tree Learner',
+      category: 'Binary Trees',
+      description: 'Understand Binary Tree concepts and structures.',
+      requirement: 'Complete Topic 04: Binary Tree',
+      xpReward: 25,
+      isUnlocked: completedTopics.includes('binary-tree'),
+      icon: GitBranch
+    },
+    {
+      id: 'ach-bst-explorer',
+      title: 'BST Explorer',
+      category: 'BST',
+      description: 'Master Binary Search Tree concepts and ordering rules.',
+      requirement: 'Complete Topic 05: Binary Search Tree',
+      xpReward: 30,
+      isUnlocked: completedTopics.includes('bst'),
+      icon: Terminal
+    },
+    {
+      id: 'ach-tree-visualizer',
+      title: 'Tree Visualizer',
+      category: 'Visualization',
+      description: 'Complete Tree visualization activities.',
+      requirement: 'Complete 1 Visual Lesson in Visualize',
+      xpReward: 30,
+      isUnlocked: isVisualDone,
+      icon: Video
+    },
+    {
+      id: 'ach-tree-game-challenger',
+      title: 'Tree Game Challenger',
+      category: 'Game & Challenge',
+      description: 'Complete TreeDSA game challenges.',
+      requirement: 'Answer 5 or more challenge questions',
+      xpReward: 35,
+      isUnlocked: quizAnsweredCount >= 5 || (quizScore !== null && quizScore.score >= 5),
+      icon: Award
+    },
+    {
+      id: 'ach-bst-quiz-master',
+      title: 'BST Quiz Master',
+      category: 'Evaluation',
+      description: 'Successfully complete the BST Quiz.',
+      requirement: 'Score at least 7/10 on the Quiz',
+      xpReward: 50,
+      isUnlocked: quizPassed,
+      icon: Trophy
+    }
+  ];
+
+  const unlockedAchievementsCount = achievements.filter((a) => a.isUnlocked).length;
+
+  // Real TreeDSA Activity Timeline from actual state
+  const timelineItems: TimelineItem[] = [];
+
+  completedTopics.forEach((topicId) => {
+    const mod = CURRICULUM_MODULES.find((m) => m.topicId === topicId);
+    if (mod) {
+      timelineItems.push({
+        id: `timeline-learn-${topicId}`,
+        title: `Completed ${mod.title}`,
+        description: mod.criteria,
+        category: mod.categoryLabel,
+        type: 'learn',
+        icon: mod.icon,
+        statusText: 'Verified Topic • +10 XP',
+        navTarget: 'learn',
+        topicId: mod.topicId
+      });
+    }
+  });
+
+  if (isVisualDone) {
+    timelineItems.push({
+      id: 'timeline-viz',
+      title: 'Completed Visual Masterclass',
+      description: 'Finished Introduction to Binary Search Trees & Tree Data Structures.',
+      category: 'Visualize',
+      type: 'visualize',
+      icon: Video,
+      statusText: 'Visual Lesson Mastered • +20 XP',
+      navTarget: 'visualize'
+    });
+  }
+
+  if (quizScore !== null) {
+    timelineItems.push({
+      id: 'timeline-quiz-score',
+      title: `Completed BST Quiz (${quizScore.score}/${quizScore.total})`,
+      description: quizScore.score >= 7 ? 'Successfully passed the BST evaluation quiz with distinction.' : 'Completed BST evaluation quiz attempt.',
+      category: 'Quiz',
+      type: 'quiz',
+      icon: Trophy,
+      statusText: quizScore.score >= 7 ? 'Passed with Distinction • +50 XP' : 'Attempt Recorded',
+      navTarget: 'quiz'
+    });
+  } else if (quizAnsweredCount > 0) {
+    timelineItems.push({
+      id: 'timeline-quiz-progress',
+      title: `Interactive Game Challenge Progress (${quizAnsweredCount}/10 Solved)`,
+      description: 'Actively solving TreeDSA challenge questions in the interactive quiz.',
+      category: 'Challenge',
+      type: 'quiz',
+      icon: Award,
+      statusText: `${quizAnsweredCount} Questions Solved`,
+      navTarget: 'quiz'
+    });
+  }
+
+  // Helper to determine curriculum module status
   const getModuleProgress = (mod: CurriculumModule): { status: 'Not Started' | 'In Progress' | 'Completed'; progressPct: number } => {
     if (mod.topicId && completedTopics.includes(mod.topicId)) {
       return { status: 'Completed', progressPct: 100 };
@@ -303,34 +458,15 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
     return { status: 'Not Started', progressPct: 0 };
   };
 
-  // Compute total completed modules
-  const completedModulesCount = CURRICULUM_MODULES.filter((m) => getModuleProgress(m).status === 'Completed').length;
-  const overallPercentage = Math.round((completedModulesCount / CURRICULUM_MODULES.length) * 100);
-
-  // Master challenges calculation (out of 4)
-  let masterChallengesCount = 0;
-  if (topicsCompletedCount >= 3) masterChallengesCount += 1;
-  if (topicsCompletedCount >= 7) masterChallengesCount += 1;
-  if (quizScore && quizScore.score >= 7) masterChallengesCount += 1;
-  if (topicsCompletedCount === 7 && quizScore && quizScore.score >= 9) masterChallengesCount += 1;
-
-  // Recommended next step logic
-  const firstIncompleteModule = CURRICULUM_MODULES.find((m) => getModuleProgress(m).status !== 'Completed') || CURRICULUM_MODULES[CURRICULUM_MODULES.length - 1];
-
   // Filter modules
   const filteredModules = CURRICULUM_MODULES.filter((mod) => {
     if (selectedCategory === 'all') return true;
     return mod.category === selectedCategory;
   });
 
-  const getCategoryCount = (cat: ModuleCategory) => {
-    if (cat === 'all') return CURRICULUM_MODULES.length;
-    return CURRICULUM_MODULES.filter((m) => m.category === cat).length;
-  };
-
   return (
-    <div className="max-w-6xl mx-auto space-y-8 py-2">
-      {/* Top Header Card */}
+    <div id="progress-view-root" className="max-w-6xl mx-auto space-y-8 py-2">
+      {/* Top Header Card with Reset Circle */}
       <div
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
@@ -348,43 +484,104 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
               }`}
             >
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>TREE DSA CURRICULUM</span>
+              <span>TREEDSA LEARNING PROGRESS</span>
             </div>
             <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight ${
               isDarkMode ? 'text-[#F8FAFC]' : 'text-black'
             }`}>
-              Tree DSA Curriculum & Progress
+              TreeDSA Learning Progress
             </h1>
             <p className={`text-xs sm:text-sm mt-2 leading-relaxed max-w-2xl ${
               isDarkMode ? 'text-[#E2E8F0]' : 'text-blue-900'
             }`}>
-              Track your journey through tree concepts, algorithms, visualizations, and interactive challenges.
+              Track your Tree DSA learning progress, achievements, practice, and mastery.
             </p>
           </div>
 
-          {/* Reset Action */}
+          {/* Reset Circle Action */}
           <div className="shrink-0 flex items-center gap-3">
             <button
-              id="reset-progress-btn"
-              onClick={handleResetClick}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
+              id="reset-activity-circle-btn"
+              onClick={() => setShowResetConfirmModal(true)}
+              title="Reset Activity & Progress"
+              className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all cursor-pointer ${
                 isDarkMode
-                  ? 'bg-violet-950/40 hover:bg-rose-950/40 border-violet-800/40 hover:border-rose-500/50 text-[#94A3B8] hover:text-rose-300 shadow-md'
+                  ? 'bg-violet-950/40 hover:bg-rose-950/50 border-violet-800/40 hover:border-rose-500/60 text-[#94A3B8] hover:text-rose-300 shadow-md'
                   : 'bg-blue-50 hover:bg-rose-50 border-blue-200 hover:border-rose-300 text-blue-900 hover:text-rose-900'
               }`}
-              title="Reset learning analytics to starting state"
             >
-              <RotateCcw className={`w-3.5 h-3.5 ${isResetDone ? 'rotate-180 transition-transform duration-500' : ''}`} />
-              <span>{isResetDone ? 'Reset Done' : 'Reset Progress'}</span>
+              <RotateCcw className="w-4 h-4 transition-transform duration-500 hover:rotate-180" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main 3-Card Progress Summary Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* CARD 1 — OVERALL COMPLETION */}
+      {/* Confirmation Modal for Reset Activity */}
+      {showResetConfirmModal && (
         <div
+          id="reset-confirm-modal"
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div
+            className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all animate-in fade-in zoom-in-95 duration-150 ${
+              isDarkMode
+                ? 'bg-[#0e1424] border-violet-900/60 text-[#F8FAFC]'
+                : 'bg-white border-blue-100 text-black'
+            }`}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border ${
+                isDarkMode
+                  ? 'bg-rose-950/50 border-rose-800/50 text-rose-400'
+                  : 'bg-rose-50 border-rose-200 text-rose-600'
+              }`}>
+                <RotateCcw className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold tracking-tight">Reset Learning Activity</h3>
+                <p className={`text-xs ${isDarkMode ? 'text-[#94A3B8]' : 'text-blue-900'}`}>
+                  TreeDSA Progress & History
+                </p>
+              </div>
+            </div>
+
+            <p className={`text-xs sm:text-sm leading-relaxed mb-6 ${
+              isDarkMode ? 'text-[#E2E8F0]' : 'text-slate-600'
+            }`}>
+              Are you sure you want to reset all your progress? This will reset your overall progress to 0%, clear completed topics, visual lessons, quiz scores, XP, achievements, and activity history.
+            </p>
+
+            <div className="flex items-center justify-end gap-3">
+              <button
+                id="cancel-reset-btn"
+                onClick={() => setShowResetConfirmModal(false)}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
+                  isDarkMode
+                    ? 'bg-slate-900/80 hover:bg-slate-800 border-slate-700 text-slate-300'
+                    : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                id="confirm-reset-btn"
+                onClick={handleConfirmReset}
+                className="px-5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-900/30"
+              >
+                Reset Activity
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4 SUMMARY-CARD LAYOUT TRACKING REAL APPDATA */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {/* CARD 1 — OVERALL PROGRESS */}
+        <div
+          id="summary-card-overall-progress"
           className={`p-6 rounded-3xl border flex flex-col justify-between transition-all duration-200 ${
             isDarkMode
               ? 'bg-[#0e1424] border-violet-900/40 text-[#F8FAFC] shadow-xl shadow-violet-950/20'
@@ -396,55 +593,44 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
               <span className={`text-[11px] font-bold font-mono uppercase tracking-wider ${
                 isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
               }`}>
-                OVERALL COMPLETION
+                OVERALL PROGRESS
               </span>
-              <span className={`text-xs font-semibold font-mono ${
-                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
-              }`}>
-                {completedModulesCount} of {CURRICULUM_MODULES.length} Modules
-              </span>
+              <Target className={`w-4 h-4 ${isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'}`} />
             </div>
 
             <div className="mt-4 flex items-baseline gap-2">
-              <span className={`text-4xl sm:text-5xl font-black font-mono tracking-tight ${
+              <span className={`text-4xl font-black font-mono tracking-tight ${
                 isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
               }`}>
                 {overallPercentage}%
               </span>
-              <span className={`text-xs font-medium ${
-                isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'
-              }`}>Completed</span>
+              <span className={`text-xs font-medium ${isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'}`}>
+                TreeDSA
+              </span>
             </div>
 
             {/* Horizontal Progress Bar */}
-            <div className={`w-full h-3 rounded-full overflow-hidden mt-5 p-0.5 border ${
-              isDarkMode
-                ? 'bg-violet-950/50 border-violet-800/30'
-                : 'bg-blue-50 border-blue-200'
+            <div className={`w-full h-2.5 rounded-full overflow-hidden mt-4 border ${
+              isDarkMode ? 'bg-violet-950/50 border-violet-800/30' : 'bg-blue-50 border-blue-200'
             }`}>
               <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-700 via-[#6D3DF5] to-violet-400 transition-all duration-700 shadow-sm shadow-violet-500/50"
+                className="h-full rounded-full bg-gradient-to-r from-violet-700 via-[#6D3DF5] to-violet-400 transition-all duration-700 shadow-sm"
                 style={{ width: `${overallPercentage}%` }}
               />
             </div>
           </div>
 
-          <div className={`mt-6 pt-4 border-t flex items-center justify-between text-[11px] font-mono ${
+          <div className={`mt-5 pt-3 border-t text-[11px] font-mono flex items-center justify-between ${
             isDarkMode ? 'border-violet-950/50 text-[#94A3B8]' : 'border-blue-100 text-blue-700'
           }`}>
-            <span className="flex items-center gap-1.5 font-semibold">
-              <span className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-[#A78BFA]' : 'bg-[#6D3DF5]'}`} />
-              0% Beginner
-            </span>
-            <span className="flex items-center gap-1.5 font-semibold">
-              <span className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-[#A78BFA]' : 'bg-[#6D3DF5]'}`} />
-              100% Master
-            </span>
+            <span>{topicsCompletedCount}/7 Topics</span>
+            <span>{isVisualDone ? '1/1 Viz' : '0/1 Viz'}</span>
           </div>
         </div>
 
-        {/* CARD 2 — PERFORMANCE STATS */}
+        {/* CARD 2 — MASTERY LEVEL */}
         <div
+          id="summary-card-mastery-level"
           className={`p-6 rounded-3xl border flex flex-col justify-between transition-all duration-200 ${
             isDarkMode
               ? 'bg-[#0e1424] border-violet-900/40 text-[#F8FAFC] shadow-xl shadow-violet-950/20'
@@ -452,122 +638,145 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           }`}
         >
           <div>
-            <div className={`text-[11px] font-bold font-mono uppercase tracking-wider mb-4 ${
-              isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
-            }`}>
-              PERFORMANCE STATS
+            <div className="flex items-center justify-between">
+              <span className={`text-[11px] font-bold font-mono uppercase tracking-wider ${
+                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
+              }`}>
+                MASTERY LEVEL
+              </span>
+              <Award className={`w-4 h-4 ${isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'}`} />
             </div>
 
-            <div className="grid grid-cols-3 gap-2 text-center py-2">
-              {/* Stat 1: Topics Mastered */}
-              <div className={`p-3 rounded-2xl border ${isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-blue-50/50 border-blue-100'}`}>
-                <div className={`text-xl sm:text-2xl font-black font-mono ${
-                  isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
-                }`}>
-                  {String(topicsCompletedCount).padStart(2, '0')}
-                </div>
-                <div className={`text-[10px] font-bold font-mono tracking-wider uppercase mt-1 ${
-                  isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'
-                }`}>
-                  MASTERED
-                </div>
-              </div>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className={`text-4xl font-black font-mono tracking-tight ${
+                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
+              }`}>
+                {mastery.label}
+              </span>
+              <span className={`text-xs font-medium ${isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'}`}>
+                Level {mastery.level}/4
+              </span>
+            </div>
 
-              {/* Stat 2: Modules Completed */}
-              <div className={`p-3 rounded-2xl border ${isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-blue-50/50 border-blue-100'}`}>
-                <div className={`text-xl sm:text-2xl font-black font-mono ${
-                  isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
-                }`}>
-                  {String(completedModulesCount).padStart(2, '0')} / {CURRICULUM_MODULES.length}
-                </div>
-                <div className={`text-[10px] font-bold font-mono tracking-wider uppercase mt-1 ${
-                  isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'
-                }`}>
-                  MODULES
-                </div>
-              </div>
-
-              {/* Stat 3: Quiz Score */}
-              <div className={`p-3 rounded-2xl border ${isDarkMode ? 'bg-[#090d18] border-violet-950/70' : 'bg-blue-50/50 border-blue-100'}`}>
-                <div className={`text-xl sm:text-2xl font-black font-mono ${
-                  isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
-                }`}>
-                  {quizScore ? `${String(quizScore.score).padStart(2, '0')}/${String(quizScore.total).padStart(2, '0')}` : '00/10'}
-                </div>
-                <div className={`text-[10px] font-bold font-mono tracking-wider uppercase mt-1 ${
-                  isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'
-                }`}>
-                  QUIZ SCORE
-                </div>
-              </div>
+            {/* Horizontal Progress Bar */}
+            <div className={`w-full h-2.5 rounded-full overflow-hidden mt-4 border ${
+              isDarkMode ? 'bg-violet-950/50 border-violet-800/30' : 'bg-blue-50 border-blue-200'
+            }`}>
+              <div
+                className="h-full rounded-full bg-[#6D3DF5] transition-all duration-500"
+                style={{ width: `${overallPercentage}%` }}
+              />
             </div>
           </div>
 
-          {/* Master Challenges Highlight */}
-          <div className={`mt-4 pt-3 border-t ${isDarkMode ? 'border-violet-950/50' : 'border-blue-100'}`}>
-            <div className={`p-3 rounded-2xl border flex items-center justify-between text-xs font-semibold ${
-              isDarkMode
-                ? 'bg-violet-950/40 border-violet-800/40 text-[#E2E8F0]'
-                : 'bg-blue-50 border-blue-200 text-black'
-            }`}>
-              <div className="flex items-center gap-2">
-                <span className="text-base">🏆</span>
-                <span className={isDarkMode ? 'text-[#E2E8F0]' : 'text-black'}>Master Challenges:</span>
-              </div>
-              <span className={`font-mono font-bold ${
-                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
-              }`}>
-                {masterChallengesCount} / 4 Challenges
-              </span>
-            </div>
+          <div className={`mt-5 pt-3 border-t text-[11px] font-mono flex items-center justify-between ${
+            isDarkMode ? 'border-violet-950/50 text-[#94A3B8]' : 'border-blue-100 text-blue-700'
+          }`}>
+            <span>Rank: {mastery.rank}</span>
+            <span>{topicsCompletedCount}/7 Topics</span>
           </div>
         </div>
 
-        {/* CARD 3 — RECOMMENDED NEXT STEP */}
+        {/* CARD 3 — TOTAL XP */}
         <div
-          className={`p-6 rounded-3xl border flex flex-col justify-between transition-all duration-200 relative overflow-hidden ${
+          id="summary-card-total-xp"
+          className={`p-6 rounded-3xl border flex flex-col justify-between transition-all duration-200 ${
             isDarkMode
               ? 'bg-[#0e1424] border-violet-900/40 text-[#F8FAFC] shadow-xl shadow-violet-950/20'
               : 'bg-white border-blue-100 text-black shadow-sm'
           }`}
         >
           <div>
-            <div className={`flex items-center gap-2 text-[11px] font-bold font-mono uppercase tracking-wider mb-2 ${
-              isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
-            }`}>
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>RECOMMENDED NEXT STEP</span>
+            <div className="flex items-center justify-between">
+              <span className={`text-[11px] font-bold font-mono uppercase tracking-wider ${
+                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
+              }`}>
+                TOTAL XP
+              </span>
+              <Zap className={`w-4 h-4 ${isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'}`} />
             </div>
 
-            <h3 className={`text-lg font-extrabold tracking-tight mt-1 ${
-              isDarkMode ? 'text-[#F8FAFC]' : 'text-black'
-            }`}>
-              {firstIncompleteModule.id}: {firstIncompleteModule.title}
-            </h3>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className={`text-4xl font-black font-mono tracking-tight ${
+                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
+              }`}>
+                {totalXP}
+              </span>
+              <span className={`text-xs font-medium ${isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'}`}>
+                XP Earned
+              </span>
+            </div>
 
-            <p className={`text-xs leading-relaxed mt-2.5 line-clamp-3 ${
-              isDarkMode ? 'text-[#E2E8F0]' : 'text-blue-900'
+            {/* Horizontal Progress Bar */}
+            <div className={`w-full h-2.5 rounded-full overflow-hidden mt-4 border ${
+              isDarkMode ? 'bg-violet-950/50 border-violet-800/30' : 'bg-blue-50 border-blue-200'
             }`}>
-              {firstIncompleteModule.description}
-            </p>
+              <div
+                className="h-full rounded-full bg-[#6D3DF5] transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.round((totalXP / 190) * 100))}%` }}
+              />
+            </div>
           </div>
 
-          <div className="mt-5">
-            <button
-              onClick={() => onNavigate(firstIncompleteModule.navTarget, firstIncompleteModule.topicId)}
-              className={`w-full flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg ${
-                isDarkMode
-                  ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-900/50 ring-1 ring-violet-400/40 hover:scale-[1.02]'
-                  : 'bg-[#6D3DF5] hover:bg-[#5b2fe0] text-white shadow-md shadow-[#6D3DF5]/30 hover:scale-[1.02]'
-              }`}
-            >
-              <span>CONTINUE LEARNING →</span>
-            </button>
+          <div className={`mt-5 pt-3 border-t text-[11px] font-mono flex items-center justify-between ${
+            isDarkMode ? 'border-violet-950/50 text-[#94A3B8]' : 'border-blue-100 text-blue-700'
+          }`}>
+            <span>TreeDSA Score</span>
+            <span>{quizScore ? `${quizScore.score}/${quizScore.total} Quiz` : `${quizAnsweredCount}/10 Qs`}</span>
+          </div>
+        </div>
+
+        {/* CARD 4 — LEARNING STREAK */}
+        <div
+          id="summary-card-learning-streak"
+          className={`p-6 rounded-3xl border flex flex-col justify-between transition-all duration-200 ${
+            isDarkMode
+              ? 'bg-[#0e1424] border-violet-900/40 text-[#F8FAFC] shadow-xl shadow-violet-950/20'
+              : 'bg-white border-blue-100 text-black shadow-sm'
+          }`}
+        >
+          <div>
+            <div className="flex items-center justify-between">
+              <span className={`text-[11px] font-bold font-mono uppercase tracking-wider ${
+                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
+              }`}>
+                LEARNING STREAK
+              </span>
+              <Flame className={`w-4 h-4 ${isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'}`} />
+            </div>
+
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className={`text-4xl font-black font-mono tracking-tight ${
+                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
+              }`}>
+                {streakDays}
+              </span>
+              <span className={`text-xs font-medium ${isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'}`}>
+                {streakDays === 1 ? 'Day Active' : 'Days Active'}
+              </span>
+            </div>
+
+            {/* Horizontal Progress Bar */}
+            <div className={`w-full h-2.5 rounded-full overflow-hidden mt-4 border ${
+              isDarkMode ? 'bg-violet-950/50 border-violet-800/30' : 'bg-blue-50 border-blue-200'
+            }`}>
+              <div
+                className="h-full rounded-full bg-[#6D3DF5] transition-all duration-500"
+                style={{ width: `${streakDays > 0 ? 100 : 0}%` }}
+              />
+            </div>
+          </div>
+
+          <div className={`mt-5 pt-3 border-t text-[11px] font-mono flex items-center justify-between ${
+            isDarkMode ? 'border-violet-950/50 text-[#94A3B8]' : 'border-blue-100 text-blue-700'
+          }`}>
+            <span>Consistency</span>
+            <span>{streakDays > 0 ? 'Active Today' : 'Start Today'}</span>
           </div>
         </div>
       </div>
 
-      {/* VISUAL LESSONS SECTION - MATCHING REFERENCE DESIGN */}
+      {/* VISUAL LESSONS SECTION */}
       <div
         id="progress-visual-lessons-section"
         className={`p-6 sm:p-7 rounded-3xl border transition-all duration-200 ${
@@ -576,7 +785,6 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
             : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
-        {/* Top Header Row matching screenshot */}
         <div className="flex items-center justify-between gap-4 mb-5">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
@@ -601,7 +809,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           </div>
         </div>
 
-        {/* Single Video Lesson Item Card matching reference screenshot */}
+        {/* Single Video Lesson Item Card */}
         <div
           className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
             isDarkMode
@@ -619,29 +827,17 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                 <span className={`font-bold text-sm sm:text-base truncate ${
                   isDarkMode ? 'text-slate-100' : 'text-black'
                 }`}>
-                  {uploadedVideoName ? uploadedVideoName : 'Introduction to Binary Search Trees & Tree Data Structures'}
+                  Introduction to Binary Search Trees & Tree Data Structures
                 </span>
-                {uploadedVideoSize && (
-                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
-                    isDarkMode
-                      ? 'bg-violet-950/60 text-[#A78BFA] border-violet-800/40'
-                      : 'bg-violet-50 text-[#6D3DF5] border-violet-200'
-                  }`}>
-                    {uploadedVideoSize}
-                  </span>
-                )}
               </div>
               <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-blue-900'}`}>
-                {uploadedVideoUrl 
-                  ? 'Custom video ready to play on the Visualize page.' 
-                  : 'Masterclass video lesson covering fundamental tree and BST concepts.'}
+                Masterclass video lesson covering fundamental tree and BST concepts.
               </p>
             </div>
           </div>
 
-          {/* Right Action Controls: Watch Again and Completion Pill */}
+          {/* Right Action Controls */}
           <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
-            {/* Watch Again button navigating to Visualize page to rewatch the video */}
             <button
               id="btn-watch-again-progress"
               onClick={handleWatchAgain}
@@ -655,7 +851,6 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
               <span>Watch Again →</span>
             </button>
 
-            {/* Status Pill matching reference screenshot */}
             <button
               id="btn-toggle-completed-progress"
               onClick={handleToggleCompleted}
@@ -688,6 +883,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
 
       {/* CURRICULUM MODULES WITH CATEGORY TABS */}
       <div
+        id="treedsa-curriculum-modules-section"
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-[#F8FAFC] shadow-xl shadow-violet-950/20'
@@ -707,7 +903,6 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
             </p>
           </div>
 
-          {/* Module Counter */}
           <div className={`text-xs font-mono font-semibold ${
             isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'
           }`}>
@@ -715,7 +910,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           </div>
         </div>
 
-        {/* Category Tabs: All Topics, Fundamentals, Tree Types, BST, Traversals, Applications */}
+        {/* Category Tabs */}
         <div className="flex flex-wrap gap-2 mb-6">
           {(
             [
@@ -749,7 +944,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           })}
         </div>
 
-        {/* Modules List: Single-column wide horizontal rectangular cards */}
+        {/* Modules List */}
         <div className="grid grid-cols-1 gap-4">
           {filteredModules.map((module) => {
             const { status, progressPct } = getModuleProgress(module);
@@ -769,11 +964,9 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                 }`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                  {/* LEFT & CENTER: Badges, Title, Description, Criteria */}
+                  {/* LEFT & CENTER */}
                   <div className="flex-1 min-w-0">
-                    {/* TOP/LEFT: Module ID badge, Category badge, Status badge */}
                     <div className="flex flex-wrap items-center gap-2 mb-3">
-                      {/* Module ID Badge */}
                       <span className={`px-2.5 py-1 rounded-full text-[11px] font-mono font-bold tracking-wider uppercase ${
                         isDarkMode
                           ? 'bg-violet-600/20 text-[#A78BFA] border border-violet-500/30'
@@ -782,7 +975,6 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                         {module.id}
                       </span>
 
-                      {/* Category Badge */}
                       <span
                         className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase ${
                           isDarkMode
@@ -793,17 +985,12 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                         {module.categoryLabel}
                       </span>
 
-                      {/* Status Badge */}
                       <span
                         className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold flex items-center gap-1.5 border ${
                           status === 'Completed'
                             ? isDarkMode
                               ? 'bg-violet-950/60 text-[#A78BFA] border-violet-700/50'
                               : 'bg-violet-50 text-[#6D3DF5] border-violet-200'
-                            : status === 'In Progress'
-                            ? isDarkMode
-                              ? 'bg-violet-950/40 text-violet-300 border-violet-800/40'
-                              : 'bg-violet-50/60 text-violet-700 border-violet-200'
                             : isDarkMode
                             ? 'bg-slate-800/40 text-[#94A3B8] border-slate-700/40'
                             : 'bg-blue-50 text-blue-800 border border-blue-200'
@@ -811,8 +998,6 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                       >
                         {status === 'Completed' ? (
                           <CheckCircle2 className={`w-3 h-3 ${isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'}`} />
-                        ) : status === 'In Progress' ? (
-                          <span className={`w-2 h-2 rounded-full animate-pulse ${isDarkMode ? 'bg-violet-400' : 'bg-[#6D3DF5]'}`} />
                         ) : (
                           <Circle className="w-3 h-3 opacity-40" />
                         )}
@@ -820,7 +1005,6 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                       </span>
                     </div>
 
-                    {/* MAIN TITLE: Large uppercase module title */}
                     <h3 className={`text-base sm:text-lg font-extrabold uppercase tracking-tight transition-colors ${
                       isDarkMode
                         ? 'text-[#F8FAFC] group-hover:text-[#A78BFA]'
@@ -829,14 +1013,12 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                       {module.title}
                     </h3>
 
-                    {/* Short beginner-friendly description */}
                     <p className={`text-xs sm:text-sm leading-relaxed mt-1.5 max-w-3xl ${
                       isDarkMode ? 'text-[#E2E8F0]' : 'text-blue-900'
                     }`}>
                       {module.description}
                     </p>
 
-                    {/* Criteria Section */}
                     <div
                       className={`mt-3 p-2.5 sm:px-3 sm:py-2 rounded-2xl border text-xs leading-relaxed inline-block max-w-3xl ${
                         isDarkMode
@@ -853,11 +1035,10 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                     </div>
                   </div>
 
-                  {/* RIGHT AREA: Progress Info & Start Module Button */}
+                  {/* RIGHT AREA */}
                   <div className={`lg:w-64 shrink-0 flex flex-col sm:flex-row lg:flex-col lg:items-end justify-between gap-4 pt-4 lg:pt-0 border-t lg:border-t-0 ${
                     isDarkMode ? 'border-violet-950/40' : 'border-blue-100'
                   }`}>
-                    {/* Progress label, % and bar */}
                     <div className="w-full sm:w-auto lg:w-full lg:text-right">
                       <div className="flex items-center justify-between lg:justify-end gap-3 mb-1.5">
                         <span className={`text-xs font-mono font-bold uppercase tracking-wider ${
@@ -880,8 +1061,6 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                           className={`h-full rounded-full transition-all duration-500 ${
                             status === 'Completed'
                               ? isDarkMode ? 'bg-violet-500 shadow-sm shadow-violet-500/50' : 'bg-[#6D3DF5] shadow-sm shadow-[#6D3DF5]/30'
-                              : status === 'In Progress'
-                              ? isDarkMode ? 'bg-violet-400' : 'bg-violet-500'
                               : isDarkMode ? 'bg-violet-600' : 'bg-[#6D3DF5]'
                           }`}
                           style={{ width: `${progressPct}%` }}
@@ -889,7 +1068,6 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Start / Review Module Button */}
                     <button
                       onClick={() => onNavigate(module.navTarget, module.topicId)}
                       className={`w-full sm:w-auto lg:w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md shrink-0 ${
@@ -914,4 +1092,3 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
     </div>
   );
 };
-

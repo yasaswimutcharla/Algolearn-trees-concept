@@ -31,6 +31,18 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   isSoundOn = true,
   onToggleSound
 }) => {
+  const [isResetting, setIsResetting] = React.useState(false);
+
+  const handleResetClick = () => {
+    setIsResetting(true);
+    if (onResetPage) {
+      onResetPage();
+    }
+    setTimeout(() => {
+      setIsResetting(false);
+    }, 800);
+  };
+
   const getPageTitle = (nav: NavItem): string => {
     switch (nav) {
       case 'home':
@@ -121,16 +133,18 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* 3. Reset / Reload page circular button */}
         <button
           id="header-reset-page-btn"
-          onClick={onResetPage}
-          title="Reset View / State"
+          onClick={handleResetClick}
+          title="Reset All Progress & State"
           className={`group w-9 h-9 rounded-full flex items-center justify-center border transition-all cursor-pointer ${
             isDarkMode
-              ? 'border-slate-800 bg-[#0e1424] hover:bg-slate-800 text-slate-300 hover:text-white'
-              : 'border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-black'
+              ? 'border-slate-800 bg-[#0e1424] hover:bg-rose-950/40 border-violet-900/40 hover:border-rose-500/50 text-slate-300 hover:text-rose-300'
+              : 'border-blue-200 bg-blue-50 hover:bg-rose-50 text-blue-900 hover:text-rose-900 hover:border-rose-300'
           }`}
         >
-          <RotateCcw className={`w-4 h-4 group-hover:rotate-180 transition-transform duration-300 ${
-            isDarkMode ? 'text-slate-400 group-hover:text-white' : 'text-blue-900 group-hover:text-black'
+          <RotateCcw className={`w-4 h-4 transition-transform duration-500 ${
+            isResetting
+              ? 'rotate-180 text-rose-400'
+              : 'group-hover:rotate-180 ' + (isDarkMode ? 'text-slate-400 group-hover:text-white' : 'text-blue-900 group-hover:text-black')
           }`} />
         </button>
       </div>

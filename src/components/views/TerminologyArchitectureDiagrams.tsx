@@ -44,7 +44,7 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
       className={`p-5 sm:p-7 rounded-3xl border transition-all ${
         isDarkMode
           ? 'bg-[#0a0f1d] border-violet-900/50 text-slate-100 shadow-xl'
-          : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+          : 'bg-white border-blue-100 text-black shadow-sm'
       }`}
     >
       {/* Header */}
@@ -101,7 +101,7 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
                     ? 'bg-violet-600 text-white border-violet-500 shadow-sm shadow-violet-600/30'
                     : isDarkMode
                     ? 'bg-[#0e1424] text-slate-300 border-violet-900/40 hover:bg-[#151c2e] hover:text-white'
-                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 hover:text-slate-900'
+                    : 'bg-blue-50 text-blue-900 border-blue-200 hover:bg-blue-100 hover:text-black'
                 }`}
               >
                 {btn.label}
@@ -114,7 +114,7 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
       {/* Main SVG Architecture Diagram Canvas */}
       <div
         className={`p-4 sm:p-6 rounded-2xl border flex flex-col items-center justify-center overflow-x-auto relative ${
-          isDarkMode ? 'bg-[#060913] border-violet-950/90' : 'bg-slate-50 border-slate-200'
+          isDarkMode ? 'bg-[#060913] border-violet-950/90' : 'bg-blue-50/50 border-blue-100'
         }`}
       >
         <svg
@@ -478,7 +478,7 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-5">
         <div
           className={`p-3 rounded-2xl border text-center ${
-            isDarkMode ? 'bg-[#060913] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+            isDarkMode ? 'bg-[#060913] border-violet-950/80' : 'bg-blue-50 border-blue-100'
           }`}
         >
           <div className="flex items-center justify-center gap-1.5 mb-1">
@@ -490,7 +490,7 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
 
         <div
           className={`p-3 rounded-2xl border text-center ${
-            isDarkMode ? 'bg-[#060913] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+            isDarkMode ? 'bg-[#060913] border-violet-950/80' : 'bg-blue-50 border-blue-100'
           }`}
         >
           <div className="flex items-center justify-center gap-1.5 mb-1">
@@ -502,7 +502,7 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
 
         <div
           className={`p-3 rounded-2xl border text-center ${
-            isDarkMode ? 'bg-[#060913] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+            isDarkMode ? 'bg-[#060913] border-violet-950/80' : 'bg-blue-50 border-blue-100'
           }`}
         >
           <div className="flex items-center justify-center gap-1.5 mb-1">
@@ -514,7 +514,7 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
 
         <div
           className={`p-3 rounded-2xl border text-center ${
-            isDarkMode ? 'bg-[#060913] border-violet-950/80' : 'bg-slate-50 border-slate-200'
+            isDarkMode ? 'bg-[#060913] border-violet-950/80' : 'bg-blue-50 border-blue-100'
           }`}
         >
           <div className="flex items-center justify-center gap-1.5 mb-1">

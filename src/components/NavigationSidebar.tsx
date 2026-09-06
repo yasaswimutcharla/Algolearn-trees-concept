@@ -25,7 +25,6 @@ interface NavigationSidebarProps {
   isVideoCompleted?: boolean;
   isSoundOn?: boolean;
   onToggleSound?: () => void;
-  onResetProgress?: () => void;
 }
 
 export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
@@ -42,8 +41,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   completedVisualizations: propCompletedVisualizations,
   isVideoCompleted: propIsVideoCompleted,
   isSoundOn = true,
-  onToggleSound,
-  onResetProgress
+  onToggleSound
 }) => {
   const [hoveredNav, setHoveredNav] = React.useState<NavItem | null>(null);
 

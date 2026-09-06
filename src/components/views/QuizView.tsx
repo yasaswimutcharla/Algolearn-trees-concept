@@ -186,6 +186,9 @@ export const QuizView: React.FC<QuizViewProps> = ({
     setConfirmedQuestions({});
     setSubmitted(false);
     setCurrentQuestionIndex(0);
+    try {
+      localStorage.removeItem('tree_dsa_quiz_score');
+    } catch {}
     if (onUpdateQuizProgress) {
       onUpdateQuizProgress(0, totalQuestions);
     }
@@ -217,13 +220,28 @@ export const QuizView: React.FC<QuizViewProps> = ({
             <span>Knowledge Assessment</span>
           </div>
 
-          <span
-            className={`text-xs font-mono font-medium tracking-tight ${
-              isDarkMode ? 'text-slate-400' : 'text-blue-900/80'
-            }`}
-          >
-            Tree Quiz (10 Questions)
-          </span>
+          <div className="flex items-center gap-2.5">
+            <span
+              className={`text-xs font-mono font-medium tracking-tight hidden sm:inline ${
+                isDarkMode ? 'text-slate-400' : 'text-blue-900/80'
+              }`}
+            >
+              Tree Quiz (10 Questions)
+            </span>
+            <button
+              id="quiz-reset-btn"
+              onClick={handleRetake}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                isDarkMode
+                  ? 'bg-violet-950/40 hover:bg-rose-950/40 border-violet-800/40 hover:border-rose-500/50 text-slate-300 hover:text-rose-300'
+                  : 'bg-blue-50 hover:bg-rose-50 border-blue-200 hover:border-rose-300 text-blue-900 hover:text-rose-900'
+              }`}
+              title="Reset and restart quiz"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Reset Quiz</span>
+            </button>
+          </div>
         </div>
 
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">

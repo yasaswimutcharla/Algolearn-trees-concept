@@ -262,7 +262,7 @@ export const BinaryTreeArchitectureDiagrams: React.FC<BinaryTreeArchitectureDiag
         className={`p-4 sm:p-5 rounded-3xl border flex items-center justify-between gap-3 ${
           isDarkMode
             ? 'bg-[#0a0f1d] border-violet-900/50 text-slate-100 shadow-xl'
-            : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+            : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
         <div className="flex items-center gap-2.5">
@@ -276,7 +276,7 @@ export const BinaryTreeArchitectureDiagrams: React.FC<BinaryTreeArchitectureDiag
             <Network className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold tracking-tight text-violet-300">
+            <h3 className={`text-sm font-bold tracking-tight ${isDarkMode ? 'text-violet-300' : 'text-violet-800'}`}>
               Binary Tree Architecture Diagrams
             </h3>
             <p className="text-xs opacity-75">
@@ -304,7 +304,7 @@ export const BinaryTreeArchitectureDiagrams: React.FC<BinaryTreeArchitectureDiag
           className={`p-5 sm:p-6 rounded-3xl border transition-all ${
             isDarkMode
               ? 'bg-[#0a0f1d] border-violet-900/40 text-slate-100 shadow-lg'
-              : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+              : 'bg-white border-blue-100 text-black shadow-sm'
           }`}
         >
           {/* Block Header */}
@@ -339,7 +339,7 @@ export const BinaryTreeArchitectureDiagrams: React.FC<BinaryTreeArchitectureDiag
             className={`p-4 sm:p-5 rounded-2xl border flex flex-col items-center justify-center overflow-x-auto my-3 ${
               isDarkMode
                 ? 'bg-[#060913] border-violet-950/90'
-                : 'bg-slate-50 border-slate-200'
+                : 'bg-blue-50/50 border-blue-100'
             }`}
           >
             {block.renderSvg(isDarkMode)}
@@ -350,7 +350,7 @@ export const BinaryTreeArchitectureDiagrams: React.FC<BinaryTreeArchitectureDiag
             className={`p-3 rounded-xl border text-xs flex items-center gap-2 mt-3 ${
               isDarkMode
                 ? 'bg-[#121829] border-violet-950/80 text-slate-300'
-                : 'bg-slate-50 border-slate-200 text-slate-700'
+                : 'bg-blue-50 border-blue-100 text-blue-900'
             }`}
           >
             <CheckCircle2 className="w-3.5 h-3.5 text-violet-400 shrink-0" />

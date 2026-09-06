@@ -13,7 +13,6 @@ import {
   Video as VideoIcon,
   CheckCircle2,
   Circle,
-  Trash2,
   FileVideo,
   Sparkles,
   BookOpen,
@@ -299,59 +298,28 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               </button>
             )}
 
-            {/* Upload or Replace Video Button */}
-            <button
-              id="btn-visualize-upload-video"
-              onClick={triggerUpload}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm ${
-                isDarkMode
-                  ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/50'
-                  : 'bg-[#6D3DF5] hover:bg-[#5B2FD9] text-white shadow-indigo-100'
-              }`}
-            >
-              <Upload className="w-3.5 h-3.5" />
-              <span>{videoUrl ? 'Replace Video' : 'Upload Video'}</span>
-            </button>
-
-            {/* Remove Video Button (only when video is present) */}
-            {videoUrl && onRemoveVideo && (
+            {/* Upload Video Button ONLY when no video is uploaded yet (Replace video option removed) */}
+            {!videoUrl && (
               <button
-                id="btn-visualize-remove-video"
-                onClick={onRemoveVideo}
-                className={`p-2 rounded-xl text-xs font-medium flex items-center justify-center transition-all cursor-pointer border ${
+                id="btn-visualize-upload-video"
+                onClick={triggerUpload}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm ${
                   isDarkMode
-                    ? 'bg-slate-900/60 hover:bg-rose-950/50 text-slate-400 hover:text-rose-300 border-slate-800 hover:border-rose-900/50'
-                    : 'bg-white hover:bg-rose-50 text-blue-900 hover:text-rose-600 border-blue-200 hover:border-rose-200'
+                    ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/50'
+                    : 'bg-[#6D3DF5] hover:bg-[#5B2FD9] text-white shadow-indigo-100'
                 }`}
-                title="Remove video file"
               >
-                <Trash2 className="w-4 h-4" />
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload Video</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Video metadata row if video exists */}
+        {/* Keyboard shortcuts row if video exists */}
         {videoUrl && (
-          <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-violet-950/50 text-xs opacity-90">
-            <div className="flex items-center gap-1.5 font-medium text-violet-400">
-              <FileVideo className="w-4 h-4 shrink-0" />
-              <span className="truncate max-w-xs">{videoName || 'Tree DSA Complete Visual Lesson'}</span>
-            </div>
-            {videoSize && (
-              <span
-                className={`text-[11px] font-mono px-2 py-0.5 rounded-md border ${
-                  isDarkMode
-                    ? 'bg-violet-950/60 text-[#A78BFA] border-violet-800/40'
-                    : 'bg-violet-50 text-[#6D3DF5] border-violet-200'
-                }`}
-              >
-                {videoSize}
-              </span>
-            )}
-            <span className="text-[11px] opacity-60">
-              Keyboard shortcuts: Space (Play/Pause) • M (Mute) • F (Fullscreen) • Left/Right (Seek 5s)
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-violet-950/40 text-xs opacity-70">
+            <span>Keyboard shortcuts: Space (Play/Pause) • M (Mute) • F (Fullscreen) • Left/Right (Seek 5s)</span>
           </div>
         )}
       </div>
@@ -367,7 +335,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
           }`}
         >
           {/* Native Video Element */}
-          <div className="relative w-full aspect-video flex items-center justify-center bg-black">
+          <div className="relative w-full aspect-video flex items-center justify-center bg-black overflow-hidden">
             <video
               ref={videoRef}
               src={videoUrl}
@@ -390,6 +358,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
                   onToggleVideoCompleted();
                 }
               }}
+              style={{ transform: 'scale(3)', transformOrigin: 'center center' }}
               className="w-full h-full object-contain cursor-pointer"
             />
 

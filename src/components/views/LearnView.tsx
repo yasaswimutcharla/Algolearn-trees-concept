@@ -162,7 +162,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
             }`}
           >
             {/* TOC Header */}
-            <div className="pb-3 border-b border-violet-950/60 mb-4">
+            <div className={`pb-3 border-b ${isDarkMode ? 'border-violet-950/60' : 'border-blue-100'} mb-4`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div
