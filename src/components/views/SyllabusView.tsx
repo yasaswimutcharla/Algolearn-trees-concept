@@ -190,10 +190,10 @@ export const SyllabusView: React.FC<SyllabusViewProps> = ({ onSelectTopic, isDar
                 <div className="flex items-center gap-2 mb-1">
                   <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full ${
                     isDarkMode
-                      ? 'bg-violet-600/20 text-violet-400 border border-violet-500/30'
+                      ? 'bg-violet-600/20 text-slate-300 border border-violet-500/30'
                       : 'bg-violet-100 text-violet-900 border border-violet-200'
                   }`}>
-                    Topic {topic.index}
+                    Topic <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{topic.index}</span>
                   </span>
                   <h2 className={`text-lg font-bold ${
                     isDarkMode ? 'text-violet-300' : 'text-violet-900'

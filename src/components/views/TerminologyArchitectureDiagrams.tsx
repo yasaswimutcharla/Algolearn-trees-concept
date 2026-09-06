@@ -164,23 +164,23 @@ export const TerminologyArchitectureDiagrams: React.FC<TerminologyArchitectureDi
             <g>
               {/* Left: Levels */}
               <rect x="35" y="50" width="85" height="28" rx="8" fill={isDarkMode ? '#312e81' : '#c7d2fe'} />
-              <text x="77" y="68" fill={isDarkMode ? '#c7d2fe' : '#312e81'} fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">Level 0</text>
+              <text x="77" y="68" fill={isDarkMode ? '#ffffff' : '#312e81'} fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">Level 0</text>
 
               <rect x="35" y="180" width="85" height="28" rx="8" fill={isDarkMode ? '#1e3a8a' : '#bfdbfe'} />
-              <text x="77" y="198" fill={isDarkMode ? '#bfdbfe' : '#1e3a8a'} fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">Level 1</text>
+              <text x="77" y="198" fill={isDarkMode ? '#ffffff' : '#1e3a8a'} fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">Level 1</text>
 
               <rect x="35" y="330" width="85" height="28" rx="8" fill={isDarkMode ? '#065f46' : '#a7f3d0'} />
-              <text x="77" y="348" fill={isDarkMode ? '#a7f3d0' : '#065f46'} fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">Level 2</text>
+              <text x="77" y="348" fill={isDarkMode ? '#ffffff' : '#065f46'} fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">Level 2</text>
 
               {/* Right: Depths */}
               <rect x="640" y="50" width="85" height="28" rx="8" fill={isDarkMode ? '#312e81' : '#c7d2fe'} />
-              <text x="682" y="68" fill={isDarkMode ? '#c7d2fe' : '#312e81'} fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">Depth 0</text>
+              <text x="682" y="68" fill={isDarkMode ? '#ffffff' : '#312e81'} fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">Depth 0</text>
 
               <rect x="640" y="180" width="85" height="28" rx="8" fill={isDarkMode ? '#1e3a8a' : '#bfdbfe'} />
-              <text x="682" y="198" fill={isDarkMode ? '#bfdbfe' : '#1e3a8a'} fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">Depth 1</text>
+              <text x="682" y="198" fill={isDarkMode ? '#ffffff' : '#1e3a8a'} fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">Depth 1</text>
 
               <rect x="640" y="330" width="85" height="28" rx="8" fill={isDarkMode ? '#065f46' : '#a7f3d0'} />
-              <text x="682" y="348" fill={isDarkMode ? '#a7f3d0' : '#065f46'} fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">Depth 2</text>
+              <text x="682" y="348" fill={isDarkMode ? '#ffffff' : '#065f46'} fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">Depth 2</text>
             </g>
           )}
 

@@ -140,7 +140,9 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
               <div className={`p-4 rounded-2xl border flex flex-col items-center text-center ${
                 isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/50 border-blue-100'
               }`}>
-                <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-cyan-400' : 'text-cyan-800'}`}>1. GENERAL TREE</div>
+                <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-cyan-400' : 'text-cyan-800'}`}>
+                  <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>1.</span> GENERAL TREE
+                </div>
                 <div className="text-[10px] opacity-70 mb-3">Any number of children</div>
                 
                 <svg viewBox="0 0 140 100" className="w-full max-w-[140px] h-24 mb-2">
@@ -167,7 +169,9 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
               <div className={`p-4 rounded-2xl border flex flex-col items-center text-center ${
                 isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/50 border-blue-100'
               }`}>
-                <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>2. BINARY TREE</div>
+                <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>
+                  <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>2.</span> BINARY TREE
+                </div>
                 <div className="text-[10px] opacity-70 mb-3">At most 2 children (Left / Right)</div>
                 
                 <svg viewBox="0 0 140 100" className="w-full max-w-[140px] h-24 mb-2">
@@ -191,7 +195,9 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
               <div className={`p-4 rounded-2xl border flex flex-col items-center text-center ${
                 isDarkMode ? 'bg-[#070a12] border-violet-950/80' : 'bg-blue-50/50 border-blue-100'
               }`}>
-                <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>3. BINARY SEARCH TREE</div>
+                <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>
+                  <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>3.</span> BINARY SEARCH TREE
+                </div>
                 <div className="text-[10px] opacity-70 mb-3">Left &lt; Node &lt; Right</div>
                 
                 <svg viewBox="0 0 140 100" className="w-full max-w-[140px] h-24 mb-2">
@@ -293,11 +299,17 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
             </div>
 
             <div className="p-3.5 rounded-2xl border text-xs flex items-center justify-around font-mono text-center">
-              <span className={`font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>20, 30, 40 &lt; 50</span>
+              <span className={`font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>
+                <span className={isDarkMode ? 'text-white' : 'text-emerald-950 font-bold'}>20, 30, 40</span> &lt; <span className={isDarkMode ? 'text-white' : 'text-emerald-950 font-bold'}>50</span>
+              </span>
               <span className="opacity-40">|</span>
-              <span className={`font-bold ${isDarkMode ? 'text-violet-400' : 'text-violet-700'}`}>ROOT = 50</span>
+              <span className={`font-bold ${isDarkMode ? 'text-violet-400' : 'text-violet-700'}`}>
+                ROOT = <span className={isDarkMode ? 'text-white' : 'text-violet-950 font-bold'}>50</span>
+              </span>
               <span className="opacity-40">|</span>
-              <span className={`font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}>50 &lt; 60, 70, 80</span>
+              <span className={`font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}>
+                <span className={isDarkMode ? 'text-white' : 'text-blue-950 font-bold'}>50</span> &lt; <span className={isDarkMode ? 'text-white' : 'text-blue-950 font-bold'}>60, 70, 80</span>
+              </span>
             </div>
           </div>
         );
@@ -324,11 +336,11 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
                 <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-800'}`}>PREORDER</div>
                 <div className="text-[10px] font-mono opacity-80 mb-2">Root → Left → Right</div>
                 <div className="flex items-center justify-center gap-1 my-2">
-                  <span className="w-6 h-6 rounded-full bg-amber-500 text-black font-mono font-bold text-xs flex items-center justify-center">1</span>
+                  <span className="w-6 h-6 rounded-full bg-amber-500 text-white font-mono font-bold text-xs flex items-center justify-center">1</span>
                   <ArrowRight className="w-3 h-3 opacity-60" />
-                  <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold text-xs flex items-center justify-center border border-amber-500/40">2</span>
+                  <span className="w-6 h-6 rounded-full bg-amber-500/20 text-white font-mono font-bold text-xs flex items-center justify-center border border-amber-500/40">2</span>
                   <ArrowRight className="w-3 h-3 opacity-60" />
-                  <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold text-xs flex items-center justify-center border border-amber-500/40">3</span>
+                  <span className="w-6 h-6 rounded-full bg-amber-500/20 text-white font-mono font-bold text-xs flex items-center justify-center border border-amber-500/40">3</span>
                 </div>
                 <p className="text-[11px] opacity-75 mt-2">Visits current node before children.</p>
               </div>
@@ -340,11 +352,11 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
                 <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>INORDER</div>
                 <div className="text-[10px] font-mono opacity-80 mb-2">Left → Root → Right</div>
                 <div className="flex items-center justify-center gap-1 my-2">
-                  <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs flex items-center justify-center border border-emerald-500/40">2</span>
+                  <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-white font-mono font-bold text-xs flex items-center justify-center border border-emerald-500/40">2</span>
                   <ArrowRight className="w-3 h-3 opacity-60" />
-                  <span className="w-6 h-6 rounded-full bg-emerald-500 text-black font-mono font-bold text-xs flex items-center justify-center">1</span>
+                  <span className="w-6 h-6 rounded-full bg-emerald-500 text-white font-mono font-bold text-xs flex items-center justify-center">1</span>
                   <ArrowRight className="w-3 h-3 opacity-60" />
-                  <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs flex items-center justify-center border border-emerald-500/40">3</span>
+                  <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-white font-mono font-bold text-xs flex items-center justify-center border border-emerald-500/40">3</span>
                 </div>
                 <p className="text-[11px] opacity-75 mt-2">Gives sorted ascending order in BST.</p>
               </div>
@@ -356,11 +368,11 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({ topicI
                 <div className={`text-xs font-bold mb-1 ${isDarkMode ? 'text-violet-400' : 'text-violet-800'}`}>POSTORDER</div>
                 <div className="text-[10px] font-mono opacity-80 mb-2">Left → Right → Root</div>
                 <div className="flex items-center justify-center gap-1 my-2">
-                  <span className="w-6 h-6 rounded-full bg-violet-500/20 text-violet-300 font-mono font-bold text-xs flex items-center justify-center border border-violet-500/40">2</span>
+                  <span className="w-6 h-6 rounded-full bg-violet-500/20 text-white font-mono font-bold text-xs flex items-center justify-center border border-violet-500/40">2</span>
                   <ArrowRight className="w-3 h-3 opacity-60" />
-                  <span className="w-6 h-6 rounded-full bg-violet-500/20 text-violet-300 font-mono font-bold text-xs flex items-center justify-center border border-violet-500/40">3</span>
+                  <span className="w-6 h-6 rounded-full bg-violet-500/20 text-white font-mono font-bold text-xs flex items-center justify-center border border-violet-500/40">3</span>
                   <ArrowRight className="w-3 h-3 opacity-60" />
-                  <span className="w-6 h-6 rounded-full bg-violet-500 text-black font-mono font-bold text-xs flex items-center justify-center">1</span>
+                  <span className="w-6 h-6 rounded-full bg-violet-500 text-white font-mono font-bold text-xs flex items-center justify-center">1</span>
                 </div>
                 <p className="text-[11px] opacity-75 mt-2">Visits children before the parent.</p>
               </div>

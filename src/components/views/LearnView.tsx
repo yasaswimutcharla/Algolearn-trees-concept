@@ -122,7 +122,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
               <div className={`text-[10px] font-mono uppercase tracking-wider font-bold ${
                 isDarkMode ? 'text-violet-400' : 'text-violet-700'
               }`}>
-                Table of Contents · 0{currentTopic.index}/0{TREE_TOPICS.length}
+                Table of Contents · <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>0{currentTopic.index}</span>/<span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>0{TREE_TOPICS.length}</span>
               </div>
               <div className="text-xs font-bold truncate max-w-[200px] sm:max-w-xs">
                 {currentTopic.title}
@@ -132,9 +132,9 @@ export const LearnView: React.FC<LearnViewProps> = ({
 
           <div className="flex items-center gap-2">
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-              isDarkMode ? 'bg-violet-600/20 text-violet-400' : 'bg-violet-100 text-violet-800'
+              isDarkMode ? 'bg-violet-600/20 text-slate-300' : 'bg-violet-100 text-violet-800'
             }`}>
-              {completedCount}/{TREE_TOPICS.length} Done
+              <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{completedCount}</span>/<span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{TREE_TOPICS.length}</span> Done
             </span>
             <span className={`text-xs font-bold ${isDarkMode ? 'text-violet-400' : 'text-violet-700'}`}>
               {isMobileSyllabusOpen ? 'Hide ▲' : 'Browse ▼'}
@@ -182,11 +182,11 @@ export const LearnView: React.FC<LearnViewProps> = ({
                   id="toc-completion-counter"
                   className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-md ${
                     isDarkMode
-                      ? 'text-violet-400 bg-violet-600/10 border border-violet-500/20'
+                      ? 'text-white bg-violet-600/20 border border-violet-500/30'
                       : 'text-violet-800 bg-violet-100 border border-violet-200'
                   }`}
                 >
-                  {completedCount}/{TREE_TOPICS.length}
+                  <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{completedCount}</span>/<span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{TREE_TOPICS.length}</span>
                 </span>
               </div>
             </div>
@@ -221,11 +221,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
                       <div className="flex items-baseline gap-2">
                         <span
                           className={`text-xs font-mono font-bold shrink-0 ${
-                            isSelected
-                              ? isDarkMode
-                                ? 'text-violet-300 font-extrabold'
-                                : 'text-violet-700 font-extrabold'
-                              : 'text-blue-700'
+                            isDarkMode ? 'text-white font-extrabold' : 'text-slate-900 font-extrabold'
                           }`}
                         >
                           {formattedNum}.
@@ -288,10 +284,10 @@ export const LearnView: React.FC<LearnViewProps> = ({
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span className={`text-xs font-mono font-bold px-3 py-1 rounded-full border ${
                 isDarkMode
-                  ? 'bg-violet-600/20 text-violet-400 border-violet-500/30'
+                  ? 'bg-violet-600/20 text-slate-300 border-violet-500/30'
                   : 'bg-violet-100 text-violet-800 border-violet-300'
               }`}>
-                TOPIC 0{currentTopic.index} OF 0{TREE_TOPICS.length}
+                TOPIC <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>0{currentTopic.index}</span> OF <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>0{TREE_TOPICS.length}</span>
               </span>
               <span
                 className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
@@ -584,11 +580,11 @@ export const LearnView: React.FC<LearnViewProps> = ({
                 <span
                   className={`text-[10px] font-mono px-2 py-0.5 rounded font-semibold ${
                     isDarkMode
-                      ? 'bg-violet-500/20 text-violet-300'
+                      ? 'bg-violet-500/20 text-slate-300'
                       : 'bg-violet-100 text-violet-800 border border-violet-200 font-bold'
                   }`}
                 >
-                  1-Question Check
+                  <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>1</span>-Question Check
                 </span>
               </div>
 
@@ -875,7 +871,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
             ) : (
               <div className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 ml-auto">
                 <CheckCircle2 className="w-4 h-4" />
-                All 7 Topics Mastered!
+                All <span className={isDarkMode ? 'text-white font-bold' : 'text-emerald-900 font-bold'}>7</span> Topics Mastered!
               </div>
             )}
           </div>
