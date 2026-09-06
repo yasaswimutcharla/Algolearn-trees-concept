@@ -550,7 +550,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
             <p className={`text-xs sm:text-sm leading-relaxed mb-6 ${
               isDarkMode ? 'text-[#E2E8F0]' : 'text-slate-600'
             }`}>
-              Are you sure you want to reset all your progress? This will reset your overall progress to 0%, clear completed topics, visual lessons, quiz scores, XP, achievements, and activity history.
+              Are you sure you want to reset all your learning progress? This will reset your overall completion to 0%, clear topic checkmarks, quiz scores, XP, achievements, and activity history. Course material and lesson videos are preserved.
             </p>
 
             <div className="flex items-center justify-end gap-3">
@@ -600,7 +600,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
 
             <div className="mt-4 flex items-baseline gap-2">
               <span className={`text-4xl font-black font-mono tracking-tight ${
-                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
+                isDarkMode ? 'text-white' : 'text-slate-900'
               }`}>
                 {overallPercentage}%
               </span>
@@ -623,8 +623,14 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           <div className={`mt-5 pt-3 border-t text-[11px] font-mono flex items-center justify-between ${
             isDarkMode ? 'border-violet-950/50 text-[#94A3B8]' : 'border-blue-100 text-blue-700'
           }`}>
-            <span>{topicsCompletedCount}/7 Topics</span>
-            <span>{isVisualDone ? '1/1 Viz' : '0/1 Viz'}</span>
+            <span>
+              <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{topicsCompletedCount}</span>
+              /7 Topics
+            </span>
+            <span>
+              <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{isVisualDone ? '1' : '0'}</span>
+              /1 Viz
+            </span>
           </div>
         </div>
 
@@ -649,12 +655,12 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
 
             <div className="mt-4 flex items-baseline gap-2">
               <span className={`text-4xl font-black font-mono tracking-tight ${
-                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
+                isDarkMode ? 'text-white' : 'text-slate-900'
               }`}>
                 {mastery.label}
               </span>
               <span className={`text-xs font-medium ${isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'}`}>
-                Level {mastery.level}/4
+                Level <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{mastery.level}</span>/4
               </span>
             </div>
 
@@ -673,7 +679,10 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
             isDarkMode ? 'border-violet-950/50 text-[#94A3B8]' : 'border-blue-100 text-blue-700'
           }`}>
             <span>Rank: {mastery.rank}</span>
-            <span>{topicsCompletedCount}/7 Topics</span>
+            <span>
+              <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{topicsCompletedCount}</span>
+              /7 Topics
+            </span>
           </div>
         </div>
 
@@ -698,7 +707,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
 
             <div className="mt-4 flex items-baseline gap-2">
               <span className={`text-4xl font-black font-mono tracking-tight ${
-                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
+                isDarkMode ? 'text-white' : 'text-slate-900'
               }`}>
                 {totalXP}
               </span>
@@ -722,7 +731,19 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
             isDarkMode ? 'border-violet-950/50 text-[#94A3B8]' : 'border-blue-100 text-blue-700'
           }`}>
             <span>TreeDSA Score</span>
-            <span>{quizScore ? `${quizScore.score}/${quizScore.total} Quiz` : `${quizAnsweredCount}/10 Qs`}</span>
+            <span>
+              {quizScore ? (
+                <>
+                  <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{quizScore.score}</span>
+                  /{quizScore.total} Quiz
+                </>
+              ) : (
+                <>
+                  <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{quizAnsweredCount}</span>
+                  /10 Qs
+                </>
+              )}
+            </span>
           </div>
         </div>
 
@@ -747,7 +768,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
 
             <div className="mt-4 flex items-baseline gap-2">
               <span className={`text-4xl font-black font-mono tracking-tight ${
-                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
+                isDarkMode ? 'text-white' : 'text-slate-900'
               }`}>
                 {streakDays}
               </span>
@@ -803,7 +824,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
               <h2 className={`text-base sm:text-lg font-black tracking-tight mt-0.5 ${
                 isDarkMode ? 'text-[#F8FAFC]' : 'text-black'
               }`}>
-                1 VISUAL LESSON ({isVideoCompleted ? '1' : '0'} / 1 Completed)
+                1 VISUAL LESSON (<span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{isVideoCompleted ? '1' : '0'}</span> / 1 Completed)
               </h2>
             </div>
           </div>
@@ -906,7 +927,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           <div className={`text-xs font-mono font-semibold ${
             isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'
           }`}>
-            Showing {filteredModules.length} of {CURRICULUM_MODULES.length} modules
+            Showing <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{filteredModules.length}</span> of <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{CURRICULUM_MODULES.length}</span> modules
           </div>
         </div>
 
@@ -1047,7 +1068,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                           Progress
                         </span>
                         <span className={`text-xs font-mono font-bold ${
-                          isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
+                          isDarkMode ? 'text-white' : 'text-slate-900'
                         }`}>
                           {progressPct}%
                         </span>

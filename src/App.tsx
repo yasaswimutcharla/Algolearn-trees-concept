@@ -36,6 +36,8 @@ export default function App() {
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string | null>(null);
   const [uploadedVideoName, setUploadedVideoName] = useState<string>('');
   const [uploadedVideoSize, setUploadedVideoSize] = useState<string>('');
+  const [isUploadingVideo, setIsUploadingVideo] = useState<boolean>(false);
+  const [uploadStatus, setUploadStatus] = useState<string>('');
   const [isVideoCompleted, setIsVideoCompleted] = useState<boolean>(() => {
     try {
       return localStorage.getItem('tree_dsa_video_completed') === 'true';
@@ -45,37 +47,116 @@ export default function App() {
   });
   const [showVisualizeVideo, setShowVisualizeVideo] = useState<boolean>(false);
 
-  // Restore stored video from IndexedDB on startup
+  // Restore stored video on startup: first check server-side permanent video for all users, then IndexedDB
   useEffect(() => {
-    loadVideoFromStorage().then((data) => {
-      if (data && data.blob) {
-        const url = URL.createObjectURL(data.blob);
-        setUploadedVideoUrl(url);
-        const cleanName = data.name && !data.name.toLowerCase().includes('whatsapp')
-          ? data.name
-          : 'Tree DSA Complete Visual Lesson';
-        setUploadedVideoName(cleanName);
-        setUploadedVideoSize(data.size || '');
+    let isMounted = true;
+
+    const initializeLessonVideo = async () => {
+      // 1. Check if the server already has the permanent masterclass video
+      try {
+        const res = await fetch('/api/video-status');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.hasVideo && data.url && isMounted) {
+            setUploadedVideoUrl(data.url);
+            const cleanName = data.name && !data.name.toLowerCase().includes('whatsapp')
+              ? data.name
+              : 'Tree DSA Complete Visual Lesson';
+            setUploadedVideoName(cleanName);
+            setUploadedVideoSize(data.size || '');
+            return;
+          }
+        }
+      } catch {
+        // Fallback to local IndexedDB if server check is unavailable
       }
-    });
+
+      // 2. Fallback to client IndexedDB if not on server yet
+      try {
+        const localData = await loadVideoFromStorage();
+        if (localData && localData.blob && isMounted) {
+          const url = URL.createObjectURL(localData.blob);
+          setUploadedVideoUrl(url);
+          const cleanName = localData.name && !localData.name.toLowerCase().includes('whatsapp')
+            ? localData.name
+            : 'Tree DSA Complete Visual Lesson';
+          setUploadedVideoName(cleanName);
+          setUploadedVideoSize(localData.size || '');
+
+          // Automatically sync local video to server so all users will have it permanently
+          fetch('/api/upload-video', {
+            method: 'POST',
+            headers: {
+              'Content-Type': localData.blob.type || 'video/mp4',
+              'x-file-name': encodeURIComponent(cleanName),
+              'x-file-size': localData.size || '',
+            },
+            body: localData.blob,
+          }).catch(() => {});
+        }
+      } catch (err) {
+        console.warn('Could not load video from local storage:', err);
+      }
+    };
+
+    initializeLessonVideo();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const handleUploadVideo = (file: File) => {
+  const handleUploadVideo = async (file: File) => {
     if (!file) return;
-    if (uploadedVideoUrl) {
+    if (uploadedVideoUrl && uploadedVideoUrl.startsWith('blob:')) {
       URL.revokeObjectURL(uploadedVideoUrl);
     }
-    const url = URL.createObjectURL(file);
+
+    const localUrl = URL.createObjectURL(file);
     const size = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
     const displayName = file.name.toLowerCase().includes('whatsapp') ? 'Tree DSA Complete Visual Lesson' : file.name;
-    setUploadedVideoUrl(url);
+
+    // Immediately display locally and save to client IndexedDB
+    setUploadedVideoUrl(localUrl);
     setUploadedVideoName(displayName);
     setUploadedVideoSize(size);
     saveVideoToStorage(file, displayName, size);
+
+    // Upload to server so it becomes available across sessions
+    setIsUploadingVideo(true);
+    setUploadStatus('Saving video lesson...');
+
+    try {
+      const res = await fetch('/api/upload-video', {
+        method: 'POST',
+        headers: {
+          'Content-Type': file.type || 'video/mp4',
+          'x-file-name': encodeURIComponent(displayName),
+          'x-file-size': size,
+        },
+        body: file,
+      });
+
+      if (res.ok) {
+        // Set to server video URL with timestamp to bust any cache
+        setUploadedVideoUrl('/videos/lesson.mp4?v=' + Date.now());
+        setUploadStatus('Video saved successfully!');
+        setTimeout(() => setUploadStatus(''), 4000);
+      } else {
+        setUploadStatus('Saved in browser cache.');
+        setTimeout(() => setUploadStatus(''), 4000);
+      }
+    } catch (err) {
+      console.warn('Could not upload video to server:', err);
+      setUploadStatus('Saved in browser storage.');
+      setTimeout(() => setUploadStatus(''), 4000);
+    } finally {
+      setIsUploadingVideo(false);
+    }
   };
 
   const handleRemoveVideo = () => {
-    if (uploadedVideoUrl) {
+    if (uploadedVideoUrl && uploadedVideoUrl.startsWith('blob:')) {
       URL.revokeObjectURL(uploadedVideoUrl);
     }
     setUploadedVideoUrl(null);
@@ -152,9 +233,7 @@ export default function App() {
     setQuizProgress({ completed: 0, total: 10 });
     setIsVideoCompleted(false);
     setCompletedVisualizations([]);
-    setUploadedVideoUrl(null);
-    setUploadedVideoName('');
-    setUploadedVideoSize('');
+    // Note: Video file is the lesson curriculum and is NOT cleared on progress reset.
     setShowVisualizeVideo(false);
     setQuizKey((prev) => prev + 1);
     setLearnKey((prev) => prev + 1);
@@ -162,17 +241,12 @@ export default function App() {
     // 2. Clear Quiz in-memory cache and storage
     clearSavedQuizState();
 
-    // 3. Clear IndexedDB storage if used
+    // 3. Clear and persist the reset values to localStorage and sessionStorage
     try {
-      deleteVideoFromStorage();
-    } catch {}
-
-    // 4. Clear and persist the reset values to localStorage and sessionStorage
-    try {
-      // First, purge arbitrary keys from localStorage while preserving user preferences
+      // First, purge arbitrary keys from localStorage while preserving user preferences and video metadata
       const allStorageKeys = Object.keys(localStorage);
       for (const key of allStorageKeys) {
-        if (key === 'tree_dsa_theme' || key === 'tree_dsa_sound') continue;
+        if (key === 'tree_dsa_theme' || key === 'tree_dsa_sound' || key.startsWith('tree_dsa_video_meta')) continue;
         localStorage.removeItem(key);
       }
       sessionStorage.clear();
@@ -387,6 +461,8 @@ export default function App() {
               onToggleVideoCompleted={handleToggleVideoCompleted}
               onUploadVideo={handleUploadVideo}
               onRemoveVideo={handleRemoveVideo}
+              isUploadingVideo={isUploadingVideo}
+              uploadStatus={uploadStatus}
             />
           )}
 

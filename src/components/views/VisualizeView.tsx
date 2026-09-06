@@ -18,7 +18,8 @@ import {
   BookOpen,
   Layers,
   Activity,
-  GitBranch
+  GitBranch,
+  Loader2
 } from 'lucide-react';
 
 interface VisualizeViewProps {
@@ -30,6 +31,8 @@ interface VisualizeViewProps {
   onToggleVideoCompleted?: () => void;
   onUploadVideo?: (file: File) => void;
   onRemoveVideo?: () => void;
+  isUploadingVideo?: boolean;
+  uploadStatus?: string;
 }
 
 export const VisualizeView: React.FC<VisualizeViewProps> = ({
@@ -40,7 +43,9 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
   isVideoCompleted = false,
   onToggleVideoCompleted,
   onUploadVideo,
-  onRemoveVideo
+  onRemoveVideo,
+  isUploadingVideo = false,
+  uploadStatus = ''
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
@@ -298,11 +303,20 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               </button>
             )}
 
-            {/* Upload Video Button ONLY when no video is uploaded yet (Replace video option removed) */}
+            {/* Uploading indicator */}
+            {isUploadingVideo && (
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-violet-600/30 border border-violet-500/50 text-violet-200 animate-pulse">
+                <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
+                <span>Saving video...</span>
+              </div>
+            )}
+
+            {/* Upload Video Button ONLY when no video is uploaded yet */}
             {!videoUrl && (
               <button
                 id="btn-visualize-upload-video"
                 onClick={triggerUpload}
+                disabled={isUploadingVideo}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm ${
                   isDarkMode
                     ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/50'
@@ -315,6 +329,14 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
             )}
           </div>
         </div>
+
+        {/* Upload feedback banner */}
+        {uploadStatus && (
+          <div className="mt-3 px-3.5 py-2 rounded-xl bg-violet-600/20 border border-violet-500/40 text-xs font-medium text-violet-200 flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+            <span>{uploadStatus}</span>
+          </div>
+        )}
 
         {/* Keyboard shortcuts row if video exists */}
         {videoUrl && (
@@ -502,35 +524,47 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               : 'border-blue-200 hover:border-blue-400 bg-blue-50/40 hover:bg-blue-50/80'
           }`}
         >
-          <div
-            className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${
-              isDarkMode
-                ? 'bg-violet-950/70 border border-violet-800/60 text-violet-400 shadow-xl shadow-violet-950/50'
-                : 'bg-violet-100 border border-violet-200 text-[#6D3DF5]'
-            }`}
-          >
-            <VideoIcon className="w-8 h-8" />
-          </div>
+          {isUploadingVideo ? (
+            <div className="flex flex-col items-center justify-center py-6">
+              <Loader2 className="w-12 h-12 animate-spin text-violet-400 mb-4" />
+              <h3 className="text-lg font-bold text-violet-200 mb-1">Saving Video Lesson...</h3>
+              <p className="text-xs text-violet-300/80 max-w-sm">
+                Uploading and storing video file.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div
+                className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${
+                  isDarkMode
+                    ? 'bg-violet-950/70 border border-violet-800/60 text-violet-400 shadow-xl shadow-violet-950/50'
+                    : 'bg-violet-100 border border-violet-200 text-[#6D3DF5]'
+                }`}
+              >
+                <VideoIcon className="w-8 h-8" />
+              </div>
 
-          <h3 className="text-lg sm:text-xl font-black tracking-tight mb-1">
-            Upload Tree DSA Complete Video Lesson
-          </h3>
-          <p className="text-xs sm:text-sm max-w-md opacity-75 mb-6 leading-relaxed">
-            Drag and drop your complete video lesson file here, or click to browse.
-            Supported formats: MP4, WebM, MOV, MKV.
-          </p>
+              <h3 className="text-lg sm:text-xl font-black tracking-tight mb-1">
+                Upload Tree DSA Complete Video Lesson
+              </h3>
+              <p className="text-xs sm:text-sm max-w-md opacity-75 mb-6 leading-relaxed">
+                Drag and drop your complete video lesson file here, or click to browse.
+                Supported formats: MP4, WebM, MOV, MKV.
+              </p>
 
-          <button
-            type="button"
-            className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md ${
-              isDarkMode
-                ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/60'
-                : 'bg-[#6D3DF5] hover:bg-[#5B2FD9] text-white shadow-violet-200'
-            }`}
-          >
-            <Upload className="w-4 h-4" />
-            <span>Select Video File</span>
-          </button>
+              <button
+                type="button"
+                className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md ${
+                  isDarkMode
+                    ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/60'
+                    : 'bg-[#6D3DF5] hover:bg-[#5B2FD9] text-white shadow-violet-200'
+                }`}
+              >
+                <Upload className="w-4 h-4" />
+                <span>Select Video File</span>
+              </button>
+            </>
+          )}
         </div>
       )}
 
