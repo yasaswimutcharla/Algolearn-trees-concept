@@ -51,7 +51,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       className={`h-16 px-4 sm:px-6 flex items-center justify-between border-b sticky top-0 z-30 transition-colors duration-200 backdrop-blur-md relative ${
         isDarkMode
           ? 'bg-[#080c1a]/90 border-indigo-950/70 text-slate-100'
-          : 'bg-white/95 border-indigo-100/80 text-slate-900'
+          : 'bg-white/95 border-white text-slate-900'
       }`}
     >
       {/* Left side: Hamburger menu button + AlgoLearn Logo at top left in place of section headings */}

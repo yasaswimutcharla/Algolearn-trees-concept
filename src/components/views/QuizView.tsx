@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { QUIZ_QUESTIONS } from '../../data/treeData';
 import {
   HelpCircle,
@@ -9,10 +9,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
-  X,
-  Lightbulb
+  X
 } from 'lucide-react';
-import { ProgressiveHintModal, QUIZ_HINT_STAGES } from '../ProgressiveHintModal';
 
 const QUIZ_STORAGE_KEY = 'tree_dsa_quiz_state';
 
@@ -88,8 +86,6 @@ export const QuizView: React.FC<QuizViewProps> = ({
     const saved = loadSavedQuizState();
     return Boolean(saved?.submitted);
   });
-  const [isHintModalOpen, setIsHintModalOpen] = useState<boolean>(false);
-  const [revealedHintStages, setRevealedHintStages] = useState<Record<string, number>>({});
 
   const totalQuestions = QUIZ_QUESTIONS.length;
 
@@ -106,11 +102,12 @@ export const QuizView: React.FC<QuizViewProps> = ({
   const selectedAnswer = userAnswers[currentQ?.id];
   const isCurrentConfirmed = Boolean(confirmedQuestions[currentQ?.id]);
   const answeredCount = Object.keys(confirmedQuestions).length;
-  const currentHintStage = (currentQ?.id && revealedHintStages[currentQ.id]) || 1;
+  const lastReportedCountRef = useRef<number | null>(null);
 
   // Sync progress on mount or when answeredCount updates
   useEffect(() => {
-    if (onUpdateQuizProgress) {
+    if (onUpdateQuizProgress && lastReportedCountRef.current !== answeredCount) {
+      lastReportedCountRef.current = answeredCount;
       onUpdateQuizProgress(answeredCount, totalQuestions);
     }
   }, [answeredCount, totalQuestions, onUpdateQuizProgress]);
@@ -142,6 +139,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
     setConfirmedQuestions(newConfirmed);
 
     const completedCount = Object.keys(newConfirmed).length;
+    lastReportedCountRef.current = completedCount;
     if (onUpdateQuizProgress) {
       onUpdateQuizProgress(completedCount, totalQuestions);
     }
@@ -228,19 +226,6 @@ export const QuizView: React.FC<QuizViewProps> = ({
             >
               Tree Quiz (10 Questions)
             </span>
-            <button
-              id="quiz-reset-btn"
-              onClick={handleRetake}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
-                isDarkMode
-                  ? 'bg-violet-950/40 hover:bg-rose-950/40 border-violet-800/40 hover:border-rose-500/50 text-slate-300 hover:text-rose-300'
-                  : 'bg-blue-50 hover:bg-rose-50 border-blue-200 hover:border-rose-300 text-blue-900 hover:text-rose-900'
-              }`}
-              title="Reset and restart quiz"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>Reset Quiz</span>
-            </button>
           </div>
         </div>
 
@@ -501,8 +486,8 @@ export const QuizView: React.FC<QuizViewProps> = ({
           )}
 
           {/* Navigation & Action Controls Row */}
-          <div className={`mt-8 pt-5 border-t ${isDarkMode ? 'border-violet-950/60' : 'border-blue-100'} flex items-center justify-between gap-3`}>
-            {/* Left: Previous Button & Hint */}
+          <div className={`mt-8 pt-5 border-t ${isDarkMode ? 'border-violet-950/60' : 'border-white'} flex items-center justify-between gap-3`}>
+            {/* Left: Previous Button */}
             <div className="flex items-center gap-2">
               <button
                 id="quiz-prev-btn"
@@ -518,20 +503,6 @@ export const QuizView: React.FC<QuizViewProps> = ({
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Previous</span>
-              </button>
-
-              <button
-                id="quiz-hint-btn"
-                onClick={() => setIsHintModalOpen(true)}
-                className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 rounded-2xl text-xs font-semibold border transition-all cursor-pointer ${
-                  isDarkMode
-                    ? 'bg-[#121829] hover:bg-[#1a233a] border-violet-950/80 text-amber-300/90'
-                    : 'bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-800'
-                }`}
-                title="Open 3-Stage Progressive Hint"
-              >
-                <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-                <span>Hint</span>
               </button>
             </div>
 
@@ -573,28 +544,6 @@ export const QuizView: React.FC<QuizViewProps> = ({
             </div>
           </div>
         </div>
-      )}
-
-      {/* 3-Stage Progressive Hint Modal */}
-      {currentQ && (
-        <ProgressiveHintModal
-          isOpen={isHintModalOpen}
-          onClose={() => setIsHintModalOpen(false)}
-          isDarkMode={isDarkMode}
-          topicId={currentQ.topicId}
-          topicTitle="Quiz Challenge"
-          question={currentQ.question}
-          questionId={currentQ.id}
-          customHints={QUIZ_HINT_STAGES[currentQ.id]}
-          revealedStage={currentHintStage}
-          onRevealNextStage={() =>
-            setRevealedHintStages((prev) => ({
-              ...prev,
-              [currentQ.id]: Math.min(3, (prev[currentQ.id] || 1) + 1)
-            }))
-          }
-          returnButtonText="Got It, Return to Game"
-        />
       )}
     </div>
   );

@@ -217,7 +217,7 @@ export default function App() {
     } catch {}
   };
 
-  const handleToggleVideoCompleted = () => {
+  const handleToggleVideoCompleted = useCallback(() => {
     setIsVideoCompleted((prev) => {
       const next = !prev;
       try {
@@ -225,12 +225,13 @@ export default function App() {
       } catch {}
       return next;
     });
-  };
+  }, []);
 
-  const handleWatchAgainFromProgress = () => {
+  const handleWatchAgainFromProgress = useCallback(() => {
     setShowVisualizeVideo(true);
-    handleNavigate('visualize');
-  };
+    setCurrentNav('visualize');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   // Completed topics & quiz progress tracking in localStorage (defaults to empty array 0/6)
   const [completedTopics, setCompletedTopics] = useState<TopicId[]>(() => {
@@ -385,9 +386,9 @@ export default function App() {
       w.quizAnswered = quizProgress.completed;
       w.quizScore = quizScore?.score || 0;
     }
-  }, [completedTopics, quizScore, quizProgress, isVideoCompleted, handleResetProgress]);
+  }, [completedTopics, quizScore?.score, quizScore?.total, quizProgress.completed, quizProgress.total, isVideoCompleted, handleResetProgress]);
 
-  const handleMarkTopicCompleted = (topicId: TopicId) => {
+  const handleMarkTopicCompleted = useCallback((topicId: TopicId) => {
     setCompletedTopics((prev) => {
       let next: TopicId[];
       if (prev.includes(topicId)) {
@@ -400,33 +401,43 @@ export default function App() {
       } catch {}
       return next;
     });
-  };
+  }, []);
 
-  const handleUpdateQuizScore = (score: number, total: number) => {
-    const data = { score, total };
-    setQuizScore(data);
-    try {
-      localStorage.setItem('tree_dsa_quiz_score', JSON.stringify(data));
-    } catch {}
-  };
+  const handleUpdateQuizScore = useCallback((score: number, total: number) => {
+    setQuizScore((prev) => {
+      if (prev && prev.score === score && prev.total === total) {
+        return prev;
+      }
+      const data = { score, total };
+      try {
+        localStorage.setItem('tree_dsa_quiz_score', JSON.stringify(data));
+      } catch {}
+      return data;
+    });
+  }, []);
 
-  const handleUpdateQuizProgress = (completed: number, total: number) => {
-    const data = { completed, total };
-    setQuizProgress(data);
-    try {
-      localStorage.setItem('tree_dsa_quiz_progress', JSON.stringify(data));
-    } catch {}
-  };
+  const handleUpdateQuizProgress = useCallback((completed: number, total: number) => {
+    setQuizProgress((prev) => {
+      if (prev && prev.completed === completed && prev.total === total) {
+        return prev;
+      }
+      const data = { completed, total };
+      try {
+        localStorage.setItem('tree_dsa_quiz_progress', JSON.stringify(data));
+      } catch {}
+      return data;
+    });
+  }, []);
 
-  const handleNavigate = (nav: NavItem, topicId?: TopicId) => {
+  const handleNavigate = useCallback((nav: NavItem, topicId?: TopicId) => {
     setCurrentNav(nav);
     if (topicId) {
       setCurrentTopicId(topicId);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
-  const handleToggleSidebar = () => {
+  const handleToggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => {
       const next = !prev;
       try {
@@ -434,14 +445,14 @@ export default function App() {
       } catch {}
       return next;
     });
-  };
+  }, []);
 
-  const handleCloseSidebar = () => {
+  const handleCloseSidebar = useCallback(() => {
     setIsSidebarOpen(false);
     try {
       localStorage.setItem('tree_dsa_sidebar_open', 'false');
     } catch {}
-  };
+  }, []);
 
   return (
     <div

@@ -40,15 +40,20 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 }) => {
   // Menu bar hover state: progress appears only when cursor is on the menu bar
   const [isMenuHovered, setIsMenuHovered] = React.useState(false);
-  const [isTouchDevice, setIsTouchDevice] = React.useState(false);
+  const [isMobileScreen, setIsMobileScreen] = React.useState(false);
 
   React.useEffect(() => {
-    if (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches) {
-      setIsTouchDevice(true);
-    }
+    const checkMobile = () => {
+      setIsMobileScreen(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const showProgress = isMenuHovered || isTouchDevice;
+  // On desktop/laptop: STRICTLY when cursor is on the menu bar!
+  // On mobile phone drawer: show when sidebar is open
+  const showProgress = isMobileScreen ? true : isMenuHovered;
 
   // Read video completion status
   const isVideoDone = propIsVideoCompleted !== undefined ? propIsVideoCompleted : (() => {
@@ -135,10 +140,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             setIsMenuHovered(false);
           }
         }}
-        className={`fixed top-0 bottom-0 left-0 z-50 w-64 sm:w-72 flex flex-col transition-transform duration-300 ease-in-out border-r ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-64 sm:w-72 flex flex-col transition-transform duration-300 ease-in-out ${
           isDarkMode
-            ? 'bg-[#080c1a] border-indigo-950/70 text-slate-200 shadow-2xl shadow-indigo-950/50'
-            : 'bg-white border-slate-150 text-slate-900 shadow-lg md:shadow-none'
+            ? 'bg-[#080c1a] border-r border-indigo-950/70 text-slate-200 shadow-2xl shadow-indigo-950/50'
+            : 'bg-white border-r-0 border-transparent text-slate-900 shadow-lg md:shadow-none'
         } ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
@@ -146,10 +151,12 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         {/* Sidebar Header matching Screenshot (105) */}
         <div
           className={`px-4 py-4 flex items-center justify-between border-b ${
-            isDarkMode ? 'border-indigo-950/70' : 'border-slate-100'
+            isDarkMode ? 'border-indigo-950/70' : 'border-white'
           }`}
         >
-          <span className="text-xs font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500 font-sans select-none">
+          <span className={`text-xs font-bold tracking-wider uppercase font-sans select-none ${
+            isDarkMode ? 'text-slate-500' : 'text-slate-400'
+          }`}>
             NAVIGATION MENU
           </span>
 
@@ -159,7 +166,11 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             onClick={onClose}
             title="Close Sidebar (✕)"
             aria-label="Close Navigation Menu"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              isDarkMode
+                ? 'text-slate-400 hover:text-slate-200 hover:bg-indigo-950/50'
+                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+            }`}
           >
             <X className="w-5 h-5" />
           </button>
@@ -245,28 +256,37 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           className={`transition-all duration-300 ease-in-out mt-auto ${
             showProgress
               ? `p-4 border-t opacity-100 max-h-48 ${
-                  isDarkMode ? 'border-indigo-950/70 bg-[#080c1a]' : 'border-slate-100 bg-white'
+                  isDarkMode ? 'border-indigo-950/70 bg-[#080c1a]' : 'border-white bg-white'
                 }`
-              : 'p-0 border-t-0 border-transparent opacity-0 max-h-0 overflow-hidden'
+              : 'p-0 border-t-0 border-transparent opacity-0 max-h-0 overflow-hidden pointer-events-none'
           }`}
         >
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+            <span className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
               Tree Curriculum
             </span>
-            <span className="text-xs font-bold text-[#4F46E5] dark:text-indigo-400 font-mono">
+            <span className={`text-xs font-bold font-mono ${isDarkMode ? 'text-indigo-400' : 'text-[#4F46E5]'}`}>
               {overallPercent}%
             </span>
           </div>
 
-          <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mb-2">
+          {/* Progress bar: in light mode, clean white bar with subtle border; in dark mode, dark track with gradient */}
+          <div className={`w-full h-2 rounded-full overflow-hidden mb-2 ${
+            isDarkMode ? 'bg-slate-800' : 'bg-white border border-slate-200/80 shadow-xs'
+          }`}>
             <div
-              className="h-full bg-gradient-to-r from-[#3B82F6] to-[#4F46E5] rounded-full transition-all duration-300"
+              className={`h-full rounded-full transition-all duration-300 ${
+                isDarkMode
+                  ? 'bg-gradient-to-r from-[#3B82F6] to-[#4F46E5]'
+                  : 'bg-white'
+              }`}
               style={{ width: `${overallPercent}%` }}
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500">
+          <div className={`flex items-center justify-between text-[11px] ${
+            isDarkMode ? 'text-slate-400' : 'text-slate-500'
+          }`}>
             <span>{totalCompleted} completed</span>
             <span>{totalActivities} total activities</span>
           </div>
