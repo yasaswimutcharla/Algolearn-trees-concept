@@ -2,10 +2,48 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
+import { GoogleGenAI } from '@google/genai';
+
+let aiClient: GoogleGenAI | null = null;
+function getAIClient(): GoogleGenAI | null {
+  if (!aiClient && process.env.GEMINI_API_KEY) {
+    aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  }
+  return aiClient;
+}
+
+function getFallbackDSAReply(userText: string): string {
+  const lower = userText.toLowerCase();
+  if (lower.includes('bst') || lower.includes('search tree')) {
+    return 'In a Binary Search Tree (BST), every node follows the BST invariant: all values in the left subtree are smaller than the node value, and all values in the right subtree are greater. Average search, insertion, and deletion run in O(log n) time!';
+  }
+  if (lower.includes('traversal') || lower.includes('inorder') || lower.includes('preorder') || lower.includes('postorder') || lower.includes('level order')) {
+    return 'Tree traversals include:\n• Inorder (Left → Root → Right): yields sorted order in BSTs.\n• Preorder (Root → Left → Right): ideal for copying/serializing trees.\n• Postorder (Left → Right → Root): ideal for deletion/freeing nodes.\n• Level-order (BFS): explores layer by layer using a Queue.';
+  }
+  if (lower.includes('quiz') || lower.includes('score')) {
+    return "You can test your knowledge anytime in the 'Quiz' section! Each question includes 3 progressive hints to guide your reasoning.";
+  }
+  if (lower.includes('video') || lower.includes('visualize')) {
+    return "Visit the 'Visualize' tab to observe interactive tree visualizers, examine structural properties, or upload complete video lessons.";
+  }
+  if (lower.includes('avl') || lower.includes('balance') || lower.includes('red black')) {
+    return 'Self-balancing trees like AVL and Red-Black trees maintain a maximum height of O(log n) by performing rotations whenever an imbalance occurs during insertion or deletion.';
+  }
+  if (lower.includes('heap')) {
+    return 'A Binary Heap is a complete binary tree satisfying the heap property (Min-Heap: parent ≤ children; Max-Heap: parent ≥ children). They are the foundation of Priority Queues and HeapSort.';
+  }
+  if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey')) {
+    return 'Hello! 👋 What tree topic would you like to explore today? Tree Terminology, Binary Trees, BSTs, Traversals, or Applications?';
+  }
+  return 'Trees are hierarchical, non-linear data structures consisting of nodes connected by edges. Check out the Learn and Visualize tabs for interactive step-by-step guides on Binary Trees, BSTs, and Traversals!';
+}
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  // Parse JSON payloads for API endpoints
+  app.use(express.json());
 
   // Directory for persistent lesson videos in public/videos
   const videosDir = path.join(process.cwd(), 'public', 'videos');
@@ -16,6 +54,59 @@ async function startServer() {
   // Health check
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
+  });
+
+  // AI Chat Assistant endpoint powered by Gemini
+  app.post('/api/chat', async (req, res) => {
+    try {
+      const { message, history } = req.body || {};
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ error: 'Message string is required' });
+      }
+
+      const ai = getAIClient();
+      if (ai) {
+        try {
+          const contents: any[] = [];
+          if (Array.isArray(history)) {
+            for (const item of history.slice(-6)) {
+              if (item && item.text && (item.sender === 'user' || item.sender === 'bot')) {
+                contents.push({
+                  role: item.sender === 'user' ? 'user' : 'model',
+                  parts: [{ text: item.text }],
+                });
+              }
+            }
+          }
+          contents.push({
+            role: 'user',
+            parts: [{ text: message }],
+          });
+
+          const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents,
+            config: {
+              systemInstruction:
+                'You are AlgoLearn Assistant, an encouraging, concise, and expert tutor specialized in Tree Data Structures and Algorithms (Binary Trees, BSTs, Traversals, Tree Properties, AVL, Heaps, B-Trees, etc.). Provide clear explanations, ASCII tree diagrams when helpful, and short code snippets when requested. Keep answers friendly and focused within 2-4 short paragraphs.',
+            },
+          });
+
+          if (response && response.text) {
+            return res.json({ reply: response.text });
+          }
+        } catch (geminiErr: any) {
+          console.warn('Gemini chat error, using fallback:', geminiErr?.message || geminiErr);
+        }
+      }
+
+      // Contextual fallback response
+      const fallback = getFallbackDSAReply(message);
+      res.json({ reply: fallback });
+    } catch (err: any) {
+      console.error('Chat error:', err);
+      res.status(500).json({ error: 'Failed to process chat message' });
+    }
   });
 
   // Query if a final lesson video has been uploaded and stored on the server
@@ -103,6 +194,26 @@ async function startServer() {
       console.error('Error writing video file:', err);
       res.status(500).json({ error: 'Failed to write video file: ' + err.message });
     });
+  });
+
+  // Remove lesson video endpoint
+  app.delete('/api/remove-video', (_req, res) => {
+    const videoFile = path.join(videosDir, 'lesson.mp4');
+    const metaFile = path.join(videosDir, 'meta.json');
+    try {
+      if (fs.existsSync(videoFile)) fs.unlinkSync(videoFile);
+      if (fs.existsSync(metaFile)) fs.unlinkSync(metaFile);
+      const distVideosDir = path.join(process.cwd(), 'dist', 'videos');
+      if (fs.existsSync(path.join(distVideosDir, 'lesson.mp4'))) {
+        fs.unlinkSync(path.join(distVideosDir, 'lesson.mp4'));
+      }
+      if (fs.existsSync(path.join(distVideosDir, 'meta.json'))) {
+        fs.unlinkSync(path.join(distVideosDir, 'meta.json'));
+      }
+    } catch (err) {
+      console.warn('Could not unlink video files:', err);
+    }
+    res.json({ success: true, hasVideo: false });
   });
 
   // Serve videos statically with Range requests support (needed for video seek/scrubbing)

@@ -7,15 +7,15 @@ import {
   VolumeX,
   Maximize,
   Minimize,
+  Maximize2,
+  Minimize2,
   RotateCcw,
   RotateCw,
   Upload,
   Video as VideoIcon,
   CheckCircle2,
   Circle,
-  FileVideo,
-  Sparkles,
-  Loader2
+  FileVideo
 } from 'lucide-react';
 
 interface VisualizeViewProps {
@@ -31,10 +31,6 @@ interface VisualizeViewProps {
   uploadStatus?: string;
 }
 
-const DEFAULT_VIDEO_URL = '/videos/lesson.mp4';
-const DEFAULT_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
-const DEFAULT_VIDEO_SIZE = '11.0 MB';
-
 export const VisualizeView: React.FC<VisualizeViewProps> = ({
   isDarkMode,
   videoUrl,
@@ -45,12 +41,8 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
   onUploadVideo,
   onRemoveVideo,
   isUploadingVideo = false,
-  uploadStatus = ''
+  uploadStatus = ""
 }) => {
-  const activeVideoUrl = videoUrl || DEFAULT_VIDEO_URL;
-  const activeVideoName = videoName || DEFAULT_VIDEO_NAME;
-  const activeVideoSize = videoSize || DEFAULT_VIDEO_SIZE;
-
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -62,29 +54,10 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [videoFit, setVideoFit] = useState<'contain' | 'cover'>('contain');
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [showControls, setShowControls] = useState<boolean>(true);
   const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Restore and remember last playback timestamp across navigation and reloads
-  useEffect(() => {
-    try {
-      const savedTime = parseFloat(localStorage.getItem('tree_dsa_video_last_time') || '0');
-      if (savedTime > 0 && videoRef.current) {
-        const onLoaded = () => {
-          if (videoRef.current && savedTime < (videoRef.current.duration || 10000)) {
-            videoRef.current.currentTime = savedTime;
-            setCurrentTime(savedTime);
-          }
-        };
-        if (videoRef.current.readyState >= 1) {
-          onLoaded();
-        } else {
-          videoRef.current.addEventListener('loadedmetadata', onLoaded, { once: true });
-        }
-      }
-    } catch {}
-  }, [activeVideoUrl]);
 
   // Sync fullscreen change event
   useEffect(() => {
@@ -92,10 +65,23 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
       setIsFullscreen(!!document.fullscreenElement);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
     };
   }, []);
+
+  // Handle window keydown for fullscreen escape fallback
+  useEffect(() => {
+    const handleWindowKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen && !document.fullscreenElement) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleWindowKeyDown);
+    return () => window.removeEventListener('keydown', handleWindowKeyDown);
+  }, [isFullscreen]);
 
   // Format seconds to mm:ss or hh:mm:ss
   const formatTime = (timeInSeconds: number): string => {
@@ -173,13 +159,22 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
     }
   };
 
-  // Fullscreen toggle
+  // Fullscreen toggle with robust fallback for iframe and browser environments
   const toggleFullscreen = () => {
     if (!playerContainerRef.current) return;
-    if (!document.fullscreenElement) {
-      playerContainerRef.current.requestFullscreen().catch(() => {});
+    if (!document.fullscreenElement && !isFullscreen) {
+      if (playerContainerRef.current.requestFullscreen) {
+        playerContainerRef.current.requestFullscreen().catch(() => {
+          setIsFullscreen(true);
+        });
+      } else {
+        setIsFullscreen(true);
+      }
     } else {
-      document.exitFullscreen().catch(() => {});
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+      setIsFullscreen(false);
     }
   };
 
@@ -252,6 +247,9 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
     } else if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
       toggleFullscreen();
+    } else if (e.key === 'z' || e.key === 'Z') {
+      e.preventDefault();
+      setVideoFit(prev => (prev === 'contain' ? 'cover' : 'contain'));
     }
   };
 
@@ -277,7 +275,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-xl shadow-violet-950/30'
-            : 'bg-white border-blue-100 text-black shadow-sm'
+            : 'bg-white border-slate-200 text-slate-900 shadow-sm'
         }`}
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -309,7 +307,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
                       : 'text-[#6D3DF5] bg-violet-50 border-violet-300 font-semibold'
                     : isDarkMode
                     ? 'text-slate-400 bg-slate-900/40 border-slate-800 hover:bg-slate-800'
-                    : 'text-blue-900 bg-white border-blue-200 hover:bg-blue-50'
+                    : 'text-slate-500 bg-white border-slate-200 hover:bg-slate-100'
                 }`}
                 title="Click to toggle lesson completion status"
               >
@@ -326,75 +324,58 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
                 )}
               </button>
             )}
-
-            {/* Uploading indicator */}
-            {isUploadingVideo && (
-              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-violet-600/30 border border-violet-500/50 text-violet-200 animate-pulse">
-                <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
-                <span>Saving video...</span>
-              </div>
-            )}
-
-            {/* Upload Video Button ONLY when no video is uploaded yet */}
-            {!activeVideoUrl && (
-              <button
-                id="btn-visualize-upload-video"
-                onClick={triggerUpload}
-                disabled={isUploadingVideo}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm ${
-                  isDarkMode
-                    ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/50'
-                    : 'bg-[#6D3DF5] hover:bg-[#5B2FD9] text-white shadow-indigo-100'
-                }`}
-              >
-                <Upload className="w-3.5 h-3.5" />
-                <span>Upload Video</span>
-              </button>
-            )}
           </div>
         </div>
 
-        {/* Upload feedback banner */}
-        {uploadStatus && (
-          <div className="mt-3 px-3.5 py-2 rounded-xl bg-violet-600/20 border border-violet-500/40 text-xs font-medium text-violet-200 flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-violet-400 shrink-0" />
-            <span>{uploadStatus}</span>
-          </div>
-        )}
-
-        {/* Keyboard shortcuts row if video exists */}
-        {activeVideoUrl && (
-          <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-violet-950/40 text-xs opacity-70">
-            <span>Keyboard shortcuts: Space (Play/Pause) • M (Mute) • F (Fullscreen) • Left/Right (Seek 5s)</span>
+        {/* Video metadata row if video exists */}
+        {videoUrl && (
+          <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-violet-950/50 text-xs opacity-90">
+            <div className="flex items-center gap-1.5 font-medium text-violet-400">
+              <FileVideo className="w-4 h-4 shrink-0" />
+              <span className="truncate max-w-xs">{videoName || 'Tree DSA Complete Visual Lesson'}</span>
+            </div>
+            {videoSize && (
+              <span
+                className={`text-[11px] font-mono px-2 py-0.5 rounded-md border ${
+                  isDarkMode
+                    ? 'bg-violet-950/60 text-[#A78BFA] border-violet-800/40'
+                    : 'bg-violet-50 text-[#6D3DF5] border-violet-200'
+                }`}
+              >
+                {videoSize}
+              </span>
+            )}
+            <span className="text-[11px] opacity-60">
+              Shortcuts: Space (Play/Pause) • F (Fullscreen) • Z (Fill/Fit) • M (Mute) • Double-Click (Fullscreen)
+            </span>
           </div>
         )}
       </div>
 
       {/* Main Video Learning Section */}
-      {activeVideoUrl ? (
+      {videoUrl ? (
         <div
           ref={playerContainerRef}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => isPlaying && setShowControls(false)}
-          className={`relative rounded-3xl overflow-hidden border shadow-2xl transition-all duration-300 bg-black select-none ${
-            isDarkMode ? 'border-violet-900/50 shadow-violet-950/40' : 'border-blue-200 shadow-blue-200/40'
+          className={`relative overflow-hidden transition-all duration-300 bg-black select-none ${
+            isFullscreen
+              ? 'fixed inset-0 z-50 w-screen h-screen rounded-none border-0'
+              : 'rounded-3xl border shadow-2xl ' + (isDarkMode ? 'border-violet-900/50 shadow-violet-950/40' : 'border-slate-800 shadow-slate-300/40')
           }`}
         >
           {/* Native Video Element */}
-          <div className="relative w-full aspect-video flex items-center justify-center bg-black overflow-hidden">
+          <div className={`relative w-full ${isFullscreen ? 'h-full' : 'aspect-video'} flex items-center justify-center bg-black overflow-hidden`}>
             <video
               ref={videoRef}
-              src={activeVideoUrl}
+              src={videoUrl}
               onClick={togglePlay}
+              onDoubleClick={toggleFullscreen}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
               onTimeUpdate={() => {
                 if (videoRef.current) {
-                  const t = videoRef.current.currentTime;
-                  setCurrentTime(t);
-                  try {
-                    localStorage.setItem('tree_dsa_video_last_time', String(t));
-                  } catch {}
+                  setCurrentTime(videoRef.current.currentTime);
                 }
               }}
               onLoadedMetadata={() => {
@@ -404,15 +385,11 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               }}
               onEnded={() => {
                 setIsPlaying(false);
-                try {
-                  localStorage.removeItem('tree_dsa_video_last_time');
-                } catch {}
                 if (onToggleVideoCompleted && !isVideoCompleted) {
                   onToggleVideoCompleted();
                 }
               }}
-              style={{ transform: 'scale(3)', transformOrigin: 'center center' }}
-              className="w-full h-full object-contain cursor-pointer"
+              className={`w-full h-full ${videoFit === 'cover' ? 'object-cover' : 'object-contain'} cursor-pointer`}
             />
 
             {/* Big Center Play Button Overlay (when paused) */}
@@ -489,7 +466,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
                 </div>
               </div>
 
-              {/* Right Controls: Volume, Speed, Fullscreen */}
+              {/* Right Controls: Volume, Speed, Zoom/Fit, Theater, Fullscreen */}
               <div className="flex items-center gap-2 sm:gap-3">
                 {/* Volume Controls */}
                 <div className="flex items-center gap-1.5 group">
@@ -528,6 +505,18 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
                   {playbackSpeed}x
                 </button>
 
+                {/* Fill / Fit Zoom Toggle */}
+                <button
+                  onClick={() => setVideoFit(prev => (prev === 'contain' ? 'cover' : 'contain'))}
+                  className={`p-1.5 rounded-xl hover:bg-white/15 transition-colors cursor-pointer text-slate-200 hover:text-white flex items-center gap-1 ${
+                    videoFit === 'cover' ? 'text-violet-400 bg-white/10' : ''
+                  }`}
+                  title={videoFit === 'contain' ? 'Fill Screen (Z)' : 'Fit Original Ratio (Z)'}
+                >
+                  {videoFit === 'contain' ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+                  <span className="hidden sm:inline text-[11px] font-medium">{videoFit === 'contain' ? 'Fill' : 'Fit'}</span>
+                </button>
+
                 {/* Fullscreen Button */}
                 <button
                   onClick={toggleFullscreen}
@@ -552,54 +541,40 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               ? 'border-violet-500 bg-violet-950/30 scale-[1.01]'
               : isDarkMode
               ? 'border-violet-900/50 hover:border-violet-600 bg-[#0b101e] hover:bg-[#0e1426]'
-              : 'border-blue-200 hover:border-blue-400 bg-blue-50/40 hover:bg-blue-50/80'
+              : 'border-slate-300 hover:border-violet-400 bg-slate-50 hover:bg-violet-50/50'
           }`}
         >
-          {isUploadingVideo ? (
-            <div className="flex flex-col items-center justify-center py-6">
-              <Loader2 className="w-12 h-12 animate-spin text-violet-400 mb-4" />
-              <h3 className="text-lg font-bold text-violet-200 mb-1">Saving Video Lesson...</h3>
-              <p className="text-xs text-violet-300/80 max-w-sm">
-                Uploading and storing video file.
-              </p>
-            </div>
-          ) : (
-            <>
-              <div
-                className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${
-                  isDarkMode
-                    ? 'bg-violet-950/70 border border-violet-800/60 text-violet-400 shadow-xl shadow-violet-950/50'
-                    : 'bg-violet-100 border border-violet-200 text-[#6D3DF5]'
-                }`}
-              >
-                <VideoIcon className="w-8 h-8" />
-              </div>
+          <div
+            className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${
+              isDarkMode
+                ? 'bg-violet-950/70 border border-violet-800/60 text-violet-400 shadow-xl shadow-violet-950/50'
+                : 'bg-violet-100 border border-violet-200 text-[#6D3DF5]'
+            }`}
+          >
+            <VideoIcon className="w-8 h-8" />
+          </div>
 
-              <h3 className="text-lg sm:text-xl font-black tracking-tight mb-1">
-                Upload Tree DSA Complete Video Lesson
-              </h3>
-              <p className="text-xs sm:text-sm max-w-md opacity-75 mb-6 leading-relaxed">
-                Drag and drop your complete video lesson file here, or click to browse.
-                Supported formats: MP4, WebM, MOV, MKV.
-              </p>
+          <h3 className="text-lg sm:text-xl font-black tracking-tight mb-1">
+            Upload Tree DSA Complete Video Lesson
+          </h3>
+          <p className="text-xs sm:text-sm max-w-md opacity-75 mb-6 leading-relaxed">
+            Drag and drop your complete video lesson file here, or click to browse.
+            Supported formats: MP4, WebM, MOV, MKV.
+          </p>
 
-              <button
-                type="button"
-                className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md ${
-                  isDarkMode
-                    ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/60'
-                    : 'bg-[#6D3DF5] hover:bg-[#5B2FD9] text-white shadow-violet-200'
-                }`}
-              >
-                <Upload className="w-4 h-4" />
-                <span>Select Video File</span>
-              </button>
-            </>
-          )}
+          <button
+            type="button"
+            className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md ${
+              isDarkMode
+                ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/60'
+                : 'bg-[#6D3DF5] hover:bg-[#5B2FD9] text-white shadow-violet-200'
+            }`}
+          >
+            <Upload className="w-4 h-4" />
+            <span>Select Video File</span>
+          </button>
         </div>
       )}
-
-
     </div>
   );
 };

@@ -18,12 +18,18 @@ import {
 // Default permanent Tree DSA video lesson included in the app
 const DEFAULT_VIDEO_URL = '/videos/lesson.mp4';
 const DEFAULT_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
-const DEFAULT_VIDEO_SIZE = '11.0 MB';
+const DEFAULT_VIDEO_SIZE = '11.9 MB';
 
 export default function App() {
   const [currentNav, setCurrentNav] = useState<NavItem>('home');
   const [currentTopicId, setCurrentTopicId] = useState<TopicId>('basics');
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('tree_dsa_sidebar_open');
+      if (saved !== null) return saved === 'true';
+    } catch {}
+    return false;
+  });
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true); // Violet/purple dark theme default
   const [isSoundOn, setIsSoundOn] = useState<boolean>(true);
 
@@ -39,11 +45,10 @@ export default function App() {
   }, [isDarkMode]);
 
   // Visual Lesson Video State (Shared between Progress and Visualize)
-  // Guaranteed persistent default for every new user, page refresh, and navigation
-  const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>(() => {
+  const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string | null>(() => {
     try {
       const saved = localStorage.getItem('tree_dsa_video_url');
-      if (saved) return saved;
+      if (saved && !saved.startsWith('blob:')) return saved;
     } catch {}
     return DEFAULT_VIDEO_URL;
   });
@@ -99,11 +104,12 @@ export default function App() {
           const data = await res.json();
           if (data.hasVideo && data.url && isMounted) {
             setUploadedVideoUrl(data.url);
-            const cleanName = data.name && !data.name.toLowerCase().includes('whatsapp')
-              ? data.name
-              : DEFAULT_VIDEO_NAME;
-            setUploadedVideoName(cleanName);
-            setUploadedVideoSize(data.size || DEFAULT_VIDEO_SIZE);
+            if (data.name) {
+              setUploadedVideoName(data.name);
+            }
+            if (data.size) {
+              setUploadedVideoSize(data.size);
+            }
             return;
           }
         }
@@ -117,18 +123,19 @@ export default function App() {
         if (localData && localData.blob && isMounted) {
           const url = URL.createObjectURL(localData.blob);
           setUploadedVideoUrl(url);
-          const cleanName = localData.name && !localData.name.toLowerCase().includes('whatsapp')
-            ? localData.name
-            : DEFAULT_VIDEO_NAME;
-          setUploadedVideoName(cleanName);
-          setUploadedVideoSize(localData.size || DEFAULT_VIDEO_SIZE);
+          if (localData.name) {
+            setUploadedVideoName(localData.name);
+          }
+          if (localData.size) {
+            setUploadedVideoSize(localData.size);
+          }
 
           // Automatically sync local video to server so all users will have it permanently
           fetch('/api/upload-video', {
             method: 'POST',
             headers: {
               'Content-Type': localData.blob.type || 'video/mp4',
-              'x-file-name': encodeURIComponent(cleanName),
+              'x-file-name': encodeURIComponent(localData.name || DEFAULT_VIDEO_NAME),
               'x-file-size': localData.size || '',
             },
             body: localData.blob,
@@ -154,7 +161,7 @@ export default function App() {
 
     const localUrl = URL.createObjectURL(file);
     const size = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
-    const displayName = file.name.toLowerCase().includes('whatsapp') ? 'Tree DSA Complete Visual Lesson' : file.name;
+    const displayName = file.name;
 
     // Immediately display locally and save to client IndexedDB
     setUploadedVideoUrl(localUrl);
@@ -178,8 +185,6 @@ export default function App() {
       });
 
       if (res.ok) {
-        // Set to server video URL with timestamp to bust any cache
-        setUploadedVideoUrl('/videos/lesson.mp4?v=' + Date.now());
         setUploadStatus('Video saved successfully!');
         setTimeout(() => setUploadStatus(''), 4000);
       } else {
@@ -199,15 +204,16 @@ export default function App() {
     if (uploadedVideoUrl && uploadedVideoUrl.startsWith('blob:')) {
       URL.revokeObjectURL(uploadedVideoUrl);
     }
-    setUploadedVideoUrl(DEFAULT_VIDEO_URL);
-    setUploadedVideoName(DEFAULT_VIDEO_NAME);
-    setUploadedVideoSize(DEFAULT_VIDEO_SIZE);
+    setUploadedVideoUrl(null);
+    setUploadedVideoName('');
+    setUploadedVideoSize('');
     setShowVisualizeVideo(false);
     deleteVideoFromStorage();
     try {
-      localStorage.setItem('tree_dsa_video_url', DEFAULT_VIDEO_URL);
-      localStorage.setItem('tree_dsa_video_name', DEFAULT_VIDEO_NAME);
-      localStorage.setItem('tree_dsa_video_size', DEFAULT_VIDEO_SIZE);
+      localStorage.removeItem('tree_dsa_video_url');
+      localStorage.removeItem('tree_dsa_video_name');
+      localStorage.removeItem('tree_dsa_video_size');
+      fetch('/api/remove-video', { method: 'DELETE' }).catch(() => {});
     } catch {}
   };
 
@@ -421,7 +427,20 @@ export default function App() {
   };
 
   const handleToggleSidebar = () => {
-    setIsSidebarOpen((prev) => !prev);
+    setIsSidebarOpen((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('tree_dsa_sidebar_open', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const handleCloseSidebar = () => {
+    setIsSidebarOpen(false);
+    try {
+      localStorage.setItem('tree_dsa_sidebar_open', 'false');
+    } catch {}
   };
 
   return (
@@ -446,14 +465,6 @@ export default function App() {
           }`}
         />
       </div>
-      {/* Left edge trigger zone: when cursor hovers on the left edge/navigation section, reveals the sidebar */}
-      {!isSidebarOpen && (
-        <div
-          onMouseEnter={() => setIsSidebarOpen(true)}
-          className="fixed top-0 bottom-0 left-0 w-3 z-40 cursor-pointer pointer-events-auto"
-          title="Move cursor here to reveal navigation menu"
-        />
-      )}
 
       {/* Left-Side Navigation Sidebar */}
       <NavigationSidebar
@@ -461,7 +472,7 @@ export default function App() {
         onSelectNav={(nav) => handleNavigate(nav)}
         isOpen={isSidebarOpen}
         onToggleOpen={handleToggleSidebar}
-        onClose={() => setIsSidebarOpen(false)}
+        onClose={handleCloseSidebar}
         isDarkMode={isDarkMode}
         onToggleTheme={() => setIsDarkMode(!isDarkMode)}
         completedTopics={completedTopics}

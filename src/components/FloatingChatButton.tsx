@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Send, Sparkles, MessageCircle } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, Send, Sparkles, MessageCircle, Loader2 } from 'lucide-react';
 
 interface FloatingChatButtonProps {
   isDarkMode: boolean;
@@ -12,22 +12,54 @@ export const FloatingChatButton: React.FC<FloatingChatButtonProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
   const [chatLog, setChatLog] = useState<Array<{ sender: 'user' | 'bot'; text: string }>>([
     {
       sender: 'bot',
       text: 'Hi there! 👋 Welcome to AlgoLearn. Ask any question about Tree Data Structures or navigate through topics!'
     }
   ]);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const handleSend = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatLog, isOpen, isThinking]);
+
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || isThinking) return;
 
     const userText = message.trim();
     setMessage('');
-    setChatLog((prev) => [...prev, { sender: 'user', text: userText }]);
+    const newLog: Array<{ sender: 'user' | 'bot'; text: string }> = [
+      ...chatLog,
+      { sender: 'user', text: userText }
+    ];
+    setChatLog(newLog);
+    setIsThinking(true);
 
-    // Smart contextual response for Tree DSA
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userText, history: chatLog.slice(-6) }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.reply) {
+          setChatLog((prev) => [...prev, { sender: 'bot', text: data.reply }]);
+          setIsThinking(false);
+          return;
+        }
+      }
+    } catch {
+      // Ignore and proceed to contextual fallback below
+    }
+
+    // Contextual fallback response if network fails
     setTimeout(() => {
       let reply = "Trees are hierarchical data structures consisting of nodes connected by edges! Check out the 'Learn' tab for deep dives into Binary Trees, BSTs, and Traversals.";
       const lower = userText.toLowerCase();
@@ -45,6 +77,7 @@ export const FloatingChatButton: React.FC<FloatingChatButtonProps> = ({
       }
 
       setChatLog((prev) => [...prev, { sender: 'bot', text: reply }]);
+      setIsThinking(false);
     }, 450);
   };
 
@@ -120,7 +153,7 @@ export const FloatingChatButton: React.FC<FloatingChatButtonProps> = ({
                 className={`flex ${entry.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl leading-relaxed ${
+                  className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl leading-relaxed whitespace-pre-line ${
                     entry.sender === 'user'
                       ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-sm rounded-br-xs'
                       : isDarkMode
@@ -132,6 +165,21 @@ export const FloatingChatButton: React.FC<FloatingChatButtonProps> = ({
                 </div>
               </div>
             ))}
+            {isThinking && (
+              <div className="flex justify-start">
+                <div
+                  className={`px-3.5 py-2 rounded-2xl flex items-center gap-1.5 text-xs rounded-bl-xs ${
+                    isDarkMode
+                      ? 'bg-[#12192d] text-violet-300 border border-indigo-900/50'
+                      : 'bg-indigo-50/70 text-indigo-700 border border-indigo-100'
+                  }`}
+                >
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-violet-400" />
+                  <span className="text-[11px] font-medium">AlgoLearn Assistant is typing...</span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Chat Input */}

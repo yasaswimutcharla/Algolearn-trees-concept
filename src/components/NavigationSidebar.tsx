@@ -38,6 +38,18 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   completedVisualizations = [],
   isVideoCompleted: propIsVideoCompleted,
 }) => {
+  // Menu bar hover state: progress appears only when cursor is on the menu bar
+  const [isMenuHovered, setIsMenuHovered] = React.useState(false);
+  const [isTouchDevice, setIsTouchDevice] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches) {
+      setIsTouchDevice(true);
+    }
+  }, []);
+
+  const showProgress = isMenuHovered || isTouchDevice;
+
   // Read video completion status
   const isVideoDone = propIsVideoCompleted !== undefined ? propIsVideoCompleted : (() => {
     try {
@@ -47,15 +59,15 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
     }
   })();
 
-  // Activity counts matching Screenshot (105)
-  const totalActivities = 24;
+  // Activity counts
   const learnTotal = 6;
-  const vizTotal = 3;
+  const vizTotal = 1;
   const quizTotal = 10;
+  const totalActivities = learnTotal + vizTotal + quizTotal;
 
   // Real dynamic completion
   const learnCompleted = Math.min(completedTopics.length, learnTotal);
-  const vizCompleted = Math.min((isVideoDone ? 1 : 0) + completedVisualizations.length, vizTotal);
+  const vizCompleted = Math.min((isVideoDone ? 1 : 0) + (completedVisualizations.length > 0 ? 1 : 0), vizTotal);
   const quizCompleted = quizProgress ? Math.min(quizProgress.completed, quizTotal) : (() => {
     try {
       const raw = localStorage.getItem('tree_dsa_quiz_progress');
@@ -115,6 +127,14 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       {/* Main Sidebar Container matching Screenshot (105) */}
       <aside
         id="app-navigation-sidebar"
+        onMouseEnter={() => setIsMenuHovered(true)}
+        onMouseLeave={() => setIsMenuHovered(false)}
+        onFocus={() => setIsMenuHovered(true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget)) {
+            setIsMenuHovered(false);
+          }
+        }}
         className={`fixed top-0 bottom-0 left-0 z-50 w-64 sm:w-72 flex flex-col transition-transform duration-300 ease-in-out border-r ${
           isDarkMode
             ? 'bg-[#080c1a] border-indigo-950/70 text-slate-200 shadow-2xl shadow-indigo-950/50'
@@ -137,10 +157,11 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           <button
             id="sidebar-close-btn"
             onClick={onClose}
-            title="Close Sidebar"
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
+            title="Close Sidebar (✕)"
+            aria-label="Close Navigation Menu"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -195,9 +216,13 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                     {item.label}
                   </span>
 
-                  {/* Always-visible Progress Badge Pill matching Screenshot (105) */}
+                  {/* Progress Badge Pill: Appears only when cursor is on the menu bar, otherwise hidden */}
                   <span
-                    className={`ml-auto text-xs font-mono font-bold px-2.5 py-0.5 rounded-full select-none ${
+                    className={`ml-auto text-xs font-mono font-bold px-2.5 py-0.5 rounded-full select-none transition-all duration-200 ease-out ${
+                      showProgress
+                        ? 'opacity-100 scale-100 translate-x-0'
+                        : 'opacity-0 scale-90 translate-x-2 pointer-events-none'
+                    } ${
                       isActive
                         ? isDarkMode
                           ? 'bg-indigo-900/60 text-indigo-300'
@@ -215,10 +240,14 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           </nav>
         </div>
 
-        {/* Bottom Curriculum Progress Section matching Screenshot (105) */}
+        {/* Bottom Curriculum Progress Section: Appears only when cursor is on the menu bar, otherwise hidden */}
         <div
-          className={`p-4 border-t mt-auto ${
-            isDarkMode ? 'border-indigo-950/70 bg-[#080c1a]' : 'border-slate-100 bg-white'
+          className={`transition-all duration-300 ease-in-out mt-auto ${
+            showProgress
+              ? `p-4 border-t opacity-100 max-h-48 ${
+                  isDarkMode ? 'border-indigo-950/70 bg-[#080c1a]' : 'border-slate-100 bg-white'
+                }`
+              : 'p-0 border-t-0 border-transparent opacity-0 max-h-0 overflow-hidden'
           }`}
         >
           <div className="flex items-center justify-between mb-1.5">

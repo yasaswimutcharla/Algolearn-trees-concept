@@ -54,17 +54,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           : 'bg-white/95 border-indigo-100/80 text-slate-900'
       }`}
     >
-      {/* Bottom accent gradient line matching the uploaded theme */}
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED] opacity-80" />
-
       {/* Left side: Hamburger menu button + AlgoLearn Logo at top left in place of section headings */}
       <div className="flex items-center gap-3">
         {!isSidebarOpen && (
           <button
             id="header-hamburger-btn"
             onClick={onToggleSidebar}
-            onMouseEnter={() => onToggleSidebar()}
             title="Open Navigation Menu (☰)"
+            aria-label="Open Navigation Menu"
             className={`p-2 rounded-xl transition-all cursor-pointer ${
               isDarkMode
                 ? 'hover:bg-indigo-950/40 text-slate-300 hover:text-white'
