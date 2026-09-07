@@ -15,10 +15,6 @@ import {
   Circle,
   FileVideo,
   Sparkles,
-  BookOpen,
-  Layers,
-  Activity,
-  GitBranch,
   Loader2
 } from 'lucide-react';
 
@@ -35,6 +31,10 @@ interface VisualizeViewProps {
   uploadStatus?: string;
 }
 
+const DEFAULT_VIDEO_URL = '/videos/lesson.mp4';
+const DEFAULT_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
+const DEFAULT_VIDEO_SIZE = '11.0 MB';
+
 export const VisualizeView: React.FC<VisualizeViewProps> = ({
   isDarkMode,
   videoUrl,
@@ -47,6 +47,10 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
   isUploadingVideo = false,
   uploadStatus = ''
 }) => {
+  const activeVideoUrl = videoUrl || DEFAULT_VIDEO_URL;
+  const activeVideoName = videoName || DEFAULT_VIDEO_NAME;
+  const activeVideoSize = videoSize || DEFAULT_VIDEO_SIZE;
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -61,6 +65,26 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [showControls, setShowControls] = useState<boolean>(true);
   const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Restore and remember last playback timestamp across navigation and reloads
+  useEffect(() => {
+    try {
+      const savedTime = parseFloat(localStorage.getItem('tree_dsa_video_last_time') || '0');
+      if (savedTime > 0 && videoRef.current) {
+        const onLoaded = () => {
+          if (videoRef.current && savedTime < (videoRef.current.duration || 10000)) {
+            videoRef.current.currentTime = savedTime;
+            setCurrentTime(savedTime);
+          }
+        };
+        if (videoRef.current.readyState >= 1) {
+          onLoaded();
+        } else {
+          videoRef.current.addEventListener('loadedmetadata', onLoaded, { once: true });
+        }
+      }
+    } catch {}
+  }, [activeVideoUrl]);
 
   // Sync fullscreen change event
   useEffect(() => {
@@ -312,7 +336,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
             )}
 
             {/* Upload Video Button ONLY when no video is uploaded yet */}
-            {!videoUrl && (
+            {!activeVideoUrl && (
               <button
                 id="btn-visualize-upload-video"
                 onClick={triggerUpload}
@@ -339,7 +363,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
         )}
 
         {/* Keyboard shortcuts row if video exists */}
-        {videoUrl && (
+        {activeVideoUrl && (
           <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-violet-950/40 text-xs opacity-70">
             <span>Keyboard shortcuts: Space (Play/Pause) • M (Mute) • F (Fullscreen) • Left/Right (Seek 5s)</span>
           </div>
@@ -347,7 +371,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
       </div>
 
       {/* Main Video Learning Section */}
-      {videoUrl ? (
+      {activeVideoUrl ? (
         <div
           ref={playerContainerRef}
           onMouseMove={handleMouseMove}
@@ -360,13 +384,17 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
           <div className="relative w-full aspect-video flex items-center justify-center bg-black overflow-hidden">
             <video
               ref={videoRef}
-              src={videoUrl}
+              src={activeVideoUrl}
               onClick={togglePlay}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
               onTimeUpdate={() => {
                 if (videoRef.current) {
-                  setCurrentTime(videoRef.current.currentTime);
+                  const t = videoRef.current.currentTime;
+                  setCurrentTime(t);
+                  try {
+                    localStorage.setItem('tree_dsa_video_last_time', String(t));
+                  } catch {}
                 }
               }}
               onLoadedMetadata={() => {
@@ -376,6 +404,9 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               }}
               onEnded={() => {
                 setIsPlaying(false);
+                try {
+                  localStorage.removeItem('tree_dsa_video_last_time');
+                } catch {}
                 if (onToggleVideoCompleted && !isVideoCompleted) {
                   onToggleVideoCompleted();
                 }
@@ -568,79 +599,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
         </div>
       )}
 
-      {/* Curriculum Outline & Video Highlights Section */}
-      <div
-        className={`p-6 sm:p-7 rounded-3xl border transition-all duration-200 ${
-          isDarkMode
-            ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-lg shadow-violet-950/20'
-            : 'bg-white border-blue-100 text-black shadow-sm'
-        }`}
-      >
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="w-4 h-4 text-violet-400" />
-          <h2 className="text-base sm:text-lg font-black tracking-tight">
-            Curriculum Covered in this Masterclass
-          </h2>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          <div
-            className={`p-4 rounded-2xl border transition-all ${
-              isDarkMode ? 'bg-[#121829] border-violet-950/60' : 'bg-blue-50/40 border-blue-100 text-black'
-            }`}
-          >
-            <div className="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center mb-2 font-bold text-xs">
-              <BookOpen className="w-4 h-4" />
-            </div>
-            <h4 className="text-xs font-bold mb-1">1. Tree Fundamentals</h4>
-            <p className="text-[11px] opacity-75 leading-relaxed">
-              Hierarchical concepts, Root, Parent, Child, Leaves, Edge counts (N-1), Depth & Height.
-            </p>
-          </div>
-
-          <div
-            className={`p-4 rounded-2xl border transition-all ${
-              isDarkMode ? 'bg-[#121829] border-violet-950/60' : 'bg-blue-50/40 border-blue-100 text-black'
-            }`}
-          >
-            <div className="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center mb-2 font-bold text-xs">
-              <Layers className="w-4 h-4" />
-            </div>
-            <h4 className="text-xs font-bold mb-1">2. Tree Classifications</h4>
-            <p className="text-[11px] opacity-75 leading-relaxed">
-              Full, Complete, Perfect, Balanced, Degenerate, and Multi-way General Trees.
-            </p>
-          </div>
-
-          <div
-            className={`p-4 rounded-2xl border transition-all ${
-              isDarkMode ? 'bg-[#121829] border-violet-950/60' : 'bg-blue-50/40 border-blue-100 text-black'
-            }`}
-          >
-            <div className="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center mb-2 font-bold text-xs">
-              <Activity className="w-4 h-4" />
-            </div>
-            <h4 className="text-xs font-bold mb-1">3. Tree Traversals</h4>
-            <p className="text-[11px] opacity-75 leading-relaxed">
-              Depth-First (Preorder, Inorder, Postorder) & Breadth-First Search (Level-Order).
-            </p>
-          </div>
-
-          <div
-            className={`p-4 rounded-2xl border transition-all ${
-              isDarkMode ? 'bg-[#121829] border-violet-950/60' : 'bg-blue-50/40 border-blue-100 text-black'
-            }`}
-          >
-            <div className="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center mb-2 font-bold text-xs">
-              <GitBranch className="w-4 h-4" />
-            </div>
-            <h4 className="text-xs font-bold mb-1">4. Binary Search Trees</h4>
-            <p className="text-[11px] opacity-75 leading-relaxed">
-              BST invariant rules, Searching, Insertion, Deletion cases, and in-order predecessor/successor.
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

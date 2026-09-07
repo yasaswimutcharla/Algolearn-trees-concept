@@ -12,6 +12,25 @@
   }
 }
 
+/* Electric Blue to Vivid Violet Theme Utilities */
+.theme-gradient {
+  background: linear-gradient(135deg, #2563EB 0%, #4F46E5 50%, #7C3AED 100%);
+}
+
+.theme-gradient-hover:hover {
+  background: linear-gradient(135deg, #1D4ED8 0%, #4338CA 50%, #6D28D9 100%);
+}
+
+.theme-text-gradient {
+  background: linear-gradient(135deg, #2563EB 0%, #4F46E5 50%, #7C3AED 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.theme-border-gradient {
+  border-image: linear-gradient(135deg, #2563EB 0%, #4F46E5 50%, #7C3AED 100%) 1;
+}
+
 /* Hide scrollbar visually on the main page / document while keeping it fully scrollable */
 html::-webkit-scrollbar,
 body::-webkit-scrollbar,

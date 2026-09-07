@@ -8,11 +8,17 @@ import { LearnView } from './components/views/LearnView';
 import { VisualizeView } from './components/views/VisualizeView';
 import { QuizView, clearSavedQuizState } from './components/views/QuizView';
 import { ProgressView } from './components/views/ProgressView';
+import { FloatingChatButton } from './components/FloatingChatButton';
 import {
   saveVideoToStorage,
   loadVideoFromStorage,
   deleteVideoFromStorage
 } from './utils/videoStorage';
+
+// Default permanent Tree DSA video lesson included in the app
+const DEFAULT_VIDEO_URL = '/videos/lesson.mp4';
+const DEFAULT_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
+const DEFAULT_VIDEO_SIZE = '11.0 MB';
 
 export default function App() {
   const [currentNav, setCurrentNav] = useState<NavItem>('home');
@@ -33,9 +39,28 @@ export default function App() {
   }, [isDarkMode]);
 
   // Visual Lesson Video State (Shared between Progress and Visualize)
-  const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string | null>(null);
-  const [uploadedVideoName, setUploadedVideoName] = useState<string>('');
-  const [uploadedVideoSize, setUploadedVideoSize] = useState<string>('');
+  // Guaranteed persistent default for every new user, page refresh, and navigation
+  const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('tree_dsa_video_url');
+      if (saved) return saved;
+    } catch {}
+    return DEFAULT_VIDEO_URL;
+  });
+  const [uploadedVideoName, setUploadedVideoName] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('tree_dsa_video_name');
+      if (saved) return saved;
+    } catch {}
+    return DEFAULT_VIDEO_NAME;
+  });
+  const [uploadedVideoSize, setUploadedVideoSize] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('tree_dsa_video_size');
+      if (saved) return saved;
+    } catch {}
+    return DEFAULT_VIDEO_SIZE;
+  });
   const [isUploadingVideo, setIsUploadingVideo] = useState<boolean>(false);
   const [uploadStatus, setUploadStatus] = useState<string>('');
   const [isVideoCompleted, setIsVideoCompleted] = useState<boolean>(() => {
@@ -46,6 +71,21 @@ export default function App() {
     }
   });
   const [showVisualizeVideo, setShowVisualizeVideo] = useState<boolean>(false);
+
+  // Persist video information to localStorage so it survives page reloads seamlessly
+  useEffect(() => {
+    try {
+      if (uploadedVideoUrl) {
+        localStorage.setItem('tree_dsa_video_url', uploadedVideoUrl);
+      }
+      if (uploadedVideoName) {
+        localStorage.setItem('tree_dsa_video_name', uploadedVideoName);
+      }
+      if (uploadedVideoSize) {
+        localStorage.setItem('tree_dsa_video_size', uploadedVideoSize);
+      }
+    } catch {}
+  }, [uploadedVideoUrl, uploadedVideoName, uploadedVideoSize]);
 
   // Restore stored video on startup: first check server-side permanent video for all users, then IndexedDB
   useEffect(() => {
@@ -61,9 +101,9 @@ export default function App() {
             setUploadedVideoUrl(data.url);
             const cleanName = data.name && !data.name.toLowerCase().includes('whatsapp')
               ? data.name
-              : 'Tree DSA Complete Visual Lesson';
+              : DEFAULT_VIDEO_NAME;
             setUploadedVideoName(cleanName);
-            setUploadedVideoSize(data.size || '');
+            setUploadedVideoSize(data.size || DEFAULT_VIDEO_SIZE);
             return;
           }
         }
@@ -79,9 +119,9 @@ export default function App() {
           setUploadedVideoUrl(url);
           const cleanName = localData.name && !localData.name.toLowerCase().includes('whatsapp')
             ? localData.name
-            : 'Tree DSA Complete Visual Lesson';
+            : DEFAULT_VIDEO_NAME;
           setUploadedVideoName(cleanName);
-          setUploadedVideoSize(localData.size || '');
+          setUploadedVideoSize(localData.size || DEFAULT_VIDEO_SIZE);
 
           // Automatically sync local video to server so all users will have it permanently
           fetch('/api/upload-video', {
@@ -159,11 +199,16 @@ export default function App() {
     if (uploadedVideoUrl && uploadedVideoUrl.startsWith('blob:')) {
       URL.revokeObjectURL(uploadedVideoUrl);
     }
-    setUploadedVideoUrl(null);
-    setUploadedVideoName('');
-    setUploadedVideoSize('');
+    setUploadedVideoUrl(DEFAULT_VIDEO_URL);
+    setUploadedVideoName(DEFAULT_VIDEO_NAME);
+    setUploadedVideoSize(DEFAULT_VIDEO_SIZE);
     setShowVisualizeVideo(false);
     deleteVideoFromStorage();
+    try {
+      localStorage.setItem('tree_dsa_video_url', DEFAULT_VIDEO_URL);
+      localStorage.setItem('tree_dsa_video_name', DEFAULT_VIDEO_NAME);
+      localStorage.setItem('tree_dsa_video_size', DEFAULT_VIDEO_SIZE);
+    } catch {}
   };
 
   const handleToggleVideoCompleted = () => {
@@ -367,9 +412,8 @@ export default function App() {
     } catch {}
   };
 
-  const handleNavigate = (nav: NavItem | 'game', topicId?: TopicId) => {
-    const resolvedNav = (nav === 'game' ? 'quiz' : nav) as NavItem;
-    setCurrentNav(resolvedNav);
+  const handleNavigate = (nav: NavItem, topicId?: TopicId) => {
+    setCurrentNav(nav);
     if (topicId) {
       setCurrentTopicId(topicId);
     }
@@ -383,12 +427,34 @@ export default function App() {
   return (
     <div
       data-theme={isDarkMode ? 'dark' : 'light'}
-      className={`min-h-screen transition-colors duration-300 ${
+      className={`min-h-screen transition-colors duration-300 relative ${
         isDarkMode
-          ? 'bg-[#080c16] text-slate-100 selection:bg-violet-600 selection:text-white'
-          : 'bg-white text-black selection:bg-blue-600 selection:text-white'
+          ? 'bg-[#080c1a] text-slate-100 selection:bg-indigo-600 selection:text-white'
+          : 'bg-[#F8FAFF] text-slate-900 selection:bg-indigo-600 selection:text-white'
       }`}
     >
+      {/* Ambient background glow accents matching the Electric Blue to Violet theme */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div
+          className={`absolute -top-40 -left-40 w-[550px] h-[550px] rounded-full blur-3xl transition-opacity duration-500 ${
+            isDarkMode ? 'bg-blue-600/10' : 'bg-blue-500/5'
+          }`}
+        />
+        <div
+          className={`absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full blur-3xl transition-opacity duration-500 ${
+            isDarkMode ? 'bg-purple-600/10' : 'bg-purple-500/5'
+          }`}
+        />
+      </div>
+      {/* Left edge trigger zone: when cursor hovers on the left edge/navigation section, reveals the sidebar */}
+      {!isSidebarOpen && (
+        <div
+          onMouseEnter={() => setIsSidebarOpen(true)}
+          className="fixed top-0 bottom-0 left-0 w-3 z-40 cursor-pointer pointer-events-auto"
+          title="Move cursor here to reveal navigation menu"
+        />
+      )}
+
       {/* Left-Side Navigation Sidebar */}
       <NavigationSidebar
         currentNav={currentNav}
@@ -401,6 +467,7 @@ export default function App() {
         completedTopics={completedTopics}
         quizScore={quizScore}
         quizProgress={quizProgress}
+        completedVisualizations={completedVisualizations}
         isVideoCompleted={isVideoCompleted}
         isSoundOn={isSoundOn}
         onToggleSound={() => setIsSoundOn((prev) => !prev)}
@@ -426,6 +493,7 @@ export default function App() {
           }}
           isSoundOn={isSoundOn}
           onToggleSound={() => setIsSoundOn((prev) => !prev)}
+          onNavigateHome={() => handleNavigate('home')}
         />
 
         {/* View Content Renderer */}
@@ -500,13 +568,16 @@ export default function App() {
         </main>
       </div>
 
+      {/* Floating Chat / Support Button at Bottom-Right (Matching Provided Image) */}
+      <FloatingChatButton isDarkMode={isDarkMode} isSoundOn={isSoundOn} />
+
       {/* Floating Reset Confirmation Toast */}
       {showResetToast && (
         <div
           id="reset-notification-toast"
           role="status"
           aria-live="polite"
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-xs font-semibold backdrop-blur-md transition-all duration-300 animate-bounce ${
+          className={`fixed bottom-24 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-xs font-semibold backdrop-blur-md transition-all duration-300 animate-bounce ${
             isDarkMode
               ? 'bg-[#0f172a]/95 text-emerald-400 border-emerald-500/40 shadow-emerald-950/60'
               : 'bg-white/95 text-emerald-700 border-emerald-200 shadow-slate-300/60'
