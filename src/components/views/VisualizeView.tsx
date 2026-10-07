@@ -33,9 +33,9 @@ interface VisualizeViewProps {
   uploadStatus?: string;
 }
 
-const DEFAULT_VIDEO_URL = '/videos/lesson.mp4';
-const DEFAULT_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
-const DEFAULT_VIDEO_SIZE = '11.0 MB';
+const PUBLIC_LESSON_VIDEO_URL = '/videos/lesson.mp4';
+const PUBLIC_LESSON_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
+const PUBLIC_LESSON_VIDEO_SIZE = '11.0 MB';
 
 export const VisualizeView: React.FC<VisualizeViewProps> = ({
   isDarkMode,
@@ -51,15 +51,16 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
   uploadStatus = ''
 }) => {
   const effectiveUserId = userId || getActiveUserId();
-  const activeVideoUrl = videoUrl || DEFAULT_VIDEO_URL;
-  const activeVideoName = videoName || DEFAULT_VIDEO_NAME;
-  const activeVideoSize = videoSize || DEFAULT_VIDEO_SIZE;
+  const activeVideoUrl = videoUrl || PUBLIC_LESSON_VIDEO_URL;
+  const activeVideoName = videoName || PUBLIC_LESSON_VIDEO_NAME;
+  const activeVideoSize = videoSize || PUBLIC_LESSON_VIDEO_SIZE;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [videoLoadError, setVideoError] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const [volume, setVolume] = useState<number>(1);
@@ -89,6 +90,11 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
       }
     } catch {}
   }, [activeVideoUrl, effectiveUserId]);
+
+  // Reset error state on URL change
+  useEffect(() => {
+    setVideoError(false);
+  }, [activeVideoUrl]);
 
   // Sync fullscreen change event
   useEffect(() => {
@@ -180,10 +186,29 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
   // Fullscreen toggle
   const toggleFullscreen = () => {
     if (!playerContainerRef.current) return;
-    if (!document.fullscreenElement) {
-      playerContainerRef.current.requestFullscreen().catch(() => {});
+    if (!isFullscreen) {
+      const elem = playerContainerRef.current as any;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().then(() => {
+          setIsFullscreen(true);
+        }).catch(() => {
+          setIsFullscreen(true);
+        });
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        setIsFullscreen(true);
+      }
     } else {
-      document.exitFullscreen().catch(() => {});
+      if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if ((document as any).webkitExitFullscreen) {
+          (document as any).webkitExitFullscreen();
+        }
+      }
+      setIsFullscreen(false);
     }
   };
 
@@ -256,6 +281,9 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
     } else if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
       toggleFullscreen();
+    } else if (e.key === 'Escape' && isFullscreen) {
+      e.preventDefault();
+      toggleFullscreen();
     }
   };
 
@@ -291,18 +319,19 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               <span>VIDEO LEARNING SECTION</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Tree DSA Complete Visual Lesson
+              {activeVideoName || 'Tree Visual Lesson Video'}
             </h1>
             <p className="text-xs sm:text-sm mt-1.5 opacity-80 leading-relaxed max-w-2xl">
-              One comprehensive visual masterclass covering all fundamental Tree data structures,
-              binary trees, BST algorithms, and tree traversals.
+              {activeVideoName
+                ? `Loaded: ${activeVideoName}${activeVideoSize ? ` • ${activeVideoSize}` : ''}`
+                : 'Upload and play your visual lesson video to explore tree data structures.'}
             </p>
           </div>
 
           {/* Action Badges & Buttons */}
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             {/* Completion Status Toggle */}
-            {onToggleVideoCompleted && (
+            {onToggleVideoCompleted && activeVideoUrl && (
               <button
                 id="btn-visualize-toggle-completed"
                 onClick={onToggleVideoCompleted}
@@ -339,20 +368,35 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               </div>
             )}
 
-            {/* Upload Video Button ONLY when no video is uploaded yet */}
-            {!activeVideoUrl && (
+            {/* Upload / Change Video Button (Always available to user) */}
+            <button
+              id="btn-visualize-upload-video"
+              onClick={triggerUpload}
+              disabled={isUploadingVideo}
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm ${
+                isDarkMode
+                  ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/50'
+                  : 'bg-[#6D3DF5] hover:bg-[#5B2FD9] text-white shadow-indigo-100'
+              }`}
+              title={activeVideoUrl ? 'Change current video' : 'Upload video file'}
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>{activeVideoUrl ? 'Change Video' : 'Upload Video'}</span>
+            </button>
+
+            {/* Remove video button */}
+            {activeVideoUrl && onRemoveVideo && (
               <button
-                id="btn-visualize-upload-video"
-                onClick={triggerUpload}
-                disabled={isUploadingVideo}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm ${
+                id="btn-visualize-remove-video"
+                onClick={onRemoveVideo}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${
                   isDarkMode
-                    ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/50'
-                    : 'bg-[#6D3DF5] hover:bg-[#5B2FD9] text-white shadow-indigo-100'
+                    ? 'border-zinc-800 bg-zinc-900/60 hover:bg-rose-950/40 hover:border-rose-800 text-zinc-300 hover:text-rose-300'
+                    : 'border-slate-200 bg-slate-100 hover:bg-rose-50 hover:border-rose-200 text-slate-700 hover:text-rose-700'
                 }`}
+                title="Remove current video"
               >
-                <Upload className="w-3.5 h-3.5" />
-                <span>Upload Video</span>
+                <span>Remove</span>
               </button>
             )}
           </div>
@@ -380,12 +424,29 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
           ref={playerContainerRef}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => isPlaying && setShowControls(false)}
-          className={`relative rounded-3xl overflow-hidden border shadow-2xl transition-all duration-300 bg-black select-none ${
-            isDarkMode ? 'border-violet-900/50 shadow-violet-950/40' : 'border-blue-200 shadow-blue-200/40'
+          className={`transition-all duration-300 select-none ${
+            isFullscreen
+              ? 'fixed inset-0 z-50 w-screen h-screen bg-black rounded-none border-none flex flex-col justify-between overflow-hidden'
+              : `relative rounded-3xl overflow-hidden border shadow-2xl bg-black ${
+                  isDarkMode ? 'border-violet-900/50 shadow-violet-950/40' : 'border-blue-200 shadow-blue-200/40'
+                }`
           }`}
         >
+          {/* Floating Exit Fullscreen Button in top right */}
+          {isFullscreen && (
+            <button
+              onClick={toggleFullscreen}
+              className="absolute top-4 right-4 z-40 p-2.5 rounded-full bg-black/70 hover:bg-black text-white border border-white/20 transition-all cursor-pointer shadow-xl backdrop-blur-md"
+              title="Exit Fullscreen (Esc)"
+            >
+              <Minimize className="w-5 h-5" />
+            </button>
+          )}
+
           {/* Native Video Element */}
-          <div className="relative w-full aspect-video flex items-center justify-center bg-black overflow-hidden">
+          <div className={`relative w-full flex items-center justify-center bg-black overflow-hidden ${
+            isFullscreen ? 'h-full w-full max-h-none flex-1' : 'min-h-[380px] max-h-[620px] aspect-video'
+          }`}>
             <video
               ref={videoRef}
               src={activeVideoUrl}
@@ -415,12 +476,40 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
                   onToggleVideoCompleted();
                 }
               }}
-              style={{ transform: 'scale(3)', transformOrigin: 'center center' }}
-              className="w-full h-full object-contain cursor-pointer"
+              onError={() => {
+                setVideoError(true);
+                setIsPlaying(false);
+              }}
+              className={`${
+                isFullscreen
+                  ? 'w-full h-full max-w-none max-h-none object-contain'
+                  : 'max-h-[600px] max-w-full w-auto h-auto object-contain'
+              } cursor-pointer`}
             />
 
-            {/* Big Center Play Button Overlay (when paused) */}
-            {!isPlaying && (
+            {/* Error Overlay if video format or source fails */}
+            {videoLoadError && (
+              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/90 p-6 text-center">
+                <div className="w-12 h-12 rounded-full bg-rose-950/80 border border-rose-800 text-rose-400 flex items-center justify-center mb-3">
+                  <RotateCcw className="w-6 h-6" />
+                </div>
+                <p className="text-sm font-semibold text-white mb-1">Unable to load this video</p>
+                <p className="text-xs text-slate-400 max-w-sm mb-4">
+                  Please select or re-upload your video file.
+                </p>
+                <button
+                  type="button"
+                  onClick={triggerUpload}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white flex items-center gap-2 cursor-pointer shadow-lg"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>Choose Video File</span>
+                </button>
+              </div>
+            )}
+
+            {/* Big Center Play Button Overlay (when paused and no error) */}
+            {!isPlaying && !videoLoadError && (
               <button
                 onClick={togglePlay}
                 className="absolute z-20 w-20 h-20 rounded-full bg-violet-600/90 hover:bg-violet-500 text-white flex items-center justify-center shadow-2xl shadow-violet-900/70 backdrop-blur-sm transition-transform transform hover:scale-110 cursor-pointer"
@@ -580,11 +669,10 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               </div>
 
               <h3 className="text-lg sm:text-xl font-black tracking-tight mb-1">
-                Upload Tree DSA Complete Video Lesson
+                Upload Your Video File
               </h3>
               <p className="text-xs sm:text-sm max-w-md opacity-75 mb-6 leading-relaxed">
-                Drag and drop your complete video lesson file here, or click to browse.
-                Supported formats: MP4, WebM, MOV, MKV.
+                Drag and drop your video file here (MP4, WebM, MOV, MKV) or click to browse.
               </p>
 
               <button

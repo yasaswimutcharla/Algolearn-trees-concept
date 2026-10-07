@@ -61,7 +61,7 @@ interface CurriculumModule {
 const CURRICULUM_MODULES: CurriculumModule[] = [
   {
     id: 'TOPIC-01',
-    title: '01. TREE FUNDAMENTALS',
+    title: '01. TREE-NON LINEAR DATASTRUCTURE',
     category: 'fundamentals',
     categoryLabel: 'Fundamentals',
     description: 'Understand hierarchical tree structures, root, edges, and non-linear data organization.',
@@ -385,15 +385,6 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
     return 1;
   })();
 
-  // Real Mastery Level from progress state (Tree DSA Mastery Terminology)
-  const getMasteryLevel = () => {
-    if (overallPercentage >= 85) return { label: 'Tree Grandmaster', level: 4, rank: 'Grandmaster' };
-    if (overallPercentage >= 50) return { label: 'Tree Specialist', level: 3, rank: 'Specialist' };
-    if (overallPercentage >= 20) return { label: 'Tree Explorer', level: 2, rank: 'Explorer' };
-    return { label: 'Tree Novice', level: 1, rank: 'Novice' };
-  };
-  const mastery = getMasteryLevel();
-
   // Tree DSA Achievements from real progress state
   const achievements: TreeAchievement[] = [
     {
@@ -401,7 +392,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
       title: 'First Tree',
       category: 'Fundamentals',
       description: 'Understand the basic structure of a tree.',
-      requirement: 'Complete Topic 01: Tree Fundamentals',
+      requirement: 'Complete Topic 01: Tree-Non linear Datastructure',
       xpReward: 25,
       isUnlocked: completedTopics.includes('basics'),
       icon: Layers
@@ -517,12 +508,12 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
     topicId: 'basics'
   });
 
-  // 2. Tree Fundamentals Completed
+  // 2. Tree-Non linear Datastructure Completed
   if (completedTopics.includes('basics')) {
     const ts = timelineTimestamps['topic-basics'] || Date.now();
     timelineItems.push({
       id: 'timeline-basics',
-      title: 'Tree Fundamentals Completed',
+      title: 'Tree-Non linear Datastructure Completed',
       description: 'Learned nodes, roots, edges, parents, children, leaves, height, and depth.',
       xp: 25,
       type: 'learn',
@@ -691,17 +682,17 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
               }`}
             >
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>TREE DSA LEARNING PROGRESS</span>
+              <span>TREE-NON LINEAR DATASTRUCTURE</span>
             </div>
             <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight ${
               isDarkMode ? 'text-[#F8FAFC]' : 'text-black'
             }`}>
-              Tree DSA Learning Progress
+              Tree-Non linear Datastructure
             </h1>
             <p className={`text-xs sm:text-sm mt-2 leading-relaxed max-w-2xl ${
               isDarkMode ? 'text-[#E2E8F0]' : 'text-blue-900'
             }`}>
-              Track your Tree DSA mastery, completed topics, achievements, and learning activity.
+              Track your Tree-Non linear Datastructure learning progress, completed topics, achievements, and learning activity.
             </p>
           </div>
 
@@ -784,8 +775,8 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
         </div>
       )}
 
-      {/* 4 SUMMARY-CARD LAYOUT TRACKING REAL APPDATA */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      {/* 3 SUMMARY-CARD LAYOUT TRACKING REAL APPDATA */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* CARD 1 — OVERALL PROGRESS */}
         <div
           id="summary-card-overall-progress"
@@ -812,7 +803,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                 {overallPercentage}%
               </span>
               <span className={`text-xs font-medium ${isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'}`}>
-                Tree DSA
+                Tree-Non linear Datastructure
               </span>
             </div>
 
@@ -843,59 +834,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           </div>
         </div>
 
-        {/* CARD 2 — MASTERY LEVEL */}
-        <div
-          id="summary-card-mastery-level"
-          className={`p-6 rounded-3xl border flex flex-col justify-between transition-all duration-200 ${
-            isDarkMode
-              ? 'bg-[#0e1424] border-violet-900/40 text-[#F8FAFC] shadow-xl shadow-violet-950/20'
-              : 'bg-white border-blue-100 text-black shadow-sm'
-          }`}
-        >
-          <div>
-            <div className="flex items-center justify-between">
-              <span className={`text-[11px] font-bold font-mono uppercase tracking-wider ${
-                isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'
-              }`}>
-                MASTERY LEVEL
-              </span>
-              <Award className={`w-4 h-4 ${isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D3DF5]'}`} />
-            </div>
-
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className={`text-4xl font-black font-mono tracking-tight ${
-                isDarkMode ? 'text-white' : 'text-slate-900'
-              }`}>
-                {mastery.label}
-              </span>
-              <span className={`text-xs font-medium ${isDarkMode ? 'text-[#94A3B8]' : 'text-blue-700'}`}>
-                Level <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{mastery.level}</span>/4
-              </span>
-            </div>
-
-            {/* Horizontal Progress Bar */}
-            <div className={`w-full h-2.5 rounded-full overflow-hidden mt-4 border ${
-              isDarkMode ? 'bg-violet-950/50 border-violet-800/30' : 'bg-blue-50 border-blue-200'
-            }`}>
-              <div
-                className="h-full rounded-full bg-[#6D3DF5] transition-all duration-500"
-                style={{ width: `${overallPercentage}%` }}
-              />
-            </div>
-          </div>
-
-          <div className={`mt-5 pt-3 border-t text-[11px] font-mono flex items-center justify-between ${
-            isDarkMode ? 'border-violet-950/50 text-[#94A3B8]' : 'border-blue-100 text-blue-700'
-          }`}>
-            <span>Rank: {mastery.rank}</span>
-            <span>
-              <span className={isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{topicsCompletedCount}</span>
-              /7 Topics
-            </span>
-          </div>
-        </div>
-
-        {/* CARD 3 — TOTAL XP */}
+        {/* CARD 2 — TOTAL XP */}
         <div
           id="summary-card-total-xp"
           className={`p-6 rounded-3xl border flex flex-col justify-between transition-all duration-200 ${
@@ -956,7 +895,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           </div>
         </div>
 
-        {/* CARD 4 — LEARNING STREAK */}
+        {/* CARD 3 — LEARNING STREAK */}
         <div
           id="summary-card-learning-streak"
           className={`p-6 rounded-3xl border flex flex-col justify-between transition-all duration-200 ${
@@ -1057,11 +996,13 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                 <span className={`font-bold text-sm sm:text-base truncate ${
                   isDarkMode ? 'text-slate-100' : 'text-black'
                 }`}>
-                  Introduction to Binary Search Trees & Tree Data Structures
+                  {propVideoName || 'Visual Lesson Video'}
                 </span>
               </div>
               <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-blue-900'}`}>
-                Masterclass video lesson covering fundamental tree and BST concepts.
+                {propVideoName
+                  ? `Video: ${propVideoName}${propVideoSize ? ` (${propVideoSize})` : ''}`
+                  : 'No video uploaded yet. Go to the Visualize page to upload your video.'}
               </p>
             </div>
           </div>

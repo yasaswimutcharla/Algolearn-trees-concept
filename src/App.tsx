@@ -28,10 +28,10 @@ import {
   createDefaultUserData
 } from './utils/userStorage';
 
-// Default permanent Tree DSA video lesson included in the app
-const DEFAULT_VIDEO_URL = '/videos/lesson.mp4';
-const DEFAULT_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
-const DEFAULT_VIDEO_SIZE = '11.0 MB';
+// Permanent public lesson video bundled with the app
+const PUBLIC_LESSON_VIDEO_URL = '/videos/lesson.mp4';
+const PUBLIC_LESSON_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
+const PUBLIC_LESSON_VIDEO_SIZE = '11.0 MB';
 
 export default function App() {
   const [currentNav, setCurrentNav] = useState<NavItem>('home');
@@ -67,27 +67,27 @@ export default function App() {
   }, [isDarkMode]);
 
   // Visual Lesson Video State (Shared between Progress and Visualize)
-  // Guaranteed persistent default for every new user, page refresh, and navigation
+  // Bundled public video is available permanently out-of-the-box
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('tree_dsa_video_url');
-      if (saved) return saved;
+      if (saved && !saved.startsWith('blob:')) return saved;
     } catch {}
-    return DEFAULT_VIDEO_URL;
+    return PUBLIC_LESSON_VIDEO_URL;
   });
   const [uploadedVideoName, setUploadedVideoName] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('tree_dsa_video_name');
       if (saved) return saved;
     } catch {}
-    return DEFAULT_VIDEO_NAME;
+    return PUBLIC_LESSON_VIDEO_NAME;
   });
   const [uploadedVideoSize, setUploadedVideoSize] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('tree_dsa_video_size');
       if (saved) return saved;
     } catch {}
-    return DEFAULT_VIDEO_SIZE;
+    return PUBLIC_LESSON_VIDEO_SIZE;
   });
   const [isUploadingVideo, setIsUploadingVideo] = useState<boolean>(false);
   const [uploadStatus, setUploadStatus] = useState<string>('');
@@ -103,7 +103,7 @@ export default function App() {
   // Persist video information to localStorage so it survives page reloads seamlessly
   useEffect(() => {
     try {
-      if (uploadedVideoUrl) {
+      if (uploadedVideoUrl && !uploadedVideoUrl.startsWith('blob:')) {
         localStorage.setItem('tree_dsa_video_url', uploadedVideoUrl);
       }
       if (uploadedVideoName) {
@@ -115,55 +115,45 @@ export default function App() {
     } catch {}
   }, [uploadedVideoUrl, uploadedVideoName, uploadedVideoSize]);
 
-  // Restore stored video on startup: first check server-side permanent video for all users, then IndexedDB
+  // Restore stored user video on startup: first check local IndexedDB, then check server, else public video
   useEffect(() => {
     let isMounted = true;
 
     const initializeLessonVideo = async () => {
-      // 1. Check if the server already has the permanent masterclass video
-      try {
-        const res = await fetch('/api/video-status');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.hasVideo && data.url && isMounted) {
-            setUploadedVideoUrl(data.url);
-            const cleanName = data.name && !data.name.toLowerCase().includes('whatsapp')
-              ? data.name
-              : DEFAULT_VIDEO_NAME;
-            setUploadedVideoName(cleanName);
-            setUploadedVideoSize(data.size || DEFAULT_VIDEO_SIZE);
-            return;
-          }
-        }
-      } catch {
-        // Fallback to local IndexedDB if server check is unavailable
-      }
-
-      // 2. Fallback to client IndexedDB if not on server yet
+      // 1. First check client IndexedDB for any custom uploaded video file
       try {
         const localData = await loadVideoFromStorage();
         if (localData && localData.blob && isMounted) {
           const url = URL.createObjectURL(localData.blob);
           setUploadedVideoUrl(url);
-          const cleanName = localData.name && !localData.name.toLowerCase().includes('whatsapp')
-            ? localData.name
-            : DEFAULT_VIDEO_NAME;
-          setUploadedVideoName(cleanName);
-          setUploadedVideoSize(localData.size || DEFAULT_VIDEO_SIZE);
-
-          // Automatically sync local video to server so all users will have it permanently
-          fetch('/api/upload-video', {
-            method: 'POST',
-            headers: {
-              'Content-Type': localData.blob.type || 'video/mp4',
-              'x-file-name': encodeURIComponent(cleanName),
-              'x-file-size': localData.size || '',
-            },
-            body: localData.blob,
-          }).catch(() => {});
+          setUploadedVideoName(localData.name || PUBLIC_LESSON_VIDEO_NAME);
+          setUploadedVideoSize(localData.size || PUBLIC_LESSON_VIDEO_SIZE);
+          return;
         }
       } catch (err) {
-        console.warn('Could not load video from local storage:', err);
+        console.warn('Could not load video from IndexedDB:', err);
+      }
+
+      // 2. Second check server public video status
+      try {
+        const res = await fetch('/api/video-status');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.hasVideo && isMounted) {
+            setUploadedVideoUrl(data.url || PUBLIC_LESSON_VIDEO_URL);
+            setUploadedVideoName(data.name || PUBLIC_LESSON_VIDEO_NAME);
+            setUploadedVideoSize(data.size || PUBLIC_LESSON_VIDEO_SIZE);
+            return;
+          }
+        }
+      } catch {
+        // Fallback to static public video
+      }
+
+      if (isMounted) {
+        setUploadedVideoUrl(PUBLIC_LESSON_VIDEO_URL);
+        setUploadedVideoName(PUBLIC_LESSON_VIDEO_NAME);
+        setUploadedVideoSize(PUBLIC_LESSON_VIDEO_SIZE);
       }
     };
 
@@ -182,7 +172,7 @@ export default function App() {
 
     const localUrl = URL.createObjectURL(file);
     const size = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
-    const displayName = file.name.toLowerCase().includes('whatsapp') ? 'Tree DSA Complete Visual Lesson' : file.name;
+    const displayName = file.name; // Keep user's exact file name!
 
     // Immediately display locally and save to client IndexedDB
     setUploadedVideoUrl(localUrl);
@@ -192,7 +182,7 @@ export default function App() {
 
     // Upload to server so it becomes available across sessions
     setIsUploadingVideo(true);
-    setUploadStatus('Saving video lesson...');
+    setUploadStatus('Saving video...');
 
     try {
       const res = await fetch('/api/upload-video', {
@@ -206,18 +196,16 @@ export default function App() {
       });
 
       if (res.ok) {
-        // Set to server video URL with timestamp to bust any cache
-        setUploadedVideoUrl('/videos/lesson.mp4?v=' + Date.now());
         setUploadStatus('Video saved successfully!');
-        setTimeout(() => setUploadStatus(''), 4000);
+        setTimeout(() => setUploadStatus(''), 3000);
       } else {
-        setUploadStatus('Saved in browser cache.');
-        setTimeout(() => setUploadStatus(''), 4000);
+        setUploadStatus('Saved in browser storage.');
+        setTimeout(() => setUploadStatus(''), 3000);
       }
     } catch (err) {
       console.warn('Could not upload video to server:', err);
       setUploadStatus('Saved in browser storage.');
-      setTimeout(() => setUploadStatus(''), 4000);
+      setTimeout(() => setUploadStatus(''), 3000);
     } finally {
       setIsUploadingVideo(false);
     }
@@ -227,15 +215,16 @@ export default function App() {
     if (uploadedVideoUrl && uploadedVideoUrl.startsWith('blob:')) {
       URL.revokeObjectURL(uploadedVideoUrl);
     }
-    setUploadedVideoUrl(DEFAULT_VIDEO_URL);
-    setUploadedVideoName(DEFAULT_VIDEO_NAME);
-    setUploadedVideoSize(DEFAULT_VIDEO_SIZE);
+    // Reset back to permanent bundled public video
+    setUploadedVideoUrl(PUBLIC_LESSON_VIDEO_URL);
+    setUploadedVideoName(PUBLIC_LESSON_VIDEO_NAME);
+    setUploadedVideoSize(PUBLIC_LESSON_VIDEO_SIZE);
     setShowVisualizeVideo(false);
     deleteVideoFromStorage();
     try {
-      localStorage.setItem('tree_dsa_video_url', DEFAULT_VIDEO_URL);
-      localStorage.setItem('tree_dsa_video_name', DEFAULT_VIDEO_NAME);
-      localStorage.setItem('tree_dsa_video_size', DEFAULT_VIDEO_SIZE);
+      localStorage.setItem('tree_dsa_video_url', PUBLIC_LESSON_VIDEO_URL);
+      localStorage.setItem('tree_dsa_video_name', PUBLIC_LESSON_VIDEO_NAME);
+      localStorage.setItem('tree_dsa_video_size', PUBLIC_LESSON_VIDEO_SIZE);
     } catch {}
   };
 

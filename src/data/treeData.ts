@@ -4,7 +4,7 @@ export const TREE_TOPICS: TopicContent[] = [
   {
     id: 'basics',
     index: 1,
-    title: '01. What is a Tree?',
+    title: '01. Tree-Non linear Datastructure',
     shortDescription: 'Understand how trees organize data in a simple hierarchy.',
     summary: 'A tree is a way of organizing data where connected items branch out from one starting point.',
     readTime: '3 min read',
