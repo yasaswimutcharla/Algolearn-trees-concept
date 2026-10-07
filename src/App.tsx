@@ -18,18 +18,12 @@ import {
 // Default permanent Tree DSA video lesson included in the app
 const DEFAULT_VIDEO_URL = '/videos/lesson.mp4';
 const DEFAULT_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
-const DEFAULT_VIDEO_SIZE = '11.9 MB';
+const DEFAULT_VIDEO_SIZE = '11.0 MB';
 
 export default function App() {
   const [currentNav, setCurrentNav] = useState<NavItem>('home');
   const [currentTopicId, setCurrentTopicId] = useState<TopicId>('basics');
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('tree_dsa_sidebar_open');
-      if (saved !== null) return saved === 'true';
-    } catch {}
-    return false;
-  });
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true); // Violet/purple dark theme default
   const [isSoundOn, setIsSoundOn] = useState<boolean>(true);
 
@@ -45,10 +39,11 @@ export default function App() {
   }, [isDarkMode]);
 
   // Visual Lesson Video State (Shared between Progress and Visualize)
-  const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string | null>(() => {
+  // Guaranteed persistent default for every new user, page refresh, and navigation
+  const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('tree_dsa_video_url');
-      if (saved && !saved.startsWith('blob:')) return saved;
+      if (saved) return saved;
     } catch {}
     return DEFAULT_VIDEO_URL;
   });
@@ -104,12 +99,11 @@ export default function App() {
           const data = await res.json();
           if (data.hasVideo && data.url && isMounted) {
             setUploadedVideoUrl(data.url);
-            if (data.name) {
-              setUploadedVideoName(data.name);
-            }
-            if (data.size) {
-              setUploadedVideoSize(data.size);
-            }
+            const cleanName = data.name && !data.name.toLowerCase().includes('whatsapp')
+              ? data.name
+              : DEFAULT_VIDEO_NAME;
+            setUploadedVideoName(cleanName);
+            setUploadedVideoSize(data.size || DEFAULT_VIDEO_SIZE);
             return;
           }
         }
@@ -123,19 +117,18 @@ export default function App() {
         if (localData && localData.blob && isMounted) {
           const url = URL.createObjectURL(localData.blob);
           setUploadedVideoUrl(url);
-          if (localData.name) {
-            setUploadedVideoName(localData.name);
-          }
-          if (localData.size) {
-            setUploadedVideoSize(localData.size);
-          }
+          const cleanName = localData.name && !localData.name.toLowerCase().includes('whatsapp')
+            ? localData.name
+            : DEFAULT_VIDEO_NAME;
+          setUploadedVideoName(cleanName);
+          setUploadedVideoSize(localData.size || DEFAULT_VIDEO_SIZE);
 
           // Automatically sync local video to server so all users will have it permanently
           fetch('/api/upload-video', {
             method: 'POST',
             headers: {
               'Content-Type': localData.blob.type || 'video/mp4',
-              'x-file-name': encodeURIComponent(localData.name || DEFAULT_VIDEO_NAME),
+              'x-file-name': encodeURIComponent(cleanName),
               'x-file-size': localData.size || '',
             },
             body: localData.blob,
@@ -161,7 +154,7 @@ export default function App() {
 
     const localUrl = URL.createObjectURL(file);
     const size = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
-    const displayName = file.name;
+    const displayName = file.name.toLowerCase().includes('whatsapp') ? 'Tree DSA Complete Visual Lesson' : file.name;
 
     // Immediately display locally and save to client IndexedDB
     setUploadedVideoUrl(localUrl);
@@ -185,6 +178,8 @@ export default function App() {
       });
 
       if (res.ok) {
+        // Set to server video URL with timestamp to bust any cache
+        setUploadedVideoUrl('/videos/lesson.mp4?v=' + Date.now());
         setUploadStatus('Video saved successfully!');
         setTimeout(() => setUploadStatus(''), 4000);
       } else {
@@ -204,20 +199,19 @@ export default function App() {
     if (uploadedVideoUrl && uploadedVideoUrl.startsWith('blob:')) {
       URL.revokeObjectURL(uploadedVideoUrl);
     }
-    setUploadedVideoUrl(null);
-    setUploadedVideoName('');
-    setUploadedVideoSize('');
+    setUploadedVideoUrl(DEFAULT_VIDEO_URL);
+    setUploadedVideoName(DEFAULT_VIDEO_NAME);
+    setUploadedVideoSize(DEFAULT_VIDEO_SIZE);
     setShowVisualizeVideo(false);
     deleteVideoFromStorage();
     try {
-      localStorage.removeItem('tree_dsa_video_url');
-      localStorage.removeItem('tree_dsa_video_name');
-      localStorage.removeItem('tree_dsa_video_size');
-      fetch('/api/remove-video', { method: 'DELETE' }).catch(() => {});
+      localStorage.setItem('tree_dsa_video_url', DEFAULT_VIDEO_URL);
+      localStorage.setItem('tree_dsa_video_name', DEFAULT_VIDEO_NAME);
+      localStorage.setItem('tree_dsa_video_size', DEFAULT_VIDEO_SIZE);
     } catch {}
   };
 
-  const handleToggleVideoCompleted = useCallback(() => {
+  const handleToggleVideoCompleted = () => {
     setIsVideoCompleted((prev) => {
       const next = !prev;
       try {
@@ -225,13 +219,12 @@ export default function App() {
       } catch {}
       return next;
     });
-  }, []);
+  };
 
-  const handleWatchAgainFromProgress = useCallback(() => {
+  const handleWatchAgainFromProgress = () => {
     setShowVisualizeVideo(true);
-    setCurrentNav('visualize');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+    handleNavigate('visualize');
+  };
 
   // Completed topics & quiz progress tracking in localStorage (defaults to empty array 0/6)
   const [completedTopics, setCompletedTopics] = useState<TopicId[]>(() => {
@@ -386,9 +379,9 @@ export default function App() {
       w.quizAnswered = quizProgress.completed;
       w.quizScore = quizScore?.score || 0;
     }
-  }, [completedTopics, quizScore?.score, quizScore?.total, quizProgress.completed, quizProgress.total, isVideoCompleted, handleResetProgress]);
+  }, [completedTopics, quizScore, quizProgress, isVideoCompleted, handleResetProgress]);
 
-  const handleMarkTopicCompleted = useCallback((topicId: TopicId) => {
+  const handleMarkTopicCompleted = (topicId: TopicId) => {
     setCompletedTopics((prev) => {
       let next: TopicId[];
       if (prev.includes(topicId)) {
@@ -401,65 +394,42 @@ export default function App() {
       } catch {}
       return next;
     });
-  }, []);
+  };
 
-  const handleUpdateQuizScore = useCallback((score: number, total: number) => {
-    setQuizScore((prev) => {
-      if (prev && prev.score === score && prev.total === total) {
-        return prev;
-      }
-      const data = { score, total };
-      try {
-        localStorage.setItem('tree_dsa_quiz_score', JSON.stringify(data));
-      } catch {}
-      return data;
-    });
-  }, []);
+  const handleUpdateQuizScore = (score: number, total: number) => {
+    const data = { score, total };
+    setQuizScore(data);
+    try {
+      localStorage.setItem('tree_dsa_quiz_score', JSON.stringify(data));
+    } catch {}
+  };
 
-  const handleUpdateQuizProgress = useCallback((completed: number, total: number) => {
-    setQuizProgress((prev) => {
-      if (prev && prev.completed === completed && prev.total === total) {
-        return prev;
-      }
-      const data = { completed, total };
-      try {
-        localStorage.setItem('tree_dsa_quiz_progress', JSON.stringify(data));
-      } catch {}
-      return data;
-    });
-  }, []);
+  const handleUpdateQuizProgress = (completed: number, total: number) => {
+    const data = { completed, total };
+    setQuizProgress(data);
+    try {
+      localStorage.setItem('tree_dsa_quiz_progress', JSON.stringify(data));
+    } catch {}
+  };
 
-  const handleNavigate = useCallback((nav: NavItem, topicId?: TopicId) => {
+  const handleNavigate = (nav: NavItem, topicId?: TopicId) => {
     setCurrentNav(nav);
     if (topicId) {
       setCurrentTopicId(topicId);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  };
 
-  const handleToggleSidebar = useCallback(() => {
-    setIsSidebarOpen((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('tree_dsa_sidebar_open', String(next));
-      } catch {}
-      return next;
-    });
-  }, []);
-
-  const handleCloseSidebar = useCallback(() => {
-    setIsSidebarOpen(false);
-    try {
-      localStorage.setItem('tree_dsa_sidebar_open', 'false');
-    } catch {}
-  }, []);
+  const handleToggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev);
+  };
 
   return (
     <div
       data-theme={isDarkMode ? 'dark' : 'light'}
       className={`min-h-screen transition-colors duration-300 relative ${
         isDarkMode
-          ? 'bg-[#080c1a] text-slate-100 selection:bg-indigo-600 selection:text-white'
+          ? 'bg-black text-slate-100 selection:bg-indigo-600 selection:text-white'
           : 'bg-[#F8FAFF] text-slate-900 selection:bg-indigo-600 selection:text-white'
       }`}
     >
@@ -467,15 +437,23 @@ export default function App() {
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div
           className={`absolute -top-40 -left-40 w-[550px] h-[550px] rounded-full blur-3xl transition-opacity duration-500 ${
-            isDarkMode ? 'bg-blue-600/10' : 'bg-blue-500/5'
+            isDarkMode ? 'bg-blue-600/5' : 'bg-blue-500/5'
           }`}
         />
         <div
           className={`absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full blur-3xl transition-opacity duration-500 ${
-            isDarkMode ? 'bg-purple-600/10' : 'bg-purple-500/5'
+            isDarkMode ? 'bg-purple-600/5' : 'bg-purple-500/5'
           }`}
         />
       </div>
+      {/* Left edge trigger zone: when cursor hovers on the left edge/navigation section, reveals the sidebar */}
+      {!isSidebarOpen && (
+        <div
+          onMouseEnter={() => setIsSidebarOpen(true)}
+          className="fixed top-0 bottom-0 left-0 w-3 z-40 cursor-pointer pointer-events-auto"
+          title="Move cursor here to reveal navigation menu"
+        />
+      )}
 
       {/* Left-Side Navigation Sidebar */}
       <NavigationSidebar
@@ -483,7 +461,7 @@ export default function App() {
         onSelectNav={(nav) => handleNavigate(nav)}
         isOpen={isSidebarOpen}
         onToggleOpen={handleToggleSidebar}
-        onClose={handleCloseSidebar}
+        onClose={() => setIsSidebarOpen(false)}
         isDarkMode={isDarkMode}
         onToggleTheme={() => setIsDarkMode(!isDarkMode)}
         completedTopics={completedTopics}

@@ -4,7 +4,6 @@ import {
   Sparkles,
   Layers,
   Zap,
-  Folder,
   Globe,
   Star,
   Search,
@@ -12,8 +11,7 @@ import {
   PlusCircle,
   Activity,
   GitBranch,
-  ArrowRight,
-  GraduationCap
+  ArrowRight
 } from 'lucide-react';
 import { AlgoLearnCapIcon } from '../AlgoLearnLogo';
 
@@ -21,112 +19,6 @@ interface HomeViewProps {
   onNavigate: (nav: NavItem, topicId?: TopicId) => void;
   isDarkMode: boolean;
 }
-
-const RocketIllustration: React.FC<{ className?: string }> = ({ className = 'w-20 h-20 sm:w-24 sm:h-24' }) => (
-  <svg
-    viewBox="0 0 120 120"
-    className={`${className} select-none shrink-0`}
-    aria-hidden="true"
-  >
-    <defs>
-      {/* Fuselage subtle gradient */}
-      <linearGradient id="rocketRefBody" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#FFFFFF" />
-        <stop offset="70%" stopColor="#F1F5F9" />
-        <stop offset="100%" stopColor="#CBD5E1" />
-      </linearGradient>
-
-      {/* Royal Blue / Indigo Fin & Nose cone gradient */}
-      <linearGradient id="rocketRefBlue" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#6366F1" />
-        <stop offset="40%" stopColor="#4F46E5" />
-        <stop offset="100%" stopColor="#3730A3" />
-      </linearGradient>
-
-      {/* Glass Porthole Window */}
-      <linearGradient id="rocketRefWindow" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#38BDF8" />
-        <stop offset="100%" stopColor="#0284C7" />
-      </linearGradient>
-
-      {/* Thruster Fire */}
-      <linearGradient id="rocketRefFlame" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#FEF08A" />
-        <stop offset="40%" stopColor="#FB923C" />
-        <stop offset="100%" stopColor="#EF4444" />
-      </linearGradient>
-
-      {/* Cloud Puffs */}
-      <linearGradient id="rocketRefCloud" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#FFFFFF" />
-        <stop offset="100%" stopColor="#E0E7FF" />
-      </linearGradient>
-    </defs>
-
-    {/* Soft cloud base puffs */}
-    <g opacity="0.95">
-      <circle cx="34" cy="94" r="16" fill="url(#rocketRefCloud)" />
-      <circle cx="52" cy="100" r="13" fill="url(#rocketRefCloud)" />
-      <circle cx="20" cy="98" r="11" fill="url(#rocketRefCloud)" />
-      <circle cx="38" cy="105" r="9" fill="#CBD5E1" opacity="0.5" />
-    </g>
-
-    {/* Sparkles / Stars around rocket */}
-    <path d="M96 22 L98 26 L102 28 L98 30 L96 34 L94 30 L90 28 L94 26 Z" fill="#818CF8" />
-    <path d="M22 52 L23.5 55 L26.5 56.5 L23.5 58 L22 61 L20.5 58 L17.5 56.5 L20.5 55 Z" fill="#60A5FA" />
-    <circle cx="104" cy="48" r="2" fill="#38BDF8" />
-    <circle cx="82" cy="14" r="1.5" fill="#818CF8" />
-
-    {/* Main Rocket body rotated 45 degrees */}
-    <g transform="translate(6, 4)">
-      {/* Thruster Exhaust Flame */}
-      <path
-        d="M44 76 C40 86 36 96 40 102 C45 98 52 88 56 80 Z"
-        fill="url(#rocketRefFlame)"
-      />
-      <path
-        d="M43 78 C41 84 39 90 42 94 C44 91 48 85 51 81 Z"
-        fill="#FEF08A"
-      />
-
-      {/* Thruster Nozzle */}
-      <polygon points="43,72 57,80 52,85 39,77" fill="#334155" />
-
-      {/* Left Wing / Fin */}
-      <path
-        d="M42 60 L24 76 C24 76 29 83 40 77 L46 68 Z"
-        fill="url(#rocketRefBlue)"
-      />
-
-      {/* Right Wing / Fin */}
-      <path
-        d="M60 42 L76 24 C76 24 83 29 77 40 L68 46 Z"
-        fill="url(#rocketRefBlue)"
-      />
-
-      {/* Rocket Main Fuselage */}
-      <path
-        d="M84 20 C70 20 46 40 40 72 L58 80 C86 74 102 46 84 20 Z"
-        fill="url(#rocketRefBody)"
-      />
-
-      {/* Nose Cone (Royal Blue) */}
-      <path
-        d="M84 20 C78 21 70 27 66 33 C73 37 83 46 88 54 C92 48 94 36 84 20 Z"
-        fill="url(#rocketRefBlue)"
-      />
-
-      {/* Center Dorsal Spine Fin */}
-      <polygon points="54,54 44,68 50,71 60,57" fill="#3730A3" />
-
-      {/* Porthole Window */}
-      <circle cx="66" cy="48" r="9" fill="#312E81" />
-      <circle cx="66" cy="48" r="7" fill="url(#rocketRefWindow)" />
-      <ellipse cx="64" cy="46" rx="3.5" ry="2" fill="#FFFFFF" opacity="0.8" transform="rotate(-30 64 46)" />
-      <circle cx="68" cy="50" r="1.2" fill="#FFFFFF" opacity="0.75" />
-    </g>
-  </svg>
-);
 
 export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) => {
   return (
@@ -138,12 +30,12 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
         id="home-hero-card"
         className={`relative overflow-hidden p-6 sm:p-8 md:p-10 rounded-3xl border transition-all duration-300 ${
           isDarkMode
-            ? 'bg-[#0e1428] border-indigo-900/50 text-slate-100 shadow-2xl shadow-indigo-950/40'
+            ? 'bg-black border-zinc-800 text-slate-100 shadow-2xl shadow-black/80'
             : 'bg-white border-indigo-100 text-slate-900 shadow-xl shadow-indigo-100/50'
         }`}
       >
         {isDarkMode && (
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-blue-600/15 to-purple-600/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-blue-600/10 to-purple-600/10 rounded-full blur-3xl pointer-events-none" />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
@@ -151,13 +43,13 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           <div className="lg:col-span-7 space-y-4">
             <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase border ${
               isDarkMode
-                ? 'bg-gradient-to-r from-blue-950/60 to-purple-950/60 text-indigo-300 border-indigo-800/60'
+                ? 'bg-zinc-900/90 text-indigo-300 border-zinc-800'
                 : 'bg-gradient-to-r from-blue-50 to-indigo-50 text-indigo-700 border-indigo-200'
             }`}>
               <AlgoLearnCapIcon isDark={isDarkMode} size={18} className="shrink-0" />
               <span className="font-extrabold bg-gradient-to-r from-[#2563EB] to-[#7C3AED] bg-clip-text text-transparent">AlgoLearn</span>
               <span className="opacity-40">•</span>
-              <span>THEORY CURRICULUM • MODULE 01 • CHAPTER 01</span>
+              <span>TREES • MODULE 01 • CHAPTER 01</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-balance">
@@ -165,7 +57,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                 Non-Linear Hierarchical{' '}
               </span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED]">
-                Data Structures
+                Data Structure
               </span>
             </h1>
 
@@ -181,7 +73,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
             <div
               className={`w-full max-w-sm p-4 rounded-2xl border flex flex-col items-center justify-center ${
                 isDarkMode
-                  ? 'bg-[#090d1c] border-indigo-950/80'
+                  ? 'bg-[#0a0a0a] border-zinc-800/80'
                   : 'bg-indigo-50/30 border-indigo-100'
               }`}
             >
@@ -199,14 +91,14 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                 </defs>
 
                 {/* Level Guideline indicators */}
-                <line x1="20" y1="40" x2="300" y2="40" stroke={isDarkMode ? '#1e293b' : '#e2e8f0'} strokeDasharray="3 3" strokeWidth="1" />
-                <text x="25" y="32" fill={isDarkMode ? '#64748b' : '#94a3b8'} fontSize="8" fontFamily="monospace">Level 0 (Root)</text>
+                <line x1="20" y1="40" x2="300" y2="40" stroke={isDarkMode ? '#27272a' : '#e2e8f0'} strokeDasharray="3 3" strokeWidth="1" />
+                <text x="25" y="32" fill={isDarkMode ? '#71717a' : '#94a3b8'} fontSize="8" fontFamily="monospace">Level 0 (Root)</text>
 
-                <line x1="20" y1="115" x2="300" y2="115" stroke={isDarkMode ? '#1e293b' : '#e2e8f0'} strokeDasharray="3 3" strokeWidth="1" />
-                <text x="25" y="107" fill={isDarkMode ? '#64748b' : '#94a3b8'} fontSize="8" fontFamily="monospace">Level 1 (Branch)</text>
+                <line x1="20" y1="115" x2="300" y2="115" stroke={isDarkMode ? '#27272a' : '#e2e8f0'} strokeDasharray="3 3" strokeWidth="1" />
+                <text x="25" y="107" fill={isDarkMode ? '#71717a' : '#94a3b8'} fontSize="8" fontFamily="monospace">Level 1 (Branch)</text>
 
-                <line x1="20" y1="190" x2="300" y2="190" stroke={isDarkMode ? '#1e293b' : '#e2e8f0'} strokeDasharray="3 3" strokeWidth="1" />
-                <text x="25" y="182" fill={isDarkMode ? '#64748b' : '#94a3b8'} fontSize="8" fontFamily="monospace">Level 2 (Leaves)</text>
+                <line x1="20" y1="190" x2="300" y2="190" stroke={isDarkMode ? '#27272a' : '#e2e8f0'} strokeDasharray="3 3" strokeWidth="1" />
+                <text x="25" y="182" fill={isDarkMode ? '#71717a' : '#94a3b8'} fontSize="8" fontFamily="monospace">Level 2 (Leaves)</text>
 
                 {/* Edges */}
                 <line x1="160" y1="40" x2="95" y2="115" stroke="url(#heroEdgeGrad)" strokeWidth="2.5" strokeLinecap="round" />
@@ -259,7 +151,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           onClick={() => onNavigate('visualize')}
           className={`p-6 rounded-2xl border transition-all duration-200 cursor-pointer ${
             isDarkMode
-              ? 'bg-[#0e1428] border-indigo-950/80 hover:border-indigo-500/60 shadow-lg shadow-indigo-950/20'
+              ? 'bg-black border-zinc-800 hover:border-zinc-700 shadow-lg shadow-black/40'
               : 'bg-white border-indigo-100 hover:border-indigo-300 shadow-md shadow-indigo-100/30'
           }`}
         >
@@ -285,7 +177,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           id="info-card-important-concept"
           className={`p-6 rounded-2xl border transition-all duration-200 ${
             isDarkMode
-              ? 'bg-[#0e1428] border-indigo-950/80 hover:border-indigo-500/60 shadow-lg shadow-indigo-950/20'
+              ? 'bg-black border-zinc-800 hover:border-zinc-700 shadow-lg shadow-black/40'
               : 'bg-white border-indigo-100 hover:border-indigo-300 shadow-md shadow-indigo-100/30'
           }`}
         >
@@ -311,7 +203,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           id="info-card-main-challenge"
           className={`p-6 rounded-2xl border transition-all duration-200 ${
             isDarkMode
-              ? 'bg-[#0e1428] border-indigo-950/80 hover:border-indigo-500/60 shadow-lg shadow-indigo-950/20'
+              ? 'bg-black border-zinc-800 hover:border-zinc-700 shadow-lg shadow-black/40'
               : 'bg-white border-indigo-100 hover:border-indigo-300 shadow-md shadow-indigo-100/30'
           }`}
         >
@@ -340,7 +232,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
         id="section-the-main-idea"
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
-            ? 'bg-[#0e1424] border-violet-900/40 text-slate-100'
+            ? 'bg-black border-zinc-800 text-slate-100'
             : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
@@ -371,7 +263,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           <div className="lg:col-span-5 flex justify-center">
             <div
               className={`w-full p-4 rounded-2xl border flex flex-col items-center justify-center ${
-                isDarkMode ? 'bg-[#090d18] border-violet-950/80' : 'bg-blue-50/40 border-blue-100'
+                isDarkMode ? 'bg-[#0a0a0a] border-zinc-850' : 'bg-blue-50/40 border-blue-100'
               }`}
             >
               <div className={`text-[11px] font-bold tracking-wider uppercase mb-2 ${
@@ -384,20 +276,20 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
               <div className="w-full space-y-3 text-xs">
                 {/* Linear */}
                 <div className={`p-2.5 rounded-xl border flex items-center justify-between ${
-                  isDarkMode ? 'bg-[#121929] border-violet-950/60' : 'bg-white border-blue-100'
+                  isDarkMode ? 'bg-zinc-950 border-zinc-900' : 'bg-white border-blue-100'
                 }`}>
                   <span className="text-[10px] font-bold uppercase opacity-60">Linear List</span>
                   <div className="flex items-center gap-1 font-mono text-[11px] font-bold">
-                    <span className={isDarkMode ? 'px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-200' : 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-900'}>A</span> →
-                    <span className={isDarkMode ? 'px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-200' : 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-900'}>B</span> →
-                    <span className={isDarkMode ? 'px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-200' : 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-900'}>C</span> →
-                    <span className={isDarkMode ? 'px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-200' : 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-900'}>D</span>
+                    <span className={isDarkMode ? 'px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-200' : 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-900'}>A</span> →
+                    <span className={isDarkMode ? 'px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-200' : 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-900'}>B</span> →
+                    <span className={isDarkMode ? 'px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-200' : 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-900'}>C</span> →
+                    <span className={isDarkMode ? 'px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-200' : 'px-1.5 py-0.5 rounded bg-blue-100 text-blue-900'}>D</span>
                   </div>
                 </div>
 
                 {/* Tree */}
                 <div className={`p-2.5 rounded-xl border ${
-                  isDarkMode ? 'bg-[#121929] border-violet-950/60' : 'bg-white border-blue-100'
+                  isDarkMode ? 'bg-zinc-950 border-zinc-900' : 'bg-white border-blue-100'
                 }`}>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-violet-400' : 'text-violet-700'}`}>Tree Hierarchy</span>
@@ -406,8 +298,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                   <div className="flex flex-col items-center gap-1 font-mono text-[11px]">
                     <div className="px-2 py-0.5 rounded bg-violet-600 text-white font-bold">Root (A)</div>
                     <div className="flex items-center gap-6">
-                      <div className={`px-2 py-0.5 rounded border ${isDarkMode ? 'bg-indigo-900/60 border-indigo-500/40 text-indigo-200' : 'bg-indigo-100 border-indigo-300 text-indigo-900 font-semibold'}`}>Subtree B</div>
-                      <div className={`px-2 py-0.5 rounded border ${isDarkMode ? 'bg-indigo-900/60 border-indigo-500/40 text-indigo-200' : 'bg-indigo-100 border-indigo-300 text-indigo-900 font-semibold'}`}>Subtree C</div>
+                      <div className={`px-2 py-0.5 rounded border ${isDarkMode ? 'bg-indigo-950/70 border-indigo-500/40 text-indigo-200' : 'bg-indigo-100 border-indigo-300 text-indigo-900 font-semibold'}`}>Subtree B</div>
+                      <div className={`px-2 py-0.5 rounded border ${isDarkMode ? 'bg-indigo-950/70 border-indigo-500/40 text-indigo-200' : 'bg-indigo-100 border-indigo-300 text-indigo-900 font-semibold'}`}>Subtree C</div>
                     </div>
                   </div>
                 </div>
@@ -424,7 +316,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
         id="section-concept-roadmap"
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
-            ? 'bg-[#0e1424] border-violet-900/40 text-slate-100'
+            ? 'bg-black border-zinc-800 text-slate-100'
             : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
@@ -433,7 +325,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${
                 isDarkMode
-                  ? 'bg-violet-950/60 border-violet-800/50 text-violet-400'
+                  ? 'bg-zinc-900 border-zinc-800 text-violet-400'
                   : 'bg-violet-50 border-violet-200 text-violet-600'
               }`}
             >
@@ -453,15 +345,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           </button>
         </div>
 
-        {/* Horizontal roadmap container with numbered steps, connecting line, colorful circular icons */}
+        {/* Roadmap steps without connecting line */}
         <div className="relative">
-          {/* Horizontal Connecting Line (visible on desktop) */}
-          <div 
-            className={`hidden lg:block absolute top-[44px] left-[50px] right-[50px] h-[2px] z-0 ${
-              isDarkMode ? 'bg-slate-800' : 'bg-blue-100'
-            }`} 
-          />
-
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 relative z-10">
             {[
               {
@@ -473,7 +358,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                 colorLight: 'bg-[#EEF2FF] border-[#C7D2FE] text-[#4F46E5] group-hover:border-[#818CF8]',
                 colorDark: 'bg-[#1e1b4b]/60 border-[#4338ca]/60 text-[#818cf8] group-hover:border-[#6366f1]',
                 cardBorderLight: 'hover:border-[#818CF8]/60 hover:bg-indigo-50/30',
-                cardBorderDark: 'hover:border-[#6366f1]/60 hover:bg-[#1e1b4b]/20'
+                cardBorderDark: 'hover:border-zinc-700 hover:bg-zinc-900/40'
               },
               {
                 num: '2',
@@ -484,7 +369,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                 colorLight: 'bg-[#F0F9FF] border-[#BAE6FD] text-[#0284C7] group-hover:border-[#38BDF8]',
                 colorDark: 'bg-[#082f49]/60 border-[#0369a1]/60 text-[#38bdf8] group-hover:border-[#0284c7]',
                 cardBorderLight: 'hover:border-[#38BDF8]/60 hover:bg-sky-50/30',
-                cardBorderDark: 'hover:border-[#38bdf8]/60 hover:bg-[#082f49]/20'
+                cardBorderDark: 'hover:border-zinc-700 hover:bg-zinc-900/40'
               },
               {
                 num: '3',
@@ -495,7 +380,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                 colorLight: 'bg-[#ECFEFF] border-[#A5F3FC] text-[#0891B2] group-hover:border-[#22D3EE]',
                 colorDark: 'bg-[#164e63]/60 border-[#0e7490]/60 text-[#22d3ee] group-hover:border-[#06b6d4]',
                 cardBorderLight: 'hover:border-[#22D3EE]/60 hover:bg-cyan-50/30',
-                cardBorderDark: 'hover:border-[#22d3ee]/60 hover:bg-[#164e63]/20'
+                cardBorderDark: 'hover:border-zinc-700 hover:bg-zinc-900/40'
               },
               {
                 num: '4',
@@ -506,7 +391,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                 colorLight: 'bg-[#FDF2F8] border-[#FBCFE8] text-[#DB2777] group-hover:border-[#F472B6]',
                 colorDark: 'bg-[#831843]/40 border-[#be185d]/60 text-[#f472b6] group-hover:border-[#ec4899]',
                 cardBorderLight: 'hover:border-[#F472B6]/60 hover:bg-pink-50/30',
-                cardBorderDark: 'hover:border-[#f472b6]/60 hover:bg-[#831843]/20'
+                cardBorderDark: 'hover:border-zinc-700 hover:bg-zinc-900/40'
               },
               {
                 num: '5',
@@ -517,7 +402,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                 colorLight: 'bg-[#ECFDF5] border-[#A7F3D0] text-[#059669] group-hover:border-[#34D399]',
                 colorDark: 'bg-[#064e3b]/50 border-[#047857]/60 text-[#34d399] group-hover:border-[#10b981]',
                 cardBorderLight: 'hover:border-[#34D399]/60 hover:bg-emerald-50/30',
-                cardBorderDark: 'hover:border-[#34d399]/60 hover:bg-[#064e3b]/20'
+                cardBorderDark: 'hover:border-zinc-700 hover:bg-zinc-900/40'
               },
               {
                 num: '6',
@@ -528,7 +413,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                 colorLight: 'bg-[#FFFBEB] border-[#FDE68A] text-[#D97706] group-hover:border-[#FBBF24]',
                 colorDark: 'bg-[#78350f]/40 border-[#b45309]/60 text-[#fbbf24] group-hover:border-[#f59e0b]',
                 cardBorderLight: 'hover:border-[#FBBF24]/60 hover:bg-amber-50/30',
-                cardBorderDark: 'hover:border-[#fbbf24]/60 hover:bg-[#78350f]/20'
+                cardBorderDark: 'hover:border-zinc-700 hover:bg-zinc-900/40'
               },
               {
                 num: '7',
@@ -539,7 +424,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                 colorLight: 'bg-[#F5F3FF] border-[#DDD6FE] text-[#7C3AED] group-hover:border-[#A78BFA]',
                 colorDark: 'bg-[#2e1065]/50 border-[#6d28d9]/60 text-[#a78bfa] group-hover:border-[#8b5cf6]',
                 cardBorderLight: 'hover:border-[#A78BFA]/60 hover:bg-violet-50/30',
-                cardBorderDark: 'hover:border-[#a78bfa]/60 hover:bg-[#2e1065]/20'
+                cardBorderDark: 'hover:border-zinc-700 hover:bg-zinc-900/40'
               }
             ].map((step, idx) => {
               const IconComp = step.icon;
@@ -549,7 +434,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
                   onClick={() => onNavigate('learn', step.topicId)}
                   className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer group hover:scale-[1.03] flex flex-col items-center text-center ${
                     isDarkMode
-                      ? `bg-[#090d18] border-violet-950/80 ${step.cardBorderDark}`
+                      ? `bg-[#0a0a0a] border-zinc-800/80 ${step.cardBorderDark}`
                       : `bg-blue-50/40 border-blue-100 ${step.cardBorderLight}`
                   }`}
                 >
@@ -589,7 +474,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
         id="section-why-trees-matter"
         className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
           isDarkMode
-            ? 'bg-[#0e1424] border-violet-900/40 text-slate-100'
+            ? 'bg-black border-zinc-800 text-slate-100'
             : 'bg-white border-blue-100 text-black shadow-sm'
         }`}
       >
@@ -597,7 +482,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           <div
             className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${
               isDarkMode
-                ? 'bg-violet-950/60 border-violet-800/50 text-violet-400'
+                ? 'bg-zinc-900 border-zinc-800 text-violet-400'
                 : 'bg-violet-50 border-violet-200 text-[#6D3DF5]'
             }`}
           >
@@ -614,7 +499,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           <div
             className={`p-6 rounded-2xl border transition-all duration-200 ${
               isDarkMode
-                ? 'bg-[#090d18] border-violet-950/70 hover:border-violet-800/60'
+                ? 'bg-[#0a0a0a] border-zinc-800/80 hover:border-zinc-700'
                 : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
             }`}
           >
@@ -634,7 +519,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           <div
             className={`p-6 rounded-2xl border transition-all duration-200 ${
               isDarkMode
-                ? 'bg-[#090d18] border-violet-950/70 hover:border-violet-800/60'
+                ? 'bg-[#0a0a0a] border-zinc-800/80 hover:border-zinc-700'
                 : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
             }`}
           >
@@ -654,7 +539,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           <div
             className={`p-6 rounded-2xl border transition-all duration-200 ${
               isDarkMode
-                ? 'bg-[#090d18] border-violet-950/70 hover:border-violet-800/60'
+                ? 'bg-[#0a0a0a] border-zinc-800/80 hover:border-zinc-700'
                 : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
             }`}
           >
@@ -671,181 +556,6 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
           </div>
         </div>
       </section>
-
-      {/* ==================================================================== */}
-      {/* 4. ABOUT TOPICS & CURRICULUM                                         */}
-      {/* ==================================================================== */}
-      <section
-        id="section-about-topics"
-        className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
-          isDarkMode
-            ? 'bg-[#0e1424] border-violet-900/40 text-slate-100'
-            : 'bg-white border-blue-100 text-black shadow-sm'
-        }`}
-      >
-        <div className="flex items-center gap-3 mb-6">
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${
-              isDarkMode
-                ? 'bg-violet-950/60 border-violet-800/50 text-violet-400'
-                : 'bg-violet-50 border-violet-200 text-[#6D3DF5]'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-          </div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight">
-            4. About Topics & Curriculum
-          </h2>
-        </div>
-
-        {/* 4 Modules Matching Screenshot (47) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {/* Module A */}
-          <div
-            onClick={() => onNavigate('learn', 'basics')}
-            className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer group hover:scale-[1.02] ${
-              isDarkMode
-                ? 'bg-[#090d18] border-violet-950/70 hover:border-violet-700/60'
-                : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
-            }`}
-          >
-            <span className="inline-block text-[11px] font-mono font-bold tracking-wider uppercase text-violet-500 dark:text-violet-400 mb-1.5">
-              MODULE A
-            </span>
-            <h3 className={`text-sm sm:text-base font-bold mb-2 transition-colors ${
-              isDarkMode ? 'text-slate-100 group-hover:text-violet-400' : 'text-black group-hover:text-blue-600'
-            }`}>
-              Foundations & Rules
-            </h3>
-            <p className={`text-xs leading-relaxed transition-colors ${
-              isDarkMode ? 'text-slate-400 dark:text-slate-400' : 'text-blue-900/80 group-hover:text-black'
-            }`}>
-              Tree terminology, root, edges, leaves, subtree definitions, and the binary search invariant.
-            </p>
-          </div>
-
-          {/* Module B */}
-          <div
-            onClick={() => onNavigate('learn', 'binary-search-tree')}
-            className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer group hover:scale-[1.02] ${
-              isDarkMode
-                ? 'bg-[#090d18] border-violet-950/70 hover:border-blue-700/60'
-                : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
-            }`}
-          >
-            <span className="inline-block text-[11px] font-mono font-bold tracking-wider uppercase text-blue-500 dark:text-blue-400 mb-1.5">
-              MODULE B
-            </span>
-            <h3 className={`text-sm sm:text-base font-bold mb-2 transition-colors ${
-              isDarkMode ? 'text-slate-100 group-hover:text-blue-400' : 'text-black group-hover:text-blue-600'
-            }`}>
-              Search & Insertion
-            </h3>
-            <p className={`text-xs leading-relaxed transition-colors ${
-              isDarkMode ? 'text-slate-400 dark:text-slate-400' : 'text-blue-900/80 group-hover:text-black'
-            }`}>
-              Navigating step-by-step from root to leaf, comparing keys, and attaching new nodes accurately.
-            </p>
-          </div>
-
-          {/* Module C */}
-          <div
-            onClick={() => onNavigate('learn', 'binary-search-tree')}
-            className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer group hover:scale-[1.02] ${
-              isDarkMode
-                ? 'bg-[#090d18] border-violet-950/70 hover:border-amber-700/60'
-                : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
-            }`}
-          >
-            <span className="inline-block text-[11px] font-mono font-bold tracking-wider uppercase text-amber-500 dark:text-amber-400 mb-1.5">
-              MODULE C
-            </span>
-            <h3 className={`text-sm sm:text-base font-bold mb-2 transition-colors ${
-              isDarkMode ? 'text-slate-100 group-hover:text-amber-400' : 'text-black group-hover:text-blue-600'
-            }`}>
-              3-Case Deletion
-            </h3>
-            <p className={`text-xs leading-relaxed transition-colors ${
-              isDarkMode ? 'text-slate-400 dark:text-slate-400' : 'text-blue-900/80 group-hover:text-black'
-            }`}>
-              Leaf pruning, single-child bypass, and 2-child replacement using in-order successor and predecessor.
-            </p>
-          </div>
-
-          {/* Module D */}
-          <div
-            onClick={() => onNavigate('learn', 'traversals')}
-            className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer group hover:scale-[1.02] ${
-              isDarkMode
-                ? 'bg-[#090d18] border-violet-950/70 hover:border-emerald-700/60'
-                : 'bg-blue-50/40 border-blue-100 hover:border-blue-300'
-            }`}
-          >
-            <span className="inline-block text-[11px] font-mono font-bold tracking-wider uppercase text-emerald-500 dark:text-emerald-400 mb-1.5">
-              MODULE D
-            </span>
-            <h3 className={`text-sm sm:text-base font-bold mb-2 transition-colors ${
-              isDarkMode ? 'text-slate-100 group-hover:text-emerald-400' : 'text-black group-hover:text-blue-600'
-            }`}>
-              Traversals & Analysis
-            </h3>
-            <p className={`text-xs leading-relaxed transition-colors ${
-              isDarkMode ? 'text-slate-400 dark:text-slate-400' : 'text-blue-900/80 group-hover:text-black'
-            }`}>
-              In-Order sorted printing, Pre-Order serialization, Post-Order memory cleanup, and tree height.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ==================================================================== */}
-      {/* 4. READY TO MASTER BINARY SEARCH TREES?                              */}
-      {/* ==================================================================== */}
-      <section
-        id="section-ready-to-master"
-        className={`p-6 sm:p-8 md:p-9 rounded-3xl border transition-all duration-300 ${
-          isDarkMode
-            ? 'bg-[#0e1428] border-indigo-900/50 text-slate-100 shadow-xl shadow-indigo-950/40'
-            : 'bg-gradient-to-r from-blue-50/50 via-indigo-50/40 to-purple-50/50 border-indigo-100 text-slate-900 shadow-sm'
-        }`}
-      >
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 text-center sm:text-left">
-          <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-6">
-            {/* Illustrated Rocket matching reference design */}
-            <RocketIllustration />
-
-            {/* Heading & description */}
-            <div className="space-y-1.5">
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight">
-                Ready to Master Binary Search Trees?
-              </h2>
-              <p className={`text-xs sm:text-sm max-w-xl leading-relaxed ${
-                isDarkMode ? 'text-slate-400' : 'text-slate-600'
-              }`}>
-                Begin with the fundamental tree properties and learn through interactive visualizations, 
-                step-by-step guided walkthroughs, and hands-on tree construction exercises.
-              </p>
-            </div>
-          </div>
-
-          {/* Start Learning Action Button with vibrant theme gradient */}
-          <button
-            id="overview-start-learning-btn"
-            onClick={() => onNavigate('learn')}
-            className="px-6 sm:px-7 py-3.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 shrink-0 cursor-pointer bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED] hover:from-[#1D4ED8] hover:via-[#4338CA] hover:to-[#6D28D9] text-white shadow-indigo-500/30 active:scale-95"
-          >
-            <span>Start Learning</span>
-            <span className="text-base leading-none">→</span>
-          </button>
-        </div>
-      </section>
-
-      {/* Footer Tagline matching reference */}
-      <div className="text-center pt-2 pb-4">
-        <p className={`text-xs font-medium ${isDarkMode ? 'text-slate-500' : 'text-indigo-900/70'}`}>
-          AlgoLearn • Your DSA Journey • Learn • Think • Build
-        </p>
-      </div>
     </div>
   );
 };

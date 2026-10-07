@@ -236,22 +236,20 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
     try {
       const saved = localStorage.getItem('tree_dsa_quiz_progress');
       if (saved) {
-        const count = JSON.parse(saved).completed || 0;
-        setQuizAnsweredCount((prev) => (prev === count ? prev : count));
+        setQuizAnsweredCount(JSON.parse(saved).completed || 0);
         return;
       }
       const quizState = localStorage.getItem('tree_dsa_quiz_state');
       if (quizState) {
         const parsed = JSON.parse(quizState);
-        const count = Object.keys(parsed?.confirmedQuestions || {}).length || 0;
-        setQuizAnsweredCount((prev) => (prev === count ? prev : count));
+        setQuizAnsweredCount(Object.keys(parsed?.confirmedQuestions || {}).length || 0);
         return;
       }
-      setQuizAnsweredCount((prev) => (prev === 0 ? prev : 0));
+      setQuizAnsweredCount(0);
     } catch {
-      setQuizAnsweredCount((prev) => (prev === 0 ? prev : 0));
+      setQuizAnsweredCount(0);
     }
-  }, [quizScore?.score, quizScore?.total, completedTopics.length, localResetTick]);
+  }, [quizScore, completedTopics, localResetTick]);
 
   const isVideoCompleted = propVideoCompleted !== undefined ? propVideoCompleted : localIsVideoCompleted;
   const isVisualDone = Boolean(isVideoCompleted || completedVisualizations.length > 0);

@@ -50,21 +50,24 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       id="top-header-bar"
       className={`h-16 px-4 sm:px-6 flex items-center justify-between border-b sticky top-0 z-30 transition-colors duration-200 backdrop-blur-md relative ${
         isDarkMode
-          ? 'bg-[#080c1a]/90 border-indigo-950/70 text-slate-100'
-          : 'bg-white/95 border-white text-slate-900'
+          ? 'bg-black/95 border-zinc-900 text-slate-100'
+          : 'bg-white/95 border-indigo-100/80 text-slate-900'
       }`}
     >
+      {/* Bottom accent gradient line matching the uploaded theme */}
+      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED] opacity-80" />
+
       {/* Left side: Hamburger menu button + AlgoLearn Logo at top left in place of section headings */}
       <div className="flex items-center gap-3">
         {!isSidebarOpen && (
           <button
             id="header-hamburger-btn"
             onClick={onToggleSidebar}
+            onMouseEnter={() => onToggleSidebar()}
             title="Open Navigation Menu (☰)"
-            aria-label="Open Navigation Menu"
             className={`p-2 rounded-xl transition-all cursor-pointer ${
               isDarkMode
-                ? 'hover:bg-indigo-950/40 text-slate-300 hover:text-white'
+                ? 'hover:bg-zinc-900 text-slate-300 hover:text-white'
                 : 'hover:bg-indigo-50 text-slate-700 hover:text-indigo-950'
             }`}
           >
@@ -94,7 +97,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all cursor-pointer ${
             isDarkMode
-              ? 'border-indigo-900/60 bg-[#0e1328] hover:bg-indigo-950/60 text-amber-300'
+              ? 'border-zinc-800 bg-[#0d0d0d] hover:bg-zinc-900 text-amber-300'
               : 'border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100 text-indigo-600'
           }`}
         >
@@ -112,7 +115,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           title={isSoundOn ? 'Audio Effects Enabled' : 'Audio Effects Muted'}
           className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all cursor-pointer ${
             isDarkMode
-              ? 'border-indigo-900/60 bg-[#0e1328] hover:bg-indigo-950/60 text-indigo-300 hover:text-white'
+              ? 'border-zinc-800 bg-[#0d0d0d] hover:bg-zinc-900 text-indigo-300 hover:text-white'
               : 'border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100 text-indigo-700 hover:text-black'
           }`}
         >
@@ -130,7 +133,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           title="Reset All Progress & State"
           className={`group w-9 h-9 rounded-full flex items-center justify-center border transition-all cursor-pointer ${
             isDarkMode
-              ? 'border-indigo-900/60 bg-[#0e1328] hover:bg-rose-950/40 hover:border-rose-500/50 text-slate-300 hover:text-rose-300'
+              ? 'border-zinc-800 bg-[#0d0d0d] hover:bg-rose-950/40 hover:border-zinc-700 text-slate-300 hover:text-rose-300'
               : 'border-indigo-200 bg-indigo-50/60 hover:bg-rose-50 text-indigo-900 hover:text-rose-900 hover:border-rose-300'
           }`}
         >
