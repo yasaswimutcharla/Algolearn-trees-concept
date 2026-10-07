@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { NavItem, TopicId } from './types';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { NavItem, TopicId, UserData, UserSummary } from './types';
 import { RotateCcw } from 'lucide-react';
 import { NavigationSidebar } from './components/NavigationSidebar';
 import { TopHeader } from './components/TopHeader';
+import { UserProfileModal } from './components/UserProfileModal';
 import { HomeView } from './components/views/HomeView';
 import { LearnView } from './components/views/LearnView';
 import { VisualizeView } from './components/views/VisualizeView';
@@ -14,6 +15,18 @@ import {
   loadVideoFromStorage,
   deleteVideoFromStorage
 } from './utils/videoStorage';
+import {
+  getActiveUserId,
+  setActiveUserId,
+  fetchUserData,
+  syncUserDataToServer,
+  resetUserProgress,
+  switchOrCreateUser,
+  fetchAllUsers,
+  getUserItem,
+  setUserItem,
+  createDefaultUserData
+} from './utils/userStorage';
 
 // Default permanent Tree DSA video lesson included in the app
 const DEFAULT_VIDEO_URL = '/videos/lesson.mp4';
@@ -26,6 +39,21 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true); // Violet/purple dark theme default
   const [isSoundOn, setIsSoundOn] = useState<boolean>(true);
+
+  // Active isolated user state
+  const [activeUserId, setActiveUserIdState] = useState<string>(() => getActiveUserId());
+  const [currentUser, setCurrentUser] = useState<UserData>(() => {
+    const id = getActiveUserId();
+    const saved = getUserItem(id, 'profile_data');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {}
+    }
+    return createDefaultUserData(id);
+  });
+  const [allUsers, setAllUsers] = useState<UserSummary[]>([]);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
 
   // Synchronize theme class on document element for global theme-aware styling
   useEffect(() => {
@@ -214,9 +242,7 @@ export default function App() {
   const handleToggleVideoCompleted = () => {
     setIsVideoCompleted((prev) => {
       const next = !prev;
-      try {
-        localStorage.setItem('tree_dsa_video_completed', String(next));
-      } catch {}
+      setUserItem(activeUserId, 'video_completed', String(next));
       return next;
     });
   };
@@ -226,10 +252,10 @@ export default function App() {
     handleNavigate('visualize');
   };
 
-  // Completed topics & quiz progress tracking in localStorage (defaults to empty array 0/6)
+  // Completed topics & quiz progress tracking in localStorage namespaced per user
   const [completedTopics, setCompletedTopics] = useState<TopicId[]>(() => {
     try {
-      const saved = localStorage.getItem('tree_dsa_completed_topics');
+      const saved = getUserItem(activeUserId, 'completed_topics');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -238,7 +264,7 @@ export default function App() {
 
   const [quizScore, setQuizScore] = useState<{ score: number; total: number } | null>(() => {
     try {
-      const saved = localStorage.getItem('tree_dsa_quiz_score');
+      const saved = getUserItem(activeUserId, 'quiz_score');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -247,9 +273,9 @@ export default function App() {
 
   const [quizProgress, setQuizProgress] = useState<{ completed: number; total: number }>(() => {
     try {
-      const saved = localStorage.getItem('tree_dsa_quiz_progress');
+      const saved = getUserItem(activeUserId, 'quiz_progress');
       if (saved) return JSON.parse(saved);
-      const quizState = localStorage.getItem('tree_dsa_quiz_state');
+      const quizState = getUserItem(activeUserId, 'quiz_state');
       if (quizState) {
         const parsed = JSON.parse(quizState);
         const count = Object.keys(parsed?.confirmedQuestions || {}).length;
@@ -264,73 +290,160 @@ export default function App() {
   const [showResetToast, setShowResetToast] = useState<boolean>(false);
   const [completedVisualizations, setCompletedVisualizations] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('tree_dsa_completed_visualizations');
+      const saved = getUserItem(activeUserId, 'completed_visualizations');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
   });
 
-  const handleResetProgress = useCallback(() => {
-    // 1. Reset all React state to initial zero/empty state
+  // Load user data on startup or when switching active user
+  useEffect(() => {
+    let isMounted = true;
+    const loadUserData = async () => {
+      const data = await fetchUserData(activeUserId);
+      if (isMounted && data) {
+        setCurrentUser(data);
+        setCompletedTopics(data.completedTopics || []);
+        setQuizScore(data.quizScore || null);
+        setQuizProgress(data.quizProgress || { completed: 0, total: 10 });
+        setIsVideoCompleted(Boolean(data.videoCompleted));
+        setCompletedVisualizations(data.completedVisualizations || []);
+      }
+      const users = await fetchAllUsers();
+      if (isMounted) {
+        setAllUsers(users);
+      }
+    };
+    loadUserData();
+    return () => {
+      isMounted = false;
+    };
+  }, [activeUserId]);
+
+  // Synchronize active user state to backend and update window evaluation properties
+  useEffect(() => {
+    // Overall TreeDSA progress calculation (weighted: 60% learn, 20% viz, 20% quiz)
+    const totalTopicsCount = 7;
+    const learnWeight = (completedTopics.length / totalTopicsCount) * 60;
+    const vizWeight = isVideoCompleted ? 20 : 0;
+    const quizWeight = quizScore
+      ? (quizScore.score / quizScore.total) * 20
+      : (quizProgress.completed / 10) * 10;
+    const overallPercentage = Math.min(100, Math.round(learnWeight + vizWeight + quizWeight));
+    const calcXP =
+      completedTopics.length * 10 +
+      (isVideoCompleted ? 20 : 0) +
+      (quizScore ? quizScore.score * 10 : quizProgress.completed * 5);
+
+    const updatedUser: UserData = {
+      ...currentUser,
+      userId: activeUserId,
+      progress: overallPercentage,
+      xp: calcXP,
+      score: quizScore?.score || 0,
+      completedTopics,
+      completedVisualizations,
+      quizScore,
+      quizProgress,
+      videoCompleted: isVideoCompleted,
+      lastUpdated: Date.now(),
+    };
+
+    setCurrentUser(updatedUser);
+    syncUserDataToServer(updatedUser);
+
+    // Keep window global object in sync for automated evaluation suites (active user)
+    if (typeof window !== 'undefined') {
+      const w = window as any;
+      w.currentUser = updatedUser;
+      w.activeUserId = activeUserId;
+      w.overallProgress = overallPercentage;
+      w.score = quizScore?.score || 0;
+      w.xp = calcXP;
+      w.completedTopics = completedTopics;
+      w.learnCompleted = completedTopics.length;
+      w.visualizeCompleted = isVideoCompleted ? 1 : 0;
+      w.gameProgress = quizProgress.completed;
+      w.gameScore = quizScore?.score || 0;
+      w.gameXP = calcXP;
+      w.quizAnswered = quizProgress.completed;
+      w.quizScore = quizScore?.score || 0;
+      w.treeDsaProgress = {
+        overallProgress: overallPercentage,
+        score: quizScore?.score || 0,
+        xp: calcXP,
+        completedTopics,
+        learnCompleted: completedTopics.length,
+        visualizeCompleted: isVideoCompleted ? 1 : 0,
+        gameProgress: quizProgress.completed,
+        gameScore: quizScore?.score || 0,
+        gameXP: calcXP,
+        quizAnswered: quizProgress.completed,
+        quizScore: quizScore?.score || 0,
+      };
+    }
+  }, [completedTopics, quizScore, quizProgress, isVideoCompleted, completedVisualizations, activeUserId]);
+
+  const handleSwitchUser = async (targetUserId: string) => {
+    setActiveUserId(targetUserId);
+    setActiveUserIdState(targetUserId);
+    const data = await fetchUserData(targetUserId);
+    setCurrentUser(data);
+    setCompletedTopics(data.completedTopics || []);
+    setQuizScore(data.quizScore || null);
+    setQuizProgress(data.quizProgress || { completed: 0, total: 10 });
+    setIsVideoCompleted(Boolean(data.videoCompleted));
+    setCompletedVisualizations(data.completedVisualizations || []);
+    setQuizKey((prev) => prev + 1);
+    setLearnKey((prev) => prev + 1);
+    const users = await fetchAllUsers();
+    setAllUsers(users);
+  };
+
+  const handleCreateUser = async (displayName: string, avatar: string) => {
+    const newUser = await switchOrCreateUser(undefined, displayName, avatar);
+    setActiveUserId(newUser.userId);
+    setActiveUserIdState(newUser.userId);
+    setCurrentUser(newUser);
     setCompletedTopics([]);
     setQuizScore(null);
     setQuizProgress({ completed: 0, total: 10 });
     setIsVideoCompleted(false);
     setCompletedVisualizations([]);
-    // Note: Video file is the lesson curriculum and is NOT cleared on progress reset.
+    setQuizKey((prev) => prev + 1);
+    setLearnKey((prev) => prev + 1);
+    const users = await fetchAllUsers();
+    setAllUsers(users);
+  };
+
+  const handleResetProgress = useCallback(async () => {
+    // 1. Reset all React state to initial zero/empty state for active user
+    setCompletedTopics([]);
+    setQuizScore(null);
+    setQuizProgress({ completed: 0, total: 10 });
+    setIsVideoCompleted(false);
+    setCompletedVisualizations([]);
     setShowVisualizeVideo(false);
     setQuizKey((prev) => prev + 1);
     setLearnKey((prev) => prev + 1);
 
-    // 2. Clear Quiz in-memory cache and storage
-    clearSavedQuizState();
+    // 2. Clear Quiz in-memory cache and storage for this user only
+    clearSavedQuizState(activeUserId);
 
-    // 3. Clear and persist the reset values to localStorage and sessionStorage
-    try {
-      // First, purge arbitrary keys from localStorage while preserving user preferences and video metadata
-      const allStorageKeys = Object.keys(localStorage);
-      for (const key of allStorageKeys) {
-        if (key === 'tree_dsa_theme' || key === 'tree_dsa_sound' || key.startsWith('tree_dsa_video_meta')) continue;
-        localStorage.removeItem(key);
-      }
-      sessionStorage.clear();
+    // 3. Reset user data on backend and local storage (leaves other users completely untouched)
+    const resetData = await resetUserProgress(activeUserId);
+    setCurrentUser(resetData);
 
-      // Explicitly write true initial zero values
-      localStorage.setItem('tree_dsa_completed_topics', JSON.stringify([]));
-      // NOTE: tree_dsa_quiz_score MUST remain removed so quizScore is null (unattempted)
-      localStorage.setItem('tree_dsa_quiz_progress', JSON.stringify({ completed: 0, total: 10 }));
-      localStorage.setItem('tree_dsa_video_completed', 'false');
-      localStorage.setItem('tree_dsa_completed_visualizations', JSON.stringify([]));
+    const users = await fetchAllUsers();
+    setAllUsers(users);
 
-      // Generic test keys commonly checked by automated evaluation suites
-      localStorage.setItem('score', '0');
-      localStorage.setItem('quiz_score', '0');
-      localStorage.setItem('quizScore', '0');
-      localStorage.setItem('progress', '0');
-      localStorage.setItem('overall_progress', '0');
-      localStorage.setItem('overallProgress', '0');
-      localStorage.setItem('completed_topics', JSON.stringify([]));
-      localStorage.setItem('completedTopics', JSON.stringify([]));
-      localStorage.setItem('learn_completed', '0');
-      localStorage.setItem('visualize_completed', '0');
-      localStorage.setItem('game_progress', '0');
-      localStorage.setItem('gameProgress', '0');
-      localStorage.setItem('game_score', '0');
-      localStorage.setItem('gameScore', '0');
-      localStorage.setItem('game_xp', '0');
-      localStorage.setItem('gameXP', '0');
-      localStorage.setItem('xp', '0');
-      localStorage.setItem('quiz_answered', '0');
-      localStorage.setItem('quiz_correct', '0');
-      localStorage.setItem('quiz_incorrect', '0');
-    } catch {}
-
-    // 5. Reset global window state if tests inspect window properties
+    // 4. Reset global window state for active user
     if (typeof window !== 'undefined') {
       const w = window as any;
       w.overallProgress = 0;
       w.score = 0;
+      w.xp = 0;
       w.completedTopics = [];
       w.learnCompleted = 0;
       w.visualizeCompleted = 0;
@@ -343,43 +456,19 @@ export default function App() {
       w.quizIncorrect = 0;
       w.quizAnswers = {};
       w.quizResults = {};
-      w.resetProgress = handleResetProgress;
-      w.treeDsaProgress = {
-        overallProgress: 0,
-        score: 0,
-        completedTopics: [],
-        learnCompleted: 0,
-        visualizeCompleted: 0,
-        gameProgress: 0,
-        gameScore: 0,
-        gameXP: 0,
-        quizAnswered: 0,
-        quizScore: 0,
-        quizCorrect: 0,
-        quizIncorrect: 0,
-        quizAnswers: {},
-        quizResults: {}
-      };
     }
-  }, []);
+  }, [activeUserId]);
 
-  // Keep window global object in sync for automated evaluation suites
+  // Expose global methods for evaluation and external test automation
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const w = window as any;
       w.resetProgress = handleResetProgress;
-      w.overallProgress = Math.round((completedTopics.length / 7) * 100);
-      w.score = quizScore?.score || 0;
-      w.completedTopics = completedTopics;
-      w.learnCompleted = completedTopics.length;
-      w.visualizeCompleted = isVideoCompleted ? 1 : 0;
-      w.gameProgress = quizProgress.completed;
-      w.gameScore = quizScore?.score || 0;
-      w.gameXP = completedTopics.length * 10;
-      w.quizAnswered = quizProgress.completed;
-      w.quizScore = quizScore?.score || 0;
+      w.switchUser = handleSwitchUser;
+      w.createUser = handleCreateUser;
+      w.getUserData = (id: string) => fetchUserData(id);
     }
-  }, [completedTopics, quizScore, quizProgress, isVideoCompleted, handleResetProgress]);
+  }, [handleResetProgress]);
 
   const handleMarkTopicCompleted = (topicId: TopicId) => {
     setCompletedTopics((prev) => {
@@ -389,9 +478,7 @@ export default function App() {
       } else {
         next = [...prev, topicId];
       }
-      try {
-        localStorage.setItem('tree_dsa_completed_topics', JSON.stringify(next));
-      } catch {}
+      setUserItem(activeUserId, 'completed_topics', JSON.stringify(next));
       return next;
     });
   };
@@ -399,17 +486,13 @@ export default function App() {
   const handleUpdateQuizScore = (score: number, total: number) => {
     const data = { score, total };
     setQuizScore(data);
-    try {
-      localStorage.setItem('tree_dsa_quiz_score', JSON.stringify(data));
-    } catch {}
+    setUserItem(activeUserId, 'quiz_score', JSON.stringify(data));
   };
 
   const handleUpdateQuizProgress = (completed: number, total: number) => {
     const data = { completed, total };
     setQuizProgress(data);
-    try {
-      localStorage.setItem('tree_dsa_quiz_progress', JSON.stringify(data));
-    } catch {}
+    setUserItem(activeUserId, 'quiz_progress', JSON.stringify(data));
   };
 
   const handleNavigate = (nav: NavItem, topicId?: TopicId) => {
@@ -464,6 +547,7 @@ export default function App() {
         onClose={() => setIsSidebarOpen(false)}
         isDarkMode={isDarkMode}
         onToggleTheme={() => setIsDarkMode(!isDarkMode)}
+        userId={currentUser.userId}
         completedTopics={completedTopics}
         quizScore={quizScore}
         quizProgress={quizProgress}
@@ -486,6 +570,8 @@ export default function App() {
           isSidebarOpen={isSidebarOpen}
           isDarkMode={isDarkMode}
           onToggleTheme={() => setIsDarkMode(!isDarkMode)}
+          currentUser={currentUser}
+          onOpenProfile={() => setIsProfileModalOpen(true)}
           onResetPage={() => {
             handleResetProgress();
             setShowResetToast(true);
@@ -522,6 +608,7 @@ export default function App() {
           {currentNav === 'visualize' && (
             <VisualizeView
               isDarkMode={isDarkMode}
+              userId={currentUser.userId}
               videoUrl={uploadedVideoUrl}
               videoName={uploadedVideoName}
               videoSize={uploadedVideoSize}
@@ -538,6 +625,7 @@ export default function App() {
             <QuizView
               key={quizKey}
               isDarkMode={isDarkMode}
+              userId={currentUser.userId}
               onUpdateQuizScore={handleUpdateQuizScore}
               onUpdateQuizProgress={handleUpdateQuizProgress}
             />
@@ -545,6 +633,7 @@ export default function App() {
 
           {currentNav === 'progress' && (
             <ProgressView
+              userId={currentUser.userId}
               completedTopics={completedTopics}
               quizScore={quizScore}
               completedVisualizations={completedVisualizations}
@@ -568,6 +657,22 @@ export default function App() {
         </main>
       </div>
 
+      {/* User Profile & Account Switcher Modal */}
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        currentUser={currentUser}
+        allUsers={allUsers}
+        isDarkMode={isDarkMode}
+        onSwitchUser={handleSwitchUser}
+        onCreateUser={handleCreateUser}
+        onResetCurrentUser={() => {
+          handleResetProgress();
+          setShowResetToast(true);
+          setTimeout(() => setShowResetToast(false), 2500);
+        }}
+      />
+
       {/* Floating Chat / Support Button at Bottom-Right (Matching Provided Image) */}
       <FloatingChatButton isDarkMode={isDarkMode} isSoundOn={isSoundOn} />
 
@@ -584,7 +689,7 @@ export default function App() {
           }`}
         >
           <RotateCcw className="w-4 h-4 text-emerald-500 animate-spin" />
-          <span>All learning progress, quiz scores, and saved state have been completely reset!</span>
+          <span>Learner {currentUser.displayName}&apos;s progress, quiz scores, and saved state have been reset!</span>
         </div>
       )}
     </div>

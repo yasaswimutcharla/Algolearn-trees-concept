@@ -146,3 +146,45 @@ export interface QuizQuestion {
   correctAnswerIndex: number;
   explanation: string;
 }
+
+export interface UserSummary {
+  userId: string;
+  displayName: string;
+  avatar: string;
+  progress: number;
+  xp: number;
+  lastActive: number;
+}
+
+export interface UserData {
+  userId: string;
+  displayName: string;
+  avatar: string;
+  progress: number;
+  xp: number;
+  score: number;
+  completedTopics: TopicId[];
+  completedVisualizations: string[];
+  quizScore: { score: number; total: number } | null;
+  quizProgress: { completed: number; total: number };
+  quizState: {
+    currentQuestionIndex: number;
+    userAnswers: Record<string, number>;
+    confirmedQuestions: Record<string, boolean>;
+    submitted: boolean;
+  } | null;
+  gameScore: number;
+  gameXP: number;
+  achievements: string[];
+  videoCompleted: boolean;
+  learningStreak: number;
+  timelineTimestamps: Record<string, number>;
+  joinedTime: number;
+  currentNav: NavItem;
+  currentTopicId: TopicId;
+  settings: {
+    isDarkMode: boolean;
+    isSoundOn: boolean;
+  };
+  lastUpdated: number;
+}

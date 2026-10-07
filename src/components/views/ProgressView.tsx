@@ -23,8 +23,10 @@ import {
   Flame,
   Sparkles
 } from 'lucide-react';
+import { getActiveUserId, getUserItem, setUserItem, removeUserItem } from '../../utils/userStorage';
 
 interface ProgressViewProps {
+  userId?: string;
   completedTopics: TopicId[];
   quizScore: { score: number; total: number } | null;
   completedVisualizations?: string[];
@@ -181,6 +183,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
   onNavigate,
   onResetProgress,
   isDarkMode,
+  userId,
   uploadedVideoUrl: propVideoUrl,
   uploadedVideoName: propVideoName,
   uploadedVideoSize: propVideoSize,
@@ -190,6 +193,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
   onToggleVideoCompleted,
   onWatchAgain
 }) => {
+  const effectiveUserId = userId || getActiveUserId();
   const [localIsVideoCompleted, setLocalIsVideoCompleted] = useState<boolean>(false);
   const [showResetConfirmModal, setShowResetConfirmModal] = useState<boolean>(false);
   const [localResetTick, setLocalResetTick] = useState<number>(0);
@@ -197,7 +201,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
   // Persistent timeline timestamps (remains saved across reloads/nav)
   const [timelineTimestamps, setTimelineTimestamps] = useState<Record<string, number>>(() => {
     try {
-      const saved = localStorage.getItem('tree_dsa_timeline_timestamps');
+      const saved = getUserItem(effectiveUserId, 'timeline_timestamps');
       if (saved) return JSON.parse(saved);
     } catch {}
     return {};
@@ -205,13 +209,13 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
 
   const [joinedTime, setJoinedTime] = useState<number>(() => {
     try {
-      const saved = localStorage.getItem('tree_dsa_joined_time');
+      const saved = getUserItem(effectiveUserId, 'joined_time');
       if (saved) {
         const parsed = parseInt(saved, 10);
         if (!isNaN(parsed) && parsed > 0) return parsed;
       }
       const now = Date.now();
-      localStorage.setItem('tree_dsa_joined_time', String(now));
+      setUserItem(effectiveUserId, 'joined_time', String(now));
       return now;
     } catch {
       return Date.now();
@@ -221,9 +225,9 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
   // Sync quiz answered progress from real app storage
   const [quizAnsweredCount, setQuizAnsweredCount] = useState<number>(() => {
     try {
-      const saved = localStorage.getItem('tree_dsa_quiz_progress');
+      const saved = getUserItem(effectiveUserId, 'quiz_progress');
       if (saved) return JSON.parse(saved).completed || 0;
-      const quizState = localStorage.getItem('tree_dsa_quiz_state');
+      const quizState = getUserItem(effectiveUserId, 'quiz_state');
       if (quizState) {
         const parsed = JSON.parse(quizState);
         return Object.keys(parsed?.confirmedQuestions || {}).length || 0;
@@ -234,12 +238,12 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('tree_dsa_quiz_progress');
+      const saved = getUserItem(effectiveUserId, 'quiz_progress');
       if (saved) {
         setQuizAnsweredCount(JSON.parse(saved).completed || 0);
         return;
       }
-      const quizState = localStorage.getItem('tree_dsa_quiz_state');
+      const quizState = getUserItem(effectiveUserId, 'quiz_state');
       if (quizState) {
         const parsed = JSON.parse(quizState);
         setQuizAnsweredCount(Object.keys(parsed?.confirmedQuestions || {}).length || 0);
@@ -249,7 +253,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
     } catch {
       setQuizAnsweredCount(0);
     }
-  }, [quizScore, completedTopics, localResetTick]);
+  }, [quizScore, completedTopics, localResetTick, effectiveUserId]);
 
   const isVideoCompleted = propVideoCompleted !== undefined ? propVideoCompleted : localIsVideoCompleted;
   const isVisualDone = Boolean(isVideoCompleted || completedVisualizations.length > 0);
@@ -304,11 +308,11 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
       });
 
       if (changed) {
-        localStorage.setItem('tree_dsa_timeline_timestamps', JSON.stringify(existing));
+        setUserItem(effectiveUserId, 'timeline_timestamps', JSON.stringify(existing));
         setTimelineTimestamps(existing);
       }
     } catch {}
-  }, [completedTopics, isVisualDone, quizScore, joinedTime, localResetTick]);
+  }, [completedTopics, isVisualDone, quizScore, joinedTime, localResetTick, effectiveUserId]);
 
   const handleToggleCompleted = () => {
     if (onToggleVideoCompleted) {
@@ -333,9 +337,9 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
     setLocalResetTick((t) => t + 1);
     const now = Date.now();
     try {
-      localStorage.removeItem('tree_dsa_learning_streak');
-      localStorage.removeItem('tree_dsa_timeline_timestamps');
-      localStorage.setItem('tree_dsa_joined_time', String(now));
+      removeUserItem(effectiveUserId, 'learning_streak');
+      removeUserItem(effectiveUserId, 'timeline_timestamps');
+      setUserItem(effectiveUserId, 'joined_time', String(now));
     } catch {}
     setTimelineTimestamps({ joined: now });
     setJoinedTime(now);
@@ -372,7 +376,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
       return 0;
     }
     try {
-      const saved = localStorage.getItem('tree_dsa_learning_streak');
+      const saved = getUserItem(effectiveUserId, 'learning_streak');
       if (saved) {
         const num = parseInt(saved, 10);
         if (!isNaN(num) && num > 0) return num;

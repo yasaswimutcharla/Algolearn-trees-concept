@@ -54,10 +54,10 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, isDarkMode }) =>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-balance">
               <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>
-                Non-Linear Hierarchical{' '}
+                Tree-Non linear{' '}
               </span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED]">
-                Data Structure
+                datastructure
               </span>
             </h1>
 

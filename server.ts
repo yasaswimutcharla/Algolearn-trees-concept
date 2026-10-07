@@ -13,9 +13,188 @@ async function startServer() {
     fs.mkdirSync(videosDir, { recursive: true });
   }
 
+  // Directory for isolated multi-user progress storage in data/users
+  const usersDir = path.join(process.cwd(), 'data', 'users');
+  if (!fs.existsSync(usersDir)) {
+    fs.mkdirSync(usersDir, { recursive: true });
+  }
+
+  // Helper to sanitize userId for safe filesystem paths
+  const getSafeUserId = (rawId: string): string => {
+    return (rawId || 'anonymous').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 64);
+  };
+
+  const getUserFilePath = (userId: string): string => {
+    const safe = getSafeUserId(userId);
+    return path.join(usersDir, `${safe}.json`);
+  };
+
+  const createInitialUserData = (userId: string, displayName?: string, avatar?: string) => {
+    const name = displayName?.trim() || (userId.startsWith('user_') ? `Learner ${userId.slice(5, 9)}` : userId);
+    return {
+      userId,
+      displayName: name,
+      avatar: avatar || '🌳',
+      progress: 0,
+      xp: 0,
+      score: 0,
+      completedTopics: [],
+      completedVisualizations: [],
+      quizScore: null,
+      quizProgress: { completed: 0, total: 10 },
+      quizState: null,
+      gameScore: 0,
+      gameXP: 0,
+      achievements: [],
+      videoCompleted: false,
+      learningStreak: 1,
+      timelineTimestamps: { joined: Date.now() },
+      joinedTime: Date.now(),
+      currentNav: 'home',
+      currentTopicId: 'basics',
+      settings: {
+        isDarkMode: true,
+        isSoundOn: true,
+      },
+      lastUpdated: Date.now(),
+    };
+  };
+
+  // Parse JSON bodies for API endpoints
+  app.use(express.json());
+
   // Health check
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
+  });
+
+  // ==========================================
+  // MULTI-USER ISOLATED ENDPOINTS
+  // ==========================================
+
+  // 1. List user profiles (summaries only, zero data leakage)
+  app.get('/api/users', (_req, res) => {
+    try {
+      const files = fs.readdirSync(usersDir).filter((f) => f.endsWith('.json'));
+      const summaries = files.map((file) => {
+        try {
+          const content = JSON.parse(fs.readFileSync(path.join(usersDir, file), 'utf8'));
+          return {
+            userId: content.userId || file.replace('.json', ''),
+            displayName: content.displayName || 'Learner',
+            avatar: content.avatar || '🌳',
+            progress: typeof content.progress === 'number' ? content.progress : 0,
+            xp: typeof content.xp === 'number' ? content.xp : 0,
+            lastActive: content.lastUpdated || Date.now(),
+          };
+        } catch {
+          return null;
+        }
+      }).filter(Boolean);
+
+      res.json({ users: summaries });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to list users: ' + err.message });
+    }
+  });
+
+  // 2. Get specific user's isolated data
+  app.get('/api/users/:userId', (req, res) => {
+    try {
+      const { userId } = req.params;
+      const filePath = getUserFilePath(userId);
+
+      if (fs.existsSync(filePath)) {
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        return res.json(data);
+      }
+
+      // New user first visit -> initialize strictly isolated 0% data
+      const initial = createInitialUserData(userId);
+      fs.writeFileSync(filePath, JSON.stringify(initial, null, 2), 'utf8');
+      return res.json(initial);
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to get user data: ' + err.message });
+    }
+  });
+
+  // 3. Create or switch to a user profile
+  app.post('/api/users', (req, res) => {
+    try {
+      const { userId, displayName, avatar } = req.body || {};
+      const targetId = userId?.trim() || `user_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+      const filePath = getUserFilePath(targetId);
+
+      if (fs.existsSync(filePath)) {
+        const existing = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        if (displayName) existing.displayName = displayName.trim();
+        if (avatar) existing.avatar = avatar;
+        existing.lastUpdated = Date.now();
+        fs.writeFileSync(filePath, JSON.stringify(existing, null, 2), 'utf8');
+        return res.json(existing);
+      }
+
+      const initial = createInitialUserData(targetId, displayName, avatar);
+      fs.writeFileSync(filePath, JSON.stringify(initial, null, 2), 'utf8');
+      return res.status(201).json(initial);
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to create user: ' + err.message });
+    }
+  });
+
+  // 4. Update specific user's progress
+  app.put('/api/users/:userId/progress', (req, res) => {
+    try {
+      const { userId } = req.params;
+      const updates = req.body || {};
+      const filePath = getUserFilePath(userId);
+
+      let currentData: any;
+      if (fs.existsSync(filePath)) {
+        currentData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      } else {
+        currentData = createInitialUserData(userId, updates.displayName, updates.avatar);
+      }
+
+      // Merge only allowed user-specific fields
+      const merged = {
+        ...currentData,
+        ...updates,
+        userId, // Enforce current userId cannot be changed
+        lastUpdated: Date.now(),
+      };
+
+      fs.writeFileSync(filePath, JSON.stringify(merged, null, 2), 'utf8');
+      res.json({ success: true, user: merged });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to save user progress: ' + err.message });
+    }
+  });
+
+  // 5. Reset ONLY this user's data (leaving all other users completely untouched)
+  app.post('/api/users/:userId/reset', (req, res) => {
+    try {
+      const { userId } = req.params;
+      const filePath = getUserFilePath(userId);
+
+      let displayName = undefined;
+      let avatar = undefined;
+      if (fs.existsSync(filePath)) {
+        try {
+          const prev = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          displayName = prev.displayName;
+          avatar = prev.avatar;
+        } catch {}
+      }
+
+      // Reset to 0% progress and empty values for this user
+      const resetData = createInitialUserData(userId, displayName, avatar);
+      fs.writeFileSync(filePath, JSON.stringify(resetData, null, 2), 'utf8');
+
+      res.json({ success: true, user: resetData });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to reset user: ' + err.message });
+    }
   });
 
   // Query if a final lesson video has been uploaded and stored on the server

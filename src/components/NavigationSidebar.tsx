@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavItem, TopicId } from '../types';
+import { getActiveUserId, getUserItem } from '../utils/userStorage';
 import {
   LayoutGrid,
   BookOpen,
@@ -17,6 +18,7 @@ interface NavigationSidebarProps {
   onClose: () => void;
   isDarkMode: boolean;
   onToggleTheme: () => void;
+  userId?: string;
   completedTopics?: TopicId[];
   quizScore?: { score: number; total: number } | null;
   quizProgress?: { completed: number; total: number } | null;
@@ -33,15 +35,20 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   onToggleOpen,
   onClose,
   isDarkMode,
+  userId,
   completedTopics = [],
   quizProgress = null,
   completedVisualizations = [],
   isVideoCompleted: propIsVideoCompleted,
 }) => {
+  const effectiveUserId = userId || getActiveUserId();
+  const [isNavHovered, setIsNavHovered] = React.useState<boolean>(false);
+  const [hoveredItemId, setHoveredItemId] = React.useState<NavItem | null>(null);
+
   // Read video completion status
   const isVideoDone = propIsVideoCompleted !== undefined ? propIsVideoCompleted : (() => {
     try {
-      return localStorage.getItem('tree_dsa_video_completed') === 'true';
+      return getUserItem(effectiveUserId, 'video_completed') === 'true';
     } catch {
       return false;
     }
@@ -58,9 +65,9 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const vizCompleted = Math.min((isVideoDone ? 1 : 0) + completedVisualizations.length, vizTotal);
   const quizCompleted = quizProgress ? Math.min(quizProgress.completed, quizTotal) : (() => {
     try {
-      const raw = localStorage.getItem('tree_dsa_quiz_progress');
+      const raw = getUserItem(effectiveUserId, 'quiz_progress');
       if (raw) return Math.min(JSON.parse(raw).completed, quizTotal);
-      const state = localStorage.getItem('tree_dsa_quiz_state');
+      const state = getUserItem(effectiveUserId, 'quiz_state');
       if (state) return Math.min(Object.keys(JSON.parse(state).confirmedQuestions || {}).length, quizTotal);
     } catch {}
     return 0;
@@ -115,6 +122,11 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       {/* Main Sidebar Container matching Screenshot (105) */}
       <aside
         id="app-navigation-sidebar"
+        onMouseEnter={() => setIsNavHovered(true)}
+        onMouseLeave={() => {
+          setIsNavHovered(false);
+          setHoveredItemId(null);
+        }}
         className={`fixed top-0 bottom-0 left-0 z-50 w-64 sm:w-72 flex flex-col transition-transform duration-300 ease-in-out border-r ${
           isDarkMode
             ? 'bg-black border-zinc-900 text-slate-200 shadow-2xl shadow-black'
@@ -151,12 +163,15 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               const Icon = item.icon;
               const badge = getBadgeValue(item.id);
               const isActive = item.id === currentNav;
+              const isHovered = isNavHovered || hoveredItemId === item.id;
 
               return (
                 <button
                   key={item.id}
                   id={`nav-item-${item.id}`}
                   onClick={() => handleNavClick(item.id)}
+                  onMouseEnter={() => setHoveredItemId(item.id)}
+                  onMouseLeave={() => setHoveredItemId(null)}
                   className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-150 cursor-pointer justify-start border ${
                     isActive
                       ? isDarkMode
@@ -195,16 +210,20 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                     {item.label}
                   </span>
 
-                  {/* Always-visible Progress Badge Pill matching Screenshot (105) */}
+                  {/* Progress Badge Pill: only displayed when cursor goes to that navigation menu */}
                   <span
-                    className={`ml-auto text-xs font-mono font-bold px-2.5 py-0.5 rounded-full select-none ${
+                    className={`ml-auto text-xs font-mono font-bold px-2.5 py-0.5 rounded-full select-none transition-all duration-200 ${
+                      isHovered
+                        ? 'opacity-100 translate-x-0'
+                        : 'opacity-0 translate-x-2 pointer-events-none'
+                    } ${
                       isActive
                         ? isDarkMode
                           ? 'bg-zinc-800 text-indigo-300'
                           : 'bg-[#E0E7FF] text-[#4F46E5]'
                         : isDarkMode
-                        ? 'bg-zinc-950 text-blue-400'
-                        : 'bg-[#EFF6FF] text-[#3B82F6]'
+                        ? 'bg-zinc-950 text-blue-400 group-hover:bg-zinc-800'
+                        : 'bg-[#EFF6FF] text-[#3B82F6] group-hover:bg-indigo-50'
                     }`}
                   >
                     {badge}

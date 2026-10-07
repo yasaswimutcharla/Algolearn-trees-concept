@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { getActiveUserId, getUserItem, setUserItem, removeUserItem } from '../../utils/userStorage';
 import {
   Play,
   Pause,
@@ -20,6 +21,7 @@ import {
 
 interface VisualizeViewProps {
   isDarkMode: boolean;
+  userId?: string;
   videoUrl?: string | null;
   videoName?: string;
   videoSize?: string;
@@ -37,6 +39,7 @@ const DEFAULT_VIDEO_SIZE = '11.0 MB';
 
 export const VisualizeView: React.FC<VisualizeViewProps> = ({
   isDarkMode,
+  userId,
   videoUrl,
   videoName,
   videoSize,
@@ -47,6 +50,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
   isUploadingVideo = false,
   uploadStatus = ''
 }) => {
+  const effectiveUserId = userId || getActiveUserId();
   const activeVideoUrl = videoUrl || DEFAULT_VIDEO_URL;
   const activeVideoName = videoName || DEFAULT_VIDEO_NAME;
   const activeVideoSize = videoSize || DEFAULT_VIDEO_SIZE;
@@ -69,7 +73,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
   // Restore and remember last playback timestamp across navigation and reloads
   useEffect(() => {
     try {
-      const savedTime = parseFloat(localStorage.getItem('tree_dsa_video_last_time') || '0');
+      const savedTime = parseFloat(getUserItem(effectiveUserId, 'video_last_time') || '0');
       if (savedTime > 0 && videoRef.current) {
         const onLoaded = () => {
           if (videoRef.current && savedTime < (videoRef.current.duration || 10000)) {
@@ -84,7 +88,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
         }
       }
     } catch {}
-  }, [activeVideoUrl]);
+  }, [activeVideoUrl, effectiveUserId]);
 
   // Sync fullscreen change event
   useEffect(() => {
@@ -390,11 +394,11 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               onPause={() => setIsPlaying(false)}
               onTimeUpdate={() => {
                 if (videoRef.current) {
-                  const t = videoRef.current.currentTime;
-                  setCurrentTime(t);
-                  try {
-                    localStorage.setItem('tree_dsa_video_last_time', String(t));
-                  } catch {}
+                   const t = videoRef.current.currentTime;
+                   setCurrentTime(t);
+                   try {
+                     setUserItem(effectiveUserId, 'video_last_time', String(t));
+                   } catch {}
                 }
               }}
               onLoadedMetadata={() => {
@@ -405,7 +409,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               onEnded={() => {
                 setIsPlaying(false);
                 try {
-                  localStorage.removeItem('tree_dsa_video_last_time');
+                  removeUserItem(effectiveUserId, 'video_last_time');
                 } catch {}
                 if (onToggleVideoCompleted && !isVideoCompleted) {
                   onToggleVideoCompleted();

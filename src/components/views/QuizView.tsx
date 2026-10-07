@@ -16,6 +16,8 @@ import { ProgressiveHintModal, QUIZ_HINT_STAGES } from '../ProgressiveHintModal'
 
 const QUIZ_STORAGE_KEY = 'tree_dsa_quiz_state';
 
+import { getActiveUserId, getUserStorageKey } from '../../utils/userStorage';
+
 export interface QuizSavedState {
   currentQuestionIndex: number;
   userAnswers: Record<string, number>;
@@ -23,69 +25,79 @@ export interface QuizSavedState {
   submitted: boolean;
 }
 
-// In-memory cache ensures zero-loss persistence across component unmounts in the session
-let inMemoryQuizState: QuizSavedState | null = null;
+// In-memory cache isolated per user ID ensures zero cross-user leakage
+const inMemoryQuizStateMap = new Map<string, QuizSavedState>();
 
-export const loadSavedQuizState = (): QuizSavedState | null => {
-  if (inMemoryQuizState) {
-    return inMemoryQuizState;
+export const loadSavedQuizState = (userId?: string): QuizSavedState | null => {
+  const effectiveUserId = userId || getActiveUserId();
+  if (inMemoryQuizStateMap.has(effectiveUserId)) {
+    return inMemoryQuizStateMap.get(effectiveUserId)!;
   }
   try {
-    const raw = sessionStorage.getItem(QUIZ_STORAGE_KEY) || localStorage.getItem(QUIZ_STORAGE_KEY);
+    const storageKey = getUserStorageKey(effectiveUserId, 'quiz_state');
+    const raw = sessionStorage.getItem(storageKey) || localStorage.getItem(storageKey);
     if (raw) {
       const parsed = JSON.parse(raw);
-      inMemoryQuizState = parsed;
+      inMemoryQuizStateMap.set(effectiveUserId, parsed);
       return parsed;
     }
   } catch {}
   return null;
 };
 
-export const saveQuizState = (state: QuizSavedState) => {
-  inMemoryQuizState = state;
+export const saveQuizState = (state: QuizSavedState, userId?: string) => {
+  const effectiveUserId = userId || getActiveUserId();
+  inMemoryQuizStateMap.set(effectiveUserId, state);
   try {
+    const storageKey = getUserStorageKey(effectiveUserId, 'quiz_state');
     const serialized = JSON.stringify(state);
-    sessionStorage.setItem(QUIZ_STORAGE_KEY, serialized);
-    localStorage.setItem(QUIZ_STORAGE_KEY, serialized);
+    sessionStorage.setItem(storageKey, serialized);
+    localStorage.setItem(storageKey, serialized);
   } catch {}
 };
 
-export const clearSavedQuizState = () => {
-  inMemoryQuizState = null;
+export const clearSavedQuizState = (userId?: string) => {
+  const effectiveUserId = userId || getActiveUserId();
+  inMemoryQuizStateMap.delete(effectiveUserId);
   try {
-    sessionStorage.removeItem(QUIZ_STORAGE_KEY);
-    localStorage.removeItem(QUIZ_STORAGE_KEY);
+    const storageKey = getUserStorageKey(effectiveUserId, 'quiz_state');
+    sessionStorage.removeItem(storageKey);
+    localStorage.removeItem(storageKey);
   } catch {}
 };
 
 interface QuizViewProps {
   isDarkMode: boolean;
+  userId?: string;
   onUpdateQuizScore?: (score: number, total: number) => void;
   onUpdateQuizProgress?: (completed: number, total: number) => void;
 }
 
 export const QuizView: React.FC<QuizViewProps> = ({
   isDarkMode,
+  userId,
   onUpdateQuizScore,
   onUpdateQuizProgress
 }) => {
+  const effectiveUserId = userId || getActiveUserId();
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(() => {
-    const saved = loadSavedQuizState();
+    const saved = loadSavedQuizState(effectiveUserId);
     if (typeof saved?.currentQuestionIndex === 'number') {
       return Math.max(0, Math.min(QUIZ_QUESTIONS.length - 1, saved.currentQuestionIndex));
     }
     return 0;
   });
   const [userAnswers, setUserAnswers] = useState<Record<string, number>>(() => {
-    const saved = loadSavedQuizState();
+    const saved = loadSavedQuizState(effectiveUserId);
     return saved?.userAnswers ?? {};
   });
   const [confirmedQuestions, setConfirmedQuestions] = useState<Record<string, boolean>>(() => {
-    const saved = loadSavedQuizState();
+    const saved = loadSavedQuizState(effectiveUserId);
     return saved?.confirmedQuestions ?? {};
   });
   const [submitted, setSubmitted] = useState<boolean>(() => {
-    const saved = loadSavedQuizState();
+    const saved = loadSavedQuizState(effectiveUserId);
     return Boolean(saved?.submitted);
   });
   const [isHintModalOpen, setIsHintModalOpen] = useState<boolean>(false);
@@ -99,8 +111,8 @@ export const QuizView: React.FC<QuizViewProps> = ({
       userAnswers,
       confirmedQuestions,
       submitted
-    });
-  }, [currentQuestionIndex, userAnswers, confirmedQuestions, submitted]);
+    }, effectiveUserId);
+  }, [currentQuestionIndex, userAnswers, confirmedQuestions, submitted, effectiveUserId]);
 
   const currentQ = QUIZ_QUESTIONS[currentQuestionIndex];
   const selectedAnswer = userAnswers[currentQ?.id];
@@ -181,13 +193,13 @@ export const QuizView: React.FC<QuizViewProps> = ({
   };
 
   const handleRetake = () => {
-    clearSavedQuizState();
+    clearSavedQuizState(effectiveUserId);
     setUserAnswers({});
     setConfirmedQuestions({});
     setSubmitted(false);
     setCurrentQuestionIndex(0);
     try {
-      localStorage.removeItem('tree_dsa_quiz_score');
+      localStorage.removeItem(getUserStorageKey(effectiveUserId, 'quiz_score'));
     } catch {}
     if (onUpdateQuizProgress) {
       onUpdateQuizProgress(0, totalQuestions);

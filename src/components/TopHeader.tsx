@@ -1,12 +1,13 @@
 import React from 'react';
-import { NavItem } from '../types';
+import { NavItem, UserData } from '../types';
 import {
   Menu,
   Sun,
   Moon,
   Volume2,
   VolumeX,
-  RotateCcw
+  RotateCcw,
+  User
 } from 'lucide-react';
 import { AlgoLearnLogo } from './AlgoLearnLogo';
 
@@ -20,6 +21,8 @@ interface TopHeaderProps {
   isSoundOn?: boolean;
   onToggleSound?: () => void;
   onNavigateHome?: () => void;
+  currentUser?: UserData;
+  onOpenProfile?: () => void;
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
@@ -31,7 +34,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onResetPage,
   isSoundOn = true,
   onToggleSound,
-  onNavigateHome
+  onNavigateHome,
+  currentUser,
+  onOpenProfile
 }) => {
   const [isResetting, setIsResetting] = React.useState(false);
 
@@ -54,9 +59,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           : 'bg-white/95 border-indigo-100/80 text-slate-900'
       }`}
     >
-      {/* Bottom accent gradient line matching the uploaded theme */}
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED] opacity-80" />
-
       {/* Left side: Hamburger menu button + AlgoLearn Logo at top left in place of section headings */}
       <div className="flex items-center gap-3">
         {!isSidebarOpen && (
@@ -88,7 +90,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         </div>
       </div>
 
-      {/* Right side: 3 circular buttons matching Screenshot (47) in order: Sun/Theme, Sound/Audio, Reset */}
+      {/* Right side: 3 circular buttons (Sun, Sound, Reset) */}
       <div className="flex items-center gap-2 sm:gap-2.5">
         {/* 1. Theme toggle circular button */}
         <button
@@ -130,7 +132,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         <button
           id="header-reset-page-btn"
           onClick={handleResetClick}
-          title="Reset All Progress & State"
+          title="Reset Active Learner's Progress & State"
           className={`group w-9 h-9 rounded-full flex items-center justify-center border transition-all cursor-pointer ${
             isDarkMode
               ? 'border-zinc-800 bg-[#0d0d0d] hover:bg-rose-950/40 hover:border-zinc-700 text-slate-300 hover:text-rose-300'
