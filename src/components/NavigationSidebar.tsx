@@ -55,8 +55,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   })();
 
   // Activity counts matching lesson curriculum
-  const totalActivities = 17;
-  const learnTotal = 6;
+  const totalActivities = 18;
+  const learnTotal = 7;
   const vizTotal = 1;
   const quizTotal = 10;
 

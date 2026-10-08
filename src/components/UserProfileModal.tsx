@@ -22,6 +22,7 @@ interface UserProfileModalProps {
   onSwitchUser: (userId: string) => Promise<void> | void;
   onCreateUser: (displayName: string, avatar: string) => Promise<void> | void;
   onResetCurrentUser: () => void;
+  onLogoutToFreshSession?: () => Promise<void> | void;
 }
 
 const AVATAR_OPTIONS = ['🌳', '🌿', '🌲', '🌴', '🎋', '🦉', '⚡', '🚀', '🧠', '💻'];
@@ -34,7 +35,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   isDarkMode,
   onSwitchUser,
   onCreateUser,
-  onResetCurrentUser
+  onResetCurrentUser,
+  onLogoutToFreshSession
 }) => {
   const [activeTab, setActiveTab] = useState<'profile' | 'switch' | 'new'>('profile');
   const [newDisplayName, setNewDisplayName] = useState('');
@@ -217,7 +219,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
 
             {/* Action Buttons */}
-            <div className="pt-2 flex items-center justify-between gap-3">
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => {
@@ -236,14 +238,34 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 Reset Only My Progress
               </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('new')}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:opacity-95 transition-all cursor-pointer flex items-center gap-1.5"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Add / Switch Learner
-              </button>
+              <div className="flex items-center gap-2">
+                {onLogoutToFreshSession && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await onLogoutToFreshSession();
+                      onClose();
+                    }}
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                      isDarkMode
+                        ? 'border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-slate-300'
+                        : 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    }`}
+                    title="Start fresh 0% visitor session"
+                  >
+                    Log Out (Fresh Session)
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('new')}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:opacity-95 transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add / Switch
+                </button>
+              </div>
             </div>
           </div>
         )}

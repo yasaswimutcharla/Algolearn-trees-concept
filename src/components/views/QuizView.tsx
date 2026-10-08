@@ -16,7 +16,7 @@ import { ProgressiveHintModal, QUIZ_HINT_STAGES } from '../ProgressiveHintModal'
 
 const QUIZ_STORAGE_KEY = 'tree_dsa_quiz_state';
 
-import { getActiveUserId, getUserStorageKey } from '../../utils/userStorage';
+import { getActiveUserId, getUserStorageKey, removeUserItem } from '../../utils/userStorage';
 
 export interface QuizSavedState {
   currentQuestionIndex: number;
@@ -198,9 +198,8 @@ export const QuizView: React.FC<QuizViewProps> = ({
     setConfirmedQuestions({});
     setSubmitted(false);
     setCurrentQuestionIndex(0);
-    try {
-      localStorage.removeItem(getUserStorageKey(effectiveUserId, 'quiz_score'));
-    } catch {}
+    removeUserItem(effectiveUserId, 'quiz_score');
+    removeUserItem(effectiveUserId, 'quiz_progress');
     if (onUpdateQuizProgress) {
       onUpdateQuizProgress(0, totalQuestions);
     }

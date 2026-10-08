@@ -144,6 +144,30 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               : 'group-hover:rotate-180 ' + (isDarkMode ? 'text-slate-400 group-hover:text-white' : 'text-slate-700 group-hover:text-black')
           }`} />
         </button>
+
+        {/* 4. Learner Profile Button */}
+        {currentUser && onOpenProfile && (
+          <button
+            id="header-profile-btn"
+            onClick={onOpenProfile}
+            title={`Active Learner: ${currentUser.displayName} (${currentUser.userId}) - Click to manage account or switch user`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all cursor-pointer text-xs font-semibold ${
+              isDarkMode
+                ? 'border-zinc-800 bg-[#0d0d0d] hover:bg-zinc-900 text-slate-200'
+                : 'border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100 text-indigo-900'
+            }`}
+          >
+            <span className="text-sm leading-none">{currentUser.avatar || '🌳'}</span>
+            <span className="hidden sm:inline max-w-[85px] truncate">{currentUser.displayName}</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                isDarkMode ? 'bg-violet-950/80 text-violet-300 border border-violet-800/40' : 'bg-indigo-100 text-indigo-800'
+              }`}
+            >
+              {currentUser.progress}%
+            </span>
+          </button>
+        )}
       </div>
     </header>
   );

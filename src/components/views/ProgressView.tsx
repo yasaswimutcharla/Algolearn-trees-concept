@@ -261,7 +261,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
   // Automatically record & persist timestamps for actual completion activity
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('tree_dsa_timeline_timestamps');
+      const saved = getUserItem(effectiveUserId, 'timeline_timestamps');
       const existing: Record<string, number> = saved ? JSON.parse(saved) : {};
       let changed = false;
 
