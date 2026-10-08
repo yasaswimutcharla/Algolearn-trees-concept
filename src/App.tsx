@@ -120,28 +120,22 @@ export default function App() {
     let isMounted = true;
 
     const initializeLessonVideo = async () => {
-      // 1. First check client IndexedDB for any custom uploaded video file
+      // Clean up any legacy blob URL in localStorage
       try {
-        const localData = await loadVideoFromStorage();
-        if (localData && localData.blob && isMounted) {
-          const url = URL.createObjectURL(localData.blob);
-          setUploadedVideoUrl(url);
-          setUploadedVideoName(localData.name || PUBLIC_LESSON_VIDEO_NAME);
-          setUploadedVideoSize(localData.size || PUBLIC_LESSON_VIDEO_SIZE);
-          return;
+        const savedUrl = localStorage.getItem('tree_dsa_video_url');
+        if (savedUrl && savedUrl.startsWith('blob:')) {
+          localStorage.removeItem('tree_dsa_video_url');
         }
-      } catch (err) {
-        console.warn('Could not load video from IndexedDB:', err);
-      }
+      } catch {}
 
-      // 2. Second check server public video status
+      // Check server video status for accurate metadata
       try {
         const res = await fetch('/api/video-status');
         if (res.ok) {
           const data = await res.json();
           if (data.hasVideo && isMounted) {
             const safeName = data.name && !data.name.toLowerCase().includes('whatsapp') ? data.name : PUBLIC_LESSON_VIDEO_NAME;
-            setUploadedVideoUrl(data.url || PUBLIC_LESSON_VIDEO_URL);
+            setUploadedVideoUrl(PUBLIC_LESSON_VIDEO_URL);
             setUploadedVideoName(safeName);
             setUploadedVideoSize(data.size || PUBLIC_LESSON_VIDEO_SIZE);
             return;
