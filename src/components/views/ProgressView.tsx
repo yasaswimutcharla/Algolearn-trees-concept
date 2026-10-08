@@ -996,13 +996,11 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
                 <span className={`font-bold text-sm sm:text-base truncate ${
                   isDarkMode ? 'text-slate-100' : 'text-black'
                 }`}>
-                  {propVideoName || 'Visual Lesson Video'}
+                  Tree DSA Complete Visual Lesson
                 </span>
               </div>
               <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-blue-900'}`}>
-                {propVideoName
-                  ? `Video: ${propVideoName}${propVideoSize ? ` (${propVideoSize})` : ''}`
-                  : 'No video uploaded yet. Go to the Visualize page to upload your video.'}
+                Complete interactive visual lesson covering Tree fundamentals and BST.
               </p>
             </div>
           </div>

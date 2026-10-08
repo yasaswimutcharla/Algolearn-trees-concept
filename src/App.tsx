@@ -31,7 +31,7 @@ import {
 // Permanent public lesson video bundled with the app
 const PUBLIC_LESSON_VIDEO_URL = '/videos/lesson.mp4';
 const PUBLIC_LESSON_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
-const PUBLIC_LESSON_VIDEO_SIZE = '11.0 MB';
+const PUBLIC_LESSON_VIDEO_SIZE = '1.3 MB';
 
 export default function App() {
   const [currentNav, setCurrentNav] = useState<NavItem>('home');
@@ -78,7 +78,7 @@ export default function App() {
   const [uploadedVideoName, setUploadedVideoName] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('tree_dsa_video_name');
-      if (saved) return saved;
+      if (saved && !saved.toLowerCase().includes('whatsapp')) return saved;
     } catch {}
     return PUBLIC_LESSON_VIDEO_NAME;
   });
@@ -140,8 +140,9 @@ export default function App() {
         if (res.ok) {
           const data = await res.json();
           if (data.hasVideo && isMounted) {
+            const safeName = data.name && !data.name.toLowerCase().includes('whatsapp') ? data.name : PUBLIC_LESSON_VIDEO_NAME;
             setUploadedVideoUrl(data.url || PUBLIC_LESSON_VIDEO_URL);
-            setUploadedVideoName(data.name || PUBLIC_LESSON_VIDEO_NAME);
+            setUploadedVideoName(safeName);
             setUploadedVideoSize(data.size || PUBLIC_LESSON_VIDEO_SIZE);
             return;
           }
@@ -518,14 +519,6 @@ export default function App() {
           }`}
         />
       </div>
-      {/* Left edge trigger zone: when cursor hovers on the left edge/navigation section, reveals the sidebar */}
-      {!isSidebarOpen && (
-        <div
-          onMouseEnter={() => setIsSidebarOpen(true)}
-          className="fixed top-0 bottom-0 left-0 w-3 z-40 cursor-pointer pointer-events-auto"
-          title="Move cursor here to reveal navigation menu"
-        />
-      )}
 
       {/* Left-Side Navigation Sidebar */}
       <NavigationSidebar
@@ -604,7 +597,6 @@ export default function App() {
               isVideoCompleted={isVideoCompleted}
               onToggleVideoCompleted={handleToggleVideoCompleted}
               onUploadVideo={handleUploadVideo}
-              onRemoveVideo={handleRemoveVideo}
               isUploadingVideo={isUploadingVideo}
               uploadStatus={uploadStatus}
             />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface FloatingChatButtonProps {
   isDarkMode?: boolean;
@@ -6,21 +6,33 @@ interface FloatingChatButtonProps {
 }
 
 export const FloatingChatButton: React.FC<FloatingChatButtonProps> = () => {
+  // Clear any legacy arbitrary dragged coordinates so the icon is always reliably visible
+  useEffect(() => {
+    try {
+      localStorage.removeItem('algolearn_chat_x');
+      localStorage.removeItem('algolearn_chat_y');
+    } catch {}
+  }, []);
+
   return (
-    <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end pointer-events-none select-none">
-      {/* Decorative AlgoLearn Assistant Icon (Static display only, non-interactive) */}
+    <div
+      id="floating-chat-bubble-container"
+      /* Positioned at the right corner, elevated above the bottom control bar so it NEVER covers the square full-screen button or player options */
+      className="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-30 flex flex-col items-end select-none pointer-events-auto transition-all duration-200"
+    >
+      {/* Exact AlgoLearn Assistant Icon matching provided design */}
       <div
         id="floating-chat-bubble-icon"
         title="AlgoLearn Assistant"
         aria-label="AlgoLearn Assistant"
-        className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-xl drop-shadow-md select-none"
+        className="relative w-13 h-13 sm:w-15 sm:h-15 rounded-full flex items-center justify-center shadow-2xl drop-shadow-lg select-none hover:scale-105 active:scale-95 transition-transform cursor-pointer"
       >
-        {/* Exact gradient circle with centered white hollow speech bubble outline matching the image */}
+        {/* Exact gradient circle with centered white hollow speech bubble outline */}
         <svg
           viewBox="0 0 100 100"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full drop-shadow-lg"
+          className="w-full h-full drop-shadow-md pointer-events-none"
         >
           <defs>
             <linearGradient id="userChatCircleGrad" x1="12%" y1="12%" x2="88%" y2="88%">

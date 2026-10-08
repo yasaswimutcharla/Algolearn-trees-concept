@@ -54,15 +54,15 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
     }
   })();
 
-  // Activity counts matching Screenshot (105)
-  const totalActivities = 24;
+  // Activity counts matching lesson curriculum
+  const totalActivities = 17;
   const learnTotal = 6;
-  const vizTotal = 3;
+  const vizTotal = 1;
   const quizTotal = 10;
 
   // Real dynamic completion
   const learnCompleted = Math.min(completedTopics.length, learnTotal);
-  const vizCompleted = Math.min((isVideoDone ? 1 : 0) + completedVisualizations.length, vizTotal);
+  const vizCompleted = isVideoDone ? 1 : (completedVisualizations.length > 0 ? 1 : 0);
   const quizCompleted = quizProgress ? Math.min(quizProgress.completed, quizTotal) : (() => {
     try {
       const raw = getUserItem(effectiveUserId, 'quiz_progress');
@@ -109,6 +109,17 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
     }
   };
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   return (
     <>
       {/* Mobile Backdrop (when sidebar is open on small screens) */}
@@ -148,11 +159,17 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           {/* Close Button matching clean X in Screenshot (105) */}
           <button
             id="sidebar-close-btn"
-            onClick={onClose}
-            title="Close Sidebar"
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
+            title="Close Navigation Menu"
+            aria-label="Close Navigation Menu"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 

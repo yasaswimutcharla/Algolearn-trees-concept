@@ -10,13 +10,11 @@ import {
   Minimize,
   RotateCcw,
   RotateCw,
-  Upload,
   Video as VideoIcon,
   CheckCircle2,
   Circle,
-  FileVideo,
-  Sparkles,
-  Loader2
+  Scan,
+  Maximize2
 } from 'lucide-react';
 
 interface VisualizeViewProps {
@@ -27,37 +25,27 @@ interface VisualizeViewProps {
   videoSize?: string;
   isVideoCompleted?: boolean;
   onToggleVideoCompleted?: () => void;
+  // Kept optional for backward compatibility
   onUploadVideo?: (file: File) => void;
-  onRemoveVideo?: () => void;
   isUploadingVideo?: boolean;
   uploadStatus?: string;
 }
 
 const PUBLIC_LESSON_VIDEO_URL = '/videos/lesson.mp4';
 const PUBLIC_LESSON_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
-const PUBLIC_LESSON_VIDEO_SIZE = '11.0 MB';
 
 export const VisualizeView: React.FC<VisualizeViewProps> = ({
   isDarkMode,
   userId,
   videoUrl,
-  videoName,
-  videoSize,
   isVideoCompleted = false,
   onToggleVideoCompleted,
-  onUploadVideo,
-  onRemoveVideo,
-  isUploadingVideo = false,
-  uploadStatus = ''
 }) => {
   const effectiveUserId = userId || getActiveUserId();
   const activeVideoUrl = videoUrl || PUBLIC_LESSON_VIDEO_URL;
-  const activeVideoName = videoName || PUBLIC_LESSON_VIDEO_NAME;
-  const activeVideoSize = videoSize || PUBLIC_LESSON_VIDEO_SIZE;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [videoLoadError, setVideoError] = useState<boolean>(false);
@@ -67,8 +55,10 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-  const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [showControls, setShowControls] = useState<boolean>(true);
+  
+  // Fill Mode: 'contain' (fits whole video inside) or 'cover' (fills 100% of screen, eliminating black letterbox borders)
+  const [fitMode, setFitMode] = useState<'contain' | 'cover'>('cover');
   const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Restore and remember last playback timestamp across navigation and reloads
@@ -96,14 +86,51 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
     setVideoError(false);
   }, [activeVideoUrl]);
 
-  // Sync fullscreen change event
+  // Synchronize fullscreen events from browser and native video players
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isDocFull = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      setIsFullscreen(isDocFull);
+      if (!isDocFull) {
+        document.body.style.overflow = '';
+      }
     };
+
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    const vid = videoRef.current as any;
+    const onWebkitBegin = () => {
+      setIsFullscreen(true);
+      document.body.style.overflow = 'hidden';
+    };
+    const onWebkitEnd = () => {
+      setIsFullscreen(false);
+      document.body.style.overflow = '';
+    };
+
+    if (vid) {
+      vid.addEventListener('webkitbeginfullscreen', onWebkitBegin);
+      vid.addEventListener('webkitendfullscreen', onWebkitEnd);
+    }
+
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+      if (vid) {
+        vid.removeEventListener('webkitbeginfullscreen', onWebkitBegin);
+        vid.removeEventListener('webkitendfullscreen', onWebkitEnd);
+      }
+      document.body.style.overflow = '';
     };
   }, []);
 
@@ -183,32 +210,83 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
     }
   };
 
-  // Fullscreen toggle
+  // Toggle between 100% Full Screen Fill (cover) and Fitted (contain)
+  const toggleFitMode = () => {
+    setFitMode((prev) => (prev === 'cover' ? 'contain' : 'cover'));
+  };
+
+  // Cross-browser Fullscreen toggle (Container + Video native + Viewport fallback)
   const toggleFullscreen = () => {
-    if (!playerContainerRef.current) return;
+    const elem = playerContainerRef.current as any;
+    const vid = videoRef.current as any;
+
     if (!isFullscreen) {
-      const elem = playerContainerRef.current as any;
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen().then(() => {
-          setIsFullscreen(true);
-        }).catch(() => {
-          setIsFullscreen(true);
-        });
-      } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-        setIsFullscreen(true);
-      } else {
-        setIsFullscreen(true);
+      setIsFullscreen(true);
+      document.body.style.overflow = 'hidden';
+
+      // 1. Try modern standard requestFullscreen on player container
+      if (elem) {
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen().catch(() => {
+            // Container fullscreen denied or restricted by iframe/environment -> try video element
+            if (vid) {
+              if (vid.requestFullscreen) {
+                vid.requestFullscreen().catch(() => {});
+              } else if (vid.webkitEnterFullscreen) {
+                vid.webkitEnterFullscreen();
+              }
+            }
+          });
+          return;
+        } else if (elem.webkitRequestFullscreen) {
+          try {
+            elem.webkitRequestFullscreen();
+            return;
+          } catch {}
+        } else if (elem.mozRequestFullScreen) {
+          try {
+            elem.mozRequestFullScreen();
+            return;
+          } catch {}
+        } else if (elem.msRequestFullscreen) {
+          try {
+            elem.msRequestFullscreen();
+            return;
+          } catch {}
+        }
+      }
+
+      // 2. Fallback to video element fullscreen (e.g. iOS Safari)
+      if (vid) {
+        if (vid.requestFullscreen) {
+          vid.requestFullscreen().catch(() => {});
+        } else if (vid.webkitEnterFullscreen) {
+          vid.webkitEnterFullscreen();
+        } else if (vid.webkitRequestFullscreen) {
+          vid.webkitRequestFullscreen();
+        }
       }
     } else {
-      if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
+      // Exit fullscreen
+      setIsFullscreen(false);
+      document.body.style.overflow = '';
+
+      if (
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      ) {
         if (document.exitFullscreen) {
           document.exitFullscreen().catch(() => {});
         } else if ((document as any).webkitExitFullscreen) {
           (document as any).webkitExitFullscreen();
+        } else if ((document as any).mozCancelFullScreen) {
+          (document as any).mozCancelFullScreen();
+        } else if ((document as any).msExitFullscreen) {
+          (document as any).msExitFullscreen();
         }
       }
-      setIsFullscreen(false);
     }
   };
 
@@ -222,45 +300,6 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
       hideControlsTimerRef.current = setTimeout(() => {
         setShowControls(false);
       }, 3000);
-    }
-  };
-
-  // File upload handlers
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files[0] && onUploadVideo) {
-      onUploadVideo(files[0]);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0] && onUploadVideo) {
-      const file = e.dataTransfer.files[0];
-      if (file.type.startsWith('video/') || file.name.match(/\.(mp4|webm|mov|ogg|mkv)$/i)) {
-        onUploadVideo(file);
-      } else {
-        alert('Please select a valid video file (MP4, WebM, MOV, etc.).');
-      }
-    }
-  };
-
-  // Trigger hidden file picker
-  const triggerUpload = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-      fileInputRef.current.click();
     }
   };
 
@@ -281,6 +320,9 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
     } else if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
       toggleFullscreen();
+    } else if (e.key === 'z' || e.key === 'Z') {
+      e.preventDefault();
+      toggleFitMode();
     } else if (e.key === 'Escape' && isFullscreen) {
       e.preventDefault();
       toggleFullscreen();
@@ -293,20 +335,11 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
     <div
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      className="max-w-5xl mx-auto space-y-6 py-2 outline-none"
+      className="w-full max-w-7xl mx-auto space-y-6 py-2 outline-none"
     >
-      {/* Hidden File Input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="video/*"
-        onChange={handleFileChange}
-        className="hidden"
-      />
-
       {/* Header Section */}
       <div
-        className={`p-6 sm:p-8 rounded-3xl border transition-all duration-200 ${
+        className={`p-6 sm:p-7 rounded-3xl border transition-all duration-200 ${
           isDarkMode
             ? 'bg-[#0e1424] border-violet-900/40 text-slate-100 shadow-xl shadow-violet-950/30'
             : 'bg-white border-blue-100 text-black shadow-sm'
@@ -314,28 +347,26 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold font-mono uppercase tracking-wider text-violet-400 mb-2">
+            <div className="flex items-center gap-2 text-xs font-bold font-mono uppercase tracking-wider text-violet-400 mb-1.5">
               <VideoIcon className="w-4 h-4" />
-              <span>VIDEO LEARNING SECTION</span>
+              <span>VISUAL LESSON</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              {activeVideoName || 'Tree Visual Lesson Video'}
+              {PUBLIC_LESSON_VIDEO_NAME}
             </h1>
             <p className="text-xs sm:text-sm mt-1.5 opacity-80 leading-relaxed max-w-2xl">
-              {activeVideoName
-                ? `Loaded: ${activeVideoName}${activeVideoSize ? ` • ${activeVideoSize}` : ''}`
-                : 'Upload and play your visual lesson video to explore tree data structures.'}
+              Complete interactive visual lesson covering Tree fundamentals, Binary Search Tree properties, and traversals.
             </p>
           </div>
 
           {/* Action Badges & Buttons */}
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             {/* Completion Status Toggle */}
-            {onToggleVideoCompleted && activeVideoUrl && (
+            {onToggleVideoCompleted && (
               <button
                 id="btn-visualize-toggle-completed"
                 onClick={onToggleVideoCompleted}
-                className={`flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-xl border transition-all cursor-pointer shadow-sm ${
+                className={`flex items-center gap-1.5 text-xs font-medium px-3.5 py-2.5 rounded-xl border transition-all cursor-pointer shadow-sm ${
                   isVideoCompleted
                     ? isDarkMode
                       ? 'text-[#A78BFA] bg-violet-950/70 border-violet-700/60 font-semibold'
@@ -360,338 +391,316 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               </button>
             )}
 
-            {/* Uploading indicator */}
-            {isUploadingVideo && (
-              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-violet-600/30 border border-violet-500/50 text-violet-200 animate-pulse">
-                <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
-                <span>Saving video...</span>
-              </div>
-            )}
-
-            {/* Upload / Change Video Button (Always available to user) */}
+            {/* 100% Screen Fill Toggle Button */}
             <button
-              id="btn-visualize-upload-video"
-              onClick={triggerUpload}
-              disabled={isUploadingVideo}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm ${
+              onClick={toggleFitMode}
+              className={`px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm border ${
+                fitMode === 'cover'
+                  ? isDarkMode
+                    ? 'bg-violet-900/60 border-violet-700 text-violet-200 font-bold'
+                    : 'bg-indigo-100 border-indigo-300 text-indigo-900 font-bold'
+                  : isDarkMode
+                  ? 'bg-zinc-900/70 border-zinc-800 text-slate-300 hover:bg-zinc-800'
+                  : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+              }`}
+              title={fitMode === 'cover' ? 'Currently 100% Screen Fill (click to fit letterbox)' : 'Currently Fit (click to 100% fill screen)'}
+            >
+              <Scan className="w-3.5 h-3.5" />
+              <span>{fitMode === 'cover' ? '100% Screen Fill: ON' : '100% Screen Fill: OFF'}</span>
+            </button>
+
+            {/* Dedicated Full Screen Button */}
+            <button
+              id="btn-visualize-fullscreen"
+              onClick={toggleFullscreen}
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm ${
                 isDarkMode
                   ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/50'
                   : 'bg-[#6D3DF5] hover:bg-[#5B2FD9] text-white shadow-indigo-100'
               }`}
-              title={activeVideoUrl ? 'Change current video' : 'Upload video file'}
+              title={isFullscreen ? 'Exit Full Screen' : 'View 100% Full Screen'}
             >
-              <Upload className="w-3.5 h-3.5" />
-              <span>{activeVideoUrl ? 'Change Video' : 'Upload Video'}</span>
+              {isFullscreen ? (
+                <>
+                  <Minimize className="w-3.5 h-3.5" />
+                  <span>Exit Full Screen</span>
+                </>
+              ) : (
+                <>
+                  <Maximize className="w-3.5 h-3.5" />
+                  <span>Full Screen</span>
+                </>
+              )}
             </button>
-
-            {/* Remove video button */}
-            {activeVideoUrl && onRemoveVideo && (
-              <button
-                id="btn-visualize-remove-video"
-                onClick={onRemoveVideo}
-                className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${
-                  isDarkMode
-                    ? 'border-zinc-800 bg-zinc-900/60 hover:bg-rose-950/40 hover:border-rose-800 text-zinc-300 hover:text-rose-300'
-                    : 'border-slate-200 bg-slate-100 hover:bg-rose-50 hover:border-rose-200 text-slate-700 hover:text-rose-700'
-                }`}
-                title="Remove current video"
-              >
-                <span>Remove</span>
-              </button>
-            )}
           </div>
         </div>
 
-        {/* Upload feedback banner */}
-        {uploadStatus && (
-          <div className="mt-3 px-3.5 py-2 rounded-xl bg-violet-600/20 border border-violet-500/40 text-xs font-medium text-violet-200 flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-violet-400 shrink-0" />
-            <span>{uploadStatus}</span>
-          </div>
-        )}
-
-        {/* Keyboard shortcuts row if video exists */}
-        {activeVideoUrl && (
-          <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-violet-950/40 text-xs opacity-70">
-            <span>Keyboard shortcuts: Space (Play/Pause) • M (Mute) • F (Fullscreen) • Left/Right (Seek 5s)</span>
-          </div>
-        )}
+        {/* Keyboard shortcuts row */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3.5 border-t border-violet-950/40 text-xs opacity-75">
+          <span>Shortcuts: Space (Play/Pause) • M (Mute) • F (Full Screen) • Z (100% Fill Screen Toggle) • Left/Right (Seek 5s) • Double Click (Full Screen)</span>
+        </div>
       </div>
 
-      {/* Main Video Learning Section */}
-      {activeVideoUrl ? (
-        <div
-          ref={playerContainerRef}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={() => isPlaying && setShowControls(false)}
-          className={`transition-all duration-300 select-none ${
-            isFullscreen
-              ? 'fixed inset-0 z-50 w-screen h-screen bg-black rounded-none border-none flex flex-col justify-between overflow-hidden'
-              : `relative rounded-3xl overflow-hidden border shadow-2xl bg-black ${
-                  isDarkMode ? 'border-violet-900/50 shadow-violet-950/40' : 'border-blue-200 shadow-blue-200/40'
-                }`
-          }`}
-        >
-          {/* Floating Exit Fullscreen Button in top right */}
-          {isFullscreen && (
+      {/* Main Full-Size Video Learning Section */}
+      <div
+        ref={playerContainerRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => isPlaying && setShowControls(false)}
+        style={
+          isFullscreen
+            ? {
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: '100vw',
+                height: '100vh',
+                zIndex: 99999,
+                margin: 0,
+                borderRadius: 0,
+              }
+            : undefined
+        }
+        className={`transition-all duration-300 select-none ${
+          isFullscreen
+            ? 'fixed inset-0 z-[99999] w-screen h-screen bg-black rounded-none border-none flex flex-col justify-between overflow-hidden'
+            : `relative w-full rounded-3xl overflow-hidden border shadow-2xl bg-black ${
+                isDarkMode ? 'border-violet-900/50 shadow-violet-950/50' : 'border-blue-200 shadow-blue-200/50'
+              }`
+        }`}
+      >
+        {/* Floating Exit Fullscreen and Fill Toggle Buttons in top right */}
+        {isFullscreen && (
+          <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+            <button
+              onClick={toggleFitMode}
+              className="p-2.5 rounded-full bg-black/80 hover:bg-black text-white border border-white/20 transition-all cursor-pointer shadow-2xl backdrop-blur-md flex items-center gap-1.5 px-3 text-xs font-semibold"
+              title="Toggle between 100% Fill Screen and Fit"
+            >
+              <Scan className="w-4 h-4" />
+              <span>{fitMode === 'cover' ? '100% Fill' : 'Fit Frame'}</span>
+            </button>
             <button
               onClick={toggleFullscreen}
-              className="absolute top-4 right-4 z-40 p-2.5 rounded-full bg-black/70 hover:bg-black text-white border border-white/20 transition-all cursor-pointer shadow-xl backdrop-blur-md"
-              title="Exit Fullscreen (Esc)"
+              className="p-2.5 rounded-full bg-black/80 hover:bg-black text-white border border-white/20 transition-all cursor-pointer shadow-2xl backdrop-blur-md"
+              title="Exit Fullscreen (Esc or F)"
             >
               <Minimize className="w-5 h-5" />
             </button>
-          )}
-
-          {/* Native Video Element */}
-          <div className={`relative w-full flex items-center justify-center bg-black overflow-hidden ${
-            isFullscreen ? 'h-full w-full max-h-none flex-1' : 'min-h-[380px] max-h-[620px] aspect-video'
-          }`}>
-            <video
-              ref={videoRef}
-              src={activeVideoUrl}
-              onClick={togglePlay}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              onTimeUpdate={() => {
-                if (videoRef.current) {
-                   const t = videoRef.current.currentTime;
-                   setCurrentTime(t);
-                   try {
-                     setUserItem(effectiveUserId, 'video_last_time', String(t));
-                   } catch {}
-                }
-              }}
-              onLoadedMetadata={() => {
-                if (videoRef.current) {
-                  setDuration(videoRef.current.duration);
-                }
-              }}
-              onEnded={() => {
-                setIsPlaying(false);
-                try {
-                  removeUserItem(effectiveUserId, 'video_last_time');
-                } catch {}
-                if (onToggleVideoCompleted && !isVideoCompleted) {
-                  onToggleVideoCompleted();
-                }
-              }}
-              onError={() => {
-                setVideoError(true);
-                setIsPlaying(false);
-              }}
-              className={`${
-                isFullscreen
-                  ? 'w-full h-full max-w-none max-h-none object-contain'
-                  : 'max-h-[600px] max-w-full w-auto h-auto object-contain'
-              } cursor-pointer`}
-            />
-
-            {/* Error Overlay if video format or source fails */}
-            {videoLoadError && (
-              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/90 p-6 text-center">
-                <div className="w-12 h-12 rounded-full bg-rose-950/80 border border-rose-800 text-rose-400 flex items-center justify-center mb-3">
-                  <RotateCcw className="w-6 h-6" />
-                </div>
-                <p className="text-sm font-semibold text-white mb-1">Unable to load this video</p>
-                <p className="text-xs text-slate-400 max-w-sm mb-4">
-                  Please select or re-upload your video file.
-                </p>
-                <button
-                  type="button"
-                  onClick={triggerUpload}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white flex items-center gap-2 cursor-pointer shadow-lg"
-                >
-                  <Upload className="w-4 h-4" />
-                  <span>Choose Video File</span>
-                </button>
-              </div>
-            )}
-
-            {/* Big Center Play Button Overlay (when paused and no error) */}
-            {!isPlaying && !videoLoadError && (
-              <button
-                onClick={togglePlay}
-                className="absolute z-20 w-20 h-20 rounded-full bg-violet-600/90 hover:bg-violet-500 text-white flex items-center justify-center shadow-2xl shadow-violet-900/70 backdrop-blur-sm transition-transform transform hover:scale-110 cursor-pointer"
-                title="Play Video"
-              >
-                <Play className="w-8 h-8 ml-1 fill-current" />
-              </button>
-            )}
           </div>
+        )}
 
-          {/* Video Control Bar Overlay */}
-          <div
-            className={`absolute bottom-0 left-0 right-0 z-30 px-4 py-3 bg-gradient-to-t from-black/95 via-black/80 to-transparent transition-opacity duration-300 ${
-              showControls || !isPlaying ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-            }`}
-          >
-            {/* Seek Bar / Progress Slider */}
-            <div className="relative group flex items-center w-full mb-3 cursor-pointer">
-              <div className="relative w-full h-1.5 group-hover:h-2 bg-slate-700/80 rounded-full overflow-hidden transition-all">
-                <div
-                  className="h-full bg-violet-500 transition-all rounded-full"
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={duration || 100}
-                step={0.1}
-                value={currentTime}
-                onChange={handleSeek}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                title="Seek timeline"
-              />
-            </div>
-
-            {/* Bottom Controls Row: Play/Pause, Skip, Time, Volume, Speed, Fullscreen */}
-            <div className="flex items-center justify-between gap-2 text-white">
-              {/* Left Controls: Play/Pause, Rewind, FastForward, Time Display */}
-              <div className="flex items-center gap-2 sm:gap-3">
-                <button
-                  onClick={togglePlay}
-                  className="p-2 rounded-xl hover:bg-white/15 transition-colors cursor-pointer text-white"
-                  title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
-                >
-                  {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
-                </button>
-
-                <button
-                  onClick={() => skip(-10)}
-                  className="p-1.5 rounded-xl hover:bg-white/15 transition-colors cursor-pointer text-slate-300 hover:text-white"
-                  title="Rewind 10 seconds"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-
-                <button
-                  onClick={() => skip(10)}
-                  className="p-1.5 rounded-xl hover:bg-white/15 transition-colors cursor-pointer text-slate-300 hover:text-white"
-                  title="Forward 10 seconds"
-                >
-                  <RotateCw className="w-4 h-4" />
-                </button>
-
-                {/* Time Display */}
-                <div className="text-xs font-mono font-medium text-slate-200 tracking-tight ml-1">
-                  <span>{formatTime(currentTime)}</span>
-                  <span className="opacity-50 mx-1">/</span>
-                  <span className="opacity-70">{formatTime(duration)}</span>
-                </div>
-              </div>
-
-              {/* Right Controls: Volume, Speed, Fullscreen */}
-              <div className="flex items-center gap-2 sm:gap-3">
-                {/* Volume Controls */}
-                <div className="flex items-center gap-1.5 group">
-                  <button
-                    onClick={toggleMute}
-                    className="p-1.5 rounded-xl hover:bg-white/15 transition-colors cursor-pointer text-slate-200 hover:text-white"
-                    title={isMuted ? 'Unmute (M)' : 'Mute (M)'}
-                  >
-                    {isMuted || volume === 0 ? (
-                      <VolumeX className="w-4 h-4" />
-                    ) : volume < 0.5 ? (
-                      <Volume1 className="w-4 h-4" />
-                    ) : (
-                      <Volume2 className="w-4 h-4" />
-                    )}
-                  </button>
-
-                  <input
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.05}
-                    value={isMuted ? 0 : volume}
-                    onChange={handleVolumeChange}
-                    className="w-16 sm:w-20 h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-violet-500"
-                    title="Volume slider"
-                  />
-                </div>
-
-                {/* Playback Speed Toggle */}
-                <button
-                  onClick={cyclePlaybackSpeed}
-                  className="px-2 py-1 rounded-lg hover:bg-white/15 text-xs font-mono font-bold text-slate-200 hover:text-white transition-colors cursor-pointer"
-                  title="Change playback speed"
-                >
-                  {playbackSpeed}x
-                </button>
-
-                {/* Fullscreen Button */}
-                <button
-                  onClick={toggleFullscreen}
-                  className="p-1.5 rounded-xl hover:bg-white/15 transition-colors cursor-pointer text-slate-200 hover:text-white"
-                  title={isFullscreen ? 'Exit Fullscreen (F)' : 'Fullscreen (F)'}
-                >
-                  {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* Upload Drag & Drop Zone (When no video is uploaded yet) */
+        {/* Video Canvas Container */}
         <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={triggerUpload}
-          className={`p-10 sm:p-14 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center text-center transition-all cursor-pointer group ${
-            isDragOver
-              ? 'border-violet-500 bg-violet-950/30 scale-[1.01]'
-              : isDarkMode
-              ? 'border-violet-900/50 hover:border-violet-600 bg-[#0b101e] hover:bg-[#0e1426]'
-              : 'border-blue-200 hover:border-blue-400 bg-blue-50/40 hover:bg-blue-50/80'
+          className={`relative w-full flex items-center justify-center bg-black overflow-hidden ${
+            isFullscreen ? 'h-full w-full max-h-none flex-1' : 'min-h-[460px] sm:min-h-[560px] lg:min-h-[640px] aspect-video w-full'
           }`}
         >
-          {isUploadingVideo ? (
-            <div className="flex flex-col items-center justify-center py-6">
-              <Loader2 className="w-12 h-12 animate-spin text-violet-400 mb-4" />
-              <h3 className="text-lg font-bold text-violet-200 mb-1">Saving Video Lesson...</h3>
-              <p className="text-xs text-violet-300/80 max-w-sm">
-                Uploading and storing video file.
-              </p>
-            </div>
-          ) : (
-            <>
-              <div
-                className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${
-                  isDarkMode
-                    ? 'bg-violet-950/70 border border-violet-800/60 text-violet-400 shadow-xl shadow-violet-950/50'
-                    : 'bg-violet-100 border border-violet-200 text-[#6D3DF5]'
-                }`}
-              >
-                <VideoIcon className="w-8 h-8" />
+          <video
+            ref={videoRef}
+            src={activeVideoUrl}
+            onClick={togglePlay}
+            onDoubleClick={toggleFullscreen}
+            playsInline
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onTimeUpdate={() => {
+              if (videoRef.current) {
+                const t = videoRef.current.currentTime;
+                setCurrentTime(t);
+                try {
+                  setUserItem(effectiveUserId, 'video_last_time', String(t));
+                } catch {}
+              }
+            }}
+            onLoadedMetadata={() => {
+              if (videoRef.current) {
+                setDuration(videoRef.current.duration);
+              }
+            }}
+            onEnded={() => {
+              setIsPlaying(false);
+              try {
+                removeUserItem(effectiveUserId, 'video_last_time');
+              } catch {}
+              if (onToggleVideoCompleted && !isVideoCompleted) {
+                onToggleVideoCompleted();
+              }
+            }}
+            onError={() => {
+              setVideoError(true);
+              setIsPlaying(false);
+            }}
+            className={`w-full h-full transition-all duration-300 ${
+              fitMode === 'cover' ? 'object-cover' : 'object-contain'
+            } cursor-pointer`}
+          />
+
+          {/* Error / Reload Overlay */}
+          {videoLoadError && (
+            <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/90 p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-violet-950/80 border border-violet-800 text-violet-400 flex items-center justify-center mb-3">
+                <RotateCcw className="w-6 h-6" />
               </div>
-
-              <h3 className="text-lg sm:text-xl font-black tracking-tight mb-1">
-                Upload Your Video File
-              </h3>
-              <p className="text-xs sm:text-sm max-w-md opacity-75 mb-6 leading-relaxed">
-                Drag and drop your video file here (MP4, WebM, MOV, MKV) or click to browse.
+              <p className="text-sm font-semibold text-white mb-1">Tree DSA Visual Lesson</p>
+              <p className="text-xs text-slate-400 max-w-sm mb-4">
+                Click below to reload the visual lesson video.
               </p>
-
               <button
                 type="button"
-                className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md ${
-                  isDarkMode
-                    ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/60'
-                    : 'bg-[#6D3DF5] hover:bg-[#5B2FD9] text-white shadow-violet-200'
-                }`}
+                onClick={() => {
+                  setVideoError(false);
+                  if (videoRef.current) {
+                    videoRef.current.load();
+                    videoRef.current.play().catch(() => {});
+                  }
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white flex items-center gap-2 cursor-pointer shadow-lg"
               >
-                <Upload className="w-4 h-4" />
-                <span>Select Video File</span>
+                <RotateCcw className="w-4 h-4" />
+                <span>Reload Video</span>
               </button>
-            </>
+            </div>
+          )}
+
+          {/* Center Play Button Overlay (when paused and no error) */}
+          {!isPlaying && !videoLoadError && (
+            <button
+              onClick={togglePlay}
+              className="absolute z-20 w-20 h-20 rounded-full bg-violet-600/90 hover:bg-violet-500 text-white flex items-center justify-center shadow-2xl shadow-violet-900/70 backdrop-blur-sm transition-transform transform hover:scale-110 cursor-pointer"
+              title="Play Video"
+            >
+              <Play className="w-8 h-8 ml-1 fill-current" />
+            </button>
           )}
         </div>
-      )}
 
+        {/* Video Control Bar Overlay */}
+        <div
+          className={`absolute bottom-0 left-0 right-0 z-40 px-4 py-3 bg-gradient-to-t from-black/95 via-black/80 to-transparent transition-opacity duration-300 ${
+            showControls || !isPlaying ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          {/* Seek Bar / Progress Slider */}
+          <div className="relative group flex items-center w-full mb-3 cursor-pointer">
+            <div className="relative w-full h-1.5 group-hover:h-2 bg-slate-700/80 rounded-full overflow-hidden transition-all">
+              <div
+                className="h-full bg-violet-500 transition-all rounded-full"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={duration || 100}
+              step={0.1}
+              value={currentTime}
+              onChange={handleSeek}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              title="Seek timeline"
+            />
+          </div>
 
+          {/* Bottom Controls Row */}
+          <div className="flex items-center justify-between gap-2 text-white">
+            {/* Left Controls: Play/Pause, Rewind, FastForward, Time Display */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={togglePlay}
+                className="p-2 rounded-xl hover:bg-white/15 transition-colors cursor-pointer text-white"
+                title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+              >
+                {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+              </button>
+
+              <button
+                onClick={() => skip(-10)}
+                className="p-1.5 rounded-xl hover:bg-white/15 transition-colors cursor-pointer text-slate-300 hover:text-white"
+                title="Rewind 10 seconds"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => skip(10)}
+                className="p-1.5 rounded-xl hover:bg-white/15 transition-colors cursor-pointer text-slate-300 hover:text-white"
+                title="Forward 10 seconds"
+              >
+                <RotateCw className="w-4 h-4" />
+              </button>
+
+              {/* Time Display */}
+              <div className="text-xs font-mono font-medium text-slate-200 tracking-tight ml-1">
+                <span>{formatTime(currentTime)}</span>
+                <span className="opacity-50 mx-1">/</span>
+                <span className="opacity-70">{formatTime(duration)}</span>
+              </div>
+            </div>
+
+            {/* Right Controls: Volume, Speed, 100% Fill Toggle, Fullscreen */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Volume Controls */}
+              <div className="flex items-center gap-1.5 group">
+                <button
+                  onClick={toggleMute}
+                  className="p-1.5 rounded-xl hover:bg-white/15 transition-colors cursor-pointer text-slate-200 hover:text-white"
+                  title={isMuted ? 'Unmute (M)' : 'Mute (M)'}
+                >
+                  {isMuted || volume === 0 ? (
+                    <VolumeX className="w-4 h-4" />
+                  ) : volume < 0.5 ? (
+                    <Volume1 className="w-4 h-4" />
+                  ) : (
+                    <Volume2 className="w-4 h-4" />
+                  )}
+                </button>
+
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={isMuted ? 0 : volume}
+                  onChange={handleVolumeChange}
+                  className="w-16 sm:w-20 h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-violet-500"
+                  title="Volume slider"
+                />
+              </div>
+
+              {/* Playback Speed Toggle */}
+              <button
+                onClick={cyclePlaybackSpeed}
+                className="px-2 py-1 rounded-lg hover:bg-white/15 text-xs font-mono font-bold text-slate-200 hover:text-white transition-colors cursor-pointer"
+                title="Change playback speed"
+              >
+                {playbackSpeed}x
+              </button>
+
+              {/* 100% Screen Fill Toggle in controls */}
+              <button
+                onClick={toggleFitMode}
+                className={`p-1.5 rounded-xl transition-colors cursor-pointer ${
+                  fitMode === 'cover' ? 'bg-violet-600/80 text-white' : 'hover:bg-white/15 text-slate-300 hover:text-white'
+                }`}
+                title={fitMode === 'cover' ? 'Currently 100% Screen Fill (click to show full letterboxed frame)' : 'Click to 100% Fill Screen'}
+              >
+                <Scan className="w-4 h-4" />
+              </button>
+
+              {/* Fullscreen Button */}
+              <button
+                id="btn-player-fullscreen-toggle"
+                onClick={toggleFullscreen}
+                className="p-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white transition-all cursor-pointer shadow-lg border border-violet-400/50 ml-1 shrink-0"
+                title={isFullscreen ? 'Exit Full Screen (F)' : 'Full Screen (F)'}
+              >
+                {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

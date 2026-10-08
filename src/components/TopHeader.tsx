@@ -65,7 +65,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           <button
             id="header-hamburger-btn"
             onClick={onToggleSidebar}
-            onMouseEnter={() => onToggleSidebar()}
             title="Open Navigation Menu (☰)"
             className={`p-2 rounded-xl transition-all cursor-pointer ${
               isDarkMode
