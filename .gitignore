@@ -6,4 +6,10 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Video and public assets must always be tracked in Git
+!public/
+!public/videos/
+!public/videos/*
 !public/videos/**
+!*.mp4

@@ -1,0 +1,30 @@
+{
+  "userId": "user_muzj4dwx_qcapl7ctcb2kg4",
+  "displayName": "Learner muzj",
+  "avatar": "🌳",
+  "progress": 0,
+  "xp": 0,
+  "score": 0,
+  "completedTopics": [],
+  "completedVisualizations": [],
+  "quizScore": null,
+  "quizProgress": {
+    "completed": 0,
+    "total": 10
+  },
+  "quizState": null,
+  "gameScore": 0,
+  "gameXP": 0,
+  "achievements": [],
+  "videoCompleted": false,
+  "learningStreak": 0,
+  "timelineTimestamps": {},
+  "joinedTime": 1791463513724,
+  "currentNav": "home",
+  "currentTopicId": "basics",
+  "settings": {
+    "isDarkMode": true,
+    "isSoundOn": true
+  },
+  "lastUpdated": 1791464204291
+}

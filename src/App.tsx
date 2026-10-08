@@ -29,7 +29,7 @@ import {
 } from './utils/userStorage';
 
 // Permanent public lesson video bundled with the app
-const PUBLIC_LESSON_VIDEO_URL = '/videos/lesson.mp4';
+const PUBLIC_LESSON_VIDEO_URL = '/videos/lesson.mp4?v=2';
 const PUBLIC_LESSON_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
 const PUBLIC_LESSON_VIDEO_SIZE = '1.3 MB';
 
@@ -117,55 +117,44 @@ export default function App() {
   });
   const [showVisualizeVideo, setShowVisualizeVideo] = useState<boolean>(false);
 
-  // Persist video information to localStorage so it survives page reloads seamlessly
+  // Clean up any legacy or temporary blob video URLs from localStorage and IndexedDB
   useEffect(() => {
     try {
-      if (uploadedVideoUrl && !uploadedVideoUrl.startsWith('blob:')) {
-        localStorage.setItem('tree_dsa_video_url', uploadedVideoUrl);
-      }
-      if (uploadedVideoName) {
-        localStorage.setItem('tree_dsa_video_name', uploadedVideoName);
-      }
-      if (uploadedVideoSize) {
-        localStorage.setItem('tree_dsa_video_size', uploadedVideoSize);
+      localStorage.removeItem('tree_dsa_video_url');
+      localStorage.removeItem('tree_dsa_video_name');
+      localStorage.removeItem('tree_dsa_video_size');
+      if (typeof window !== 'undefined' && window.indexedDB) {
+        window.indexedDB.deleteDatabase('TreeDsaVideoDB');
       }
     } catch {}
-  }, [uploadedVideoUrl, uploadedVideoName, uploadedVideoSize]);
+  }, []);
 
-  // Restore stored user video on startup: first check local IndexedDB, then check server, else public video
+  // Restore stored user video metadata on startup (safely handles both local dev server and static deployments)
   useEffect(() => {
     let isMounted = true;
 
     const initializeLessonVideo = async () => {
-      // Clean up any legacy blob URL in localStorage
-      try {
-        const savedUrl = localStorage.getItem('tree_dsa_video_url');
-        if (savedUrl && savedUrl.startsWith('blob:')) {
-          localStorage.removeItem('tree_dsa_video_url');
-        }
-      } catch {}
+      // Ensure canonical video URL is always public static asset
+      setUploadedVideoUrl(PUBLIC_LESSON_VIDEO_URL);
+      setUploadedVideoName(PUBLIC_LESSON_VIDEO_NAME);
+      setUploadedVideoSize(PUBLIC_LESSON_VIDEO_SIZE);
 
-      // Check server video status for accurate metadata
+      // Check server video status for metadata if API is present (e.g. Express server)
       try {
         const res = await fetch('/api/video-status');
         if (res.ok) {
-          const data = await res.json();
-          if (data.hasVideo && isMounted) {
-            const safeName = data.name && !data.name.toLowerCase().includes('whatsapp') ? data.name : PUBLIC_LESSON_VIDEO_NAME;
-            setUploadedVideoUrl(PUBLIC_LESSON_VIDEO_URL);
-            setUploadedVideoName(safeName);
-            setUploadedVideoSize(data.size || PUBLIC_LESSON_VIDEO_SIZE);
-            return;
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await res.json();
+            if (data?.hasVideo && isMounted) {
+              const safeName = data.name && !data.name.toLowerCase().includes('whatsapp') ? data.name : PUBLIC_LESSON_VIDEO_NAME;
+              setUploadedVideoName(safeName);
+              setUploadedVideoSize(data.size || PUBLIC_LESSON_VIDEO_SIZE);
+            }
           }
         }
       } catch {
-        // Fallback to static public video
-      }
-
-      if (isMounted) {
-        setUploadedVideoUrl(PUBLIC_LESSON_VIDEO_URL);
-        setUploadedVideoName(PUBLIC_LESSON_VIDEO_NAME);
-        setUploadedVideoSize(PUBLIC_LESSON_VIDEO_SIZE);
+        // Fallback safely to static public video
       }
     };
 
@@ -642,14 +631,11 @@ export default function App() {
             <VisualizeView
               isDarkMode={isDarkMode}
               userId={currentUser.userId}
-              videoUrl={uploadedVideoUrl}
-              videoName={uploadedVideoName}
-              videoSize={uploadedVideoSize}
+              videoUrl={PUBLIC_LESSON_VIDEO_URL}
+              videoName={PUBLIC_LESSON_VIDEO_NAME}
+              videoSize={PUBLIC_LESSON_VIDEO_SIZE}
               isVideoCompleted={isVideoCompleted}
               onToggleVideoCompleted={handleToggleVideoCompleted}
-              onUploadVideo={handleUploadVideo}
-              isUploadingVideo={isUploadingVideo}
-              uploadStatus={uploadStatus}
             />
           )}
 

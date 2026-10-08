@@ -12,9 +12,7 @@ import {
   RotateCw,
   Video as VideoIcon,
   CheckCircle2,
-  Circle,
-  Scan,
-  Maximize2
+  Circle
 } from 'lucide-react';
 
 interface VisualizeViewProps {
@@ -31,7 +29,7 @@ interface VisualizeViewProps {
   uploadStatus?: string;
 }
 
-const PUBLIC_LESSON_VIDEO_URL = '/videos/lesson.mp4';
+const PUBLIC_LESSON_VIDEO_URL = '/videos/lesson.mp4?v=2';
 const PUBLIC_LESSON_VIDEO_NAME = 'Tree DSA Complete Visual Lesson';
 
 export const VisualizeView: React.FC<VisualizeViewProps> = ({
@@ -56,30 +54,14 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [showControls, setShowControls] = useState<boolean>(true);
-  
-  // Fill Mode: 'contain' (fits whole video inside) or 'cover' (fills 100% of screen, eliminating black letterbox borders)
-  const [fitMode, setFitMode] = useState<'contain' | 'cover'>('cover');
   const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Restore and remember last playback timestamp across navigation and reloads
+  // Reset any legacy cached time so video always plays from start
   useEffect(() => {
     try {
-      const savedTime = parseFloat(getUserItem(effectiveUserId, 'video_last_time') || '0');
-      if (savedTime > 0 && videoRef.current) {
-        const onLoaded = () => {
-          if (videoRef.current && savedTime < (videoRef.current.duration || 10000)) {
-            videoRef.current.currentTime = savedTime;
-            setCurrentTime(savedTime);
-          }
-        };
-        if (videoRef.current.readyState >= 1) {
-          onLoaded();
-        } else {
-          videoRef.current.addEventListener('loadedmetadata', onLoaded, { once: true });
-        }
-      }
+      removeUserItem(effectiveUserId, 'video_last_time');
     } catch {}
-  }, [activeVideoUrl, effectiveUserId]);
+  }, [effectiveUserId]);
 
   // Reset error state on URL change
   useEffect(() => {
@@ -210,11 +192,6 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
     }
   };
 
-  // Toggle between 100% Full Screen Fill (cover) and Fitted (contain)
-  const toggleFitMode = () => {
-    setFitMode((prev) => (prev === 'cover' ? 'contain' : 'cover'));
-  };
-
   // Cross-browser Fullscreen toggle (Container + Video native + Viewport fallback)
   const toggleFullscreen = () => {
     const elem = playerContainerRef.current as any;
@@ -320,9 +297,6 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
     } else if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
       toggleFullscreen();
-    } else if (e.key === 'z' || e.key === 'Z') {
-      e.preventDefault();
-      toggleFitMode();
     } else if (e.key === 'Escape' && isFullscreen) {
       e.preventDefault();
       toggleFullscreen();
@@ -391,25 +365,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               </button>
             )}
 
-            {/* 100% Screen Fill Toggle Button */}
-            <button
-              onClick={toggleFitMode}
-              className={`px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm border ${
-                fitMode === 'cover'
-                  ? isDarkMode
-                    ? 'bg-violet-900/60 border-violet-700 text-violet-200 font-bold'
-                    : 'bg-indigo-100 border-indigo-300 text-indigo-900 font-bold'
-                  : isDarkMode
-                  ? 'bg-zinc-900/70 border-zinc-800 text-slate-300 hover:bg-zinc-800'
-                  : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
-              }`}
-              title={fitMode === 'cover' ? 'Currently 100% Screen Fill (click to fit letterbox)' : 'Currently Fit (click to 100% fill screen)'}
-            >
-              <Scan className="w-3.5 h-3.5" />
-              <span>{fitMode === 'cover' ? '100% Screen Fill: ON' : '100% Screen Fill: OFF'}</span>
-            </button>
-
-            {/* Dedicated Full Screen Button */}
+            {/* Full Screen Button replacing 100% Screen Fill */}
             <button
               id="btn-visualize-fullscreen"
               onClick={toggleFullscreen}
@@ -418,7 +374,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
                   ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-950/50'
                   : 'bg-[#6D3DF5] hover:bg-[#5B2FD9] text-white shadow-indigo-100'
               }`}
-              title={isFullscreen ? 'Exit Full Screen' : 'View 100% Full Screen'}
+              title={isFullscreen ? 'Exit Full Screen' : 'View Full Screen'}
             >
               {isFullscreen ? (
                 <>
@@ -437,7 +393,7 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
 
         {/* Keyboard shortcuts row */}
         <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3.5 border-t border-violet-950/40 text-xs opacity-75">
-          <span>Shortcuts: Space (Play/Pause) • M (Mute) • F (Full Screen) • Z (100% Fill Screen Toggle) • Left/Right (Seek 5s) • Double Click (Full Screen)</span>
+          <span>Shortcuts: Space (Play/Pause) • M (Mute) • F (Full Screen) • Left/Right (Seek 5s) • Double Click (Full Screen)</span>
         </div>
       </div>
 
@@ -470,17 +426,9 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               }`
         }`}
       >
-        {/* Floating Exit Fullscreen and Fill Toggle Buttons in top right */}
+        {/* Floating Exit Fullscreen Button in top right */}
         {isFullscreen && (
           <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
-            <button
-              onClick={toggleFitMode}
-              className="p-2.5 rounded-full bg-black/80 hover:bg-black text-white border border-white/20 transition-all cursor-pointer shadow-2xl backdrop-blur-md flex items-center gap-1.5 px-3 text-xs font-semibold"
-              title="Toggle between 100% Fill Screen and Fit"
-            >
-              <Scan className="w-4 h-4" />
-              <span>{fitMode === 'cover' ? '100% Fill' : 'Fit Frame'}</span>
-            </button>
             <button
               onClick={toggleFullscreen}
               className="p-2.5 rounded-full bg-black/80 hover:bg-black text-white border border-white/20 transition-all cursor-pointer shadow-2xl backdrop-blur-md"
@@ -498,11 +446,15 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
           }`}
         >
           <video
+            key={activeVideoUrl}
             ref={videoRef}
             src={activeVideoUrl}
+            poster="/videos/poster.jpg"
+            controls
+            playsInline
+            preload="metadata"
             onClick={togglePlay}
             onDoubleClick={toggleFullscreen}
-            playsInline
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
             onTimeUpdate={() => {
@@ -532,10 +484,14 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
               setVideoError(true);
               setIsPlaying(false);
             }}
-            className={`w-full h-full transition-all duration-300 ${
-              fitMode === 'cover' ? 'object-cover' : 'object-contain'
-            } cursor-pointer`}
-          />
+            className="w-full h-full transition-all duration-300 object-contain cursor-pointer"
+          >
+            <source src={activeVideoUrl} type="video/mp4" />
+            {typeof window !== 'undefined' && (import.meta as any).env?.BASE_URL && (import.meta as any).env.BASE_URL !== '/' && (
+              <source src={`${((import.meta as any).env.BASE_URL as string).replace(/\/$/, '')}${activeVideoUrl}`} type="video/mp4" />
+            )}
+            Your browser does not support the video tag.
+          </video>
 
           {/* Error / Reload Overlay */}
           {videoLoadError && (
@@ -675,17 +631,6 @@ export const VisualizeView: React.FC<VisualizeViewProps> = ({
                 title="Change playback speed"
               >
                 {playbackSpeed}x
-              </button>
-
-              {/* 100% Screen Fill Toggle in controls */}
-              <button
-                onClick={toggleFitMode}
-                className={`p-1.5 rounded-xl transition-colors cursor-pointer ${
-                  fitMode === 'cover' ? 'bg-violet-600/80 text-white' : 'hover:bg-white/15 text-slate-300 hover:text-white'
-                }`}
-                title={fitMode === 'cover' ? 'Currently 100% Screen Fill (click to show full letterboxed frame)' : 'Click to 100% Fill Screen'}
-              >
-                <Scan className="w-4 h-4" />
               </button>
 
               {/* Fullscreen Button */}
